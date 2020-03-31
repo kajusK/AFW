@@ -1,0 +1,4 @@
+coverage
+obj
+*.img
+run_tests

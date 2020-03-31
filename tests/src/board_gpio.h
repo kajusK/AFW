@@ -1,0 +1,1 @@
+#define USART_DEBUG_TX 1
