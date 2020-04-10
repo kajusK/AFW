@@ -40,6 +40,8 @@ OPT = -O0
 CFLAGS = -Wall -Wextra -Wstrict-prototypes -Wundef -Wshadow -Wredundant-decls \
 	-Wno-missing-field-initializers -Wmissing-prototypes -pedantic \
 	-fno-common -ffunction-sections -fdata-sections  \
+	-Wno-missing-field-initializers -Wno-unused-function \
+	-Wno-redundant-decls \
 	-Wimplicit-function-declaration  -fprofile-arcs -ftest-coverage \
 	-DUNITY_FLOAT_VERBOSE \
 	$(CSTD) $(OPT) $(addprefix -I, $(INCLUDES)) \
