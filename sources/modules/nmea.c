@@ -433,6 +433,45 @@ bool Nmea_ParseGga(const char *msg, nmea_gga_t *gga)
     return true;
 }
 
+bool Nmea_ParseGsv(const char *msg, nmea_gsv_t *gsv)
+{
+    char type[6];
+    int messages, msg_id, visible;
+    int sv[4][4];
+    int i;
+    bool ret;
+
+    if (!Nmea_VerifyMessage(msg)) {
+        return false;
+    }
+    /* $GPGSV,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D */
+    ret = Nmeai_Scan(msg, "siiiiiiiiiiiiiiiiiii",
+            type, &messages, &msg_id, &visible,
+            &sv[0][0], &sv[0][1], &sv[0][2], &sv[0][3],
+            &sv[1][0], &sv[1][1], &sv[1][2], &sv[1][3],
+            &sv[2][0], &sv[2][1], &sv[2][2], &sv[2][3],
+            &sv[3][0], &sv[3][1], &sv[3][2], &sv[3][3]);
+    if (!ret || strncmp(type+2, "GSV", 3) != 0) {
+        return false;
+    }
+
+    gsv->messages = messages;
+    gsv->msg_id = msg_id;
+    gsv->visible = visible;
+    for (i = 0; i < 4; i++) {
+        if (sv[i][0] == -1) {
+            break;
+        }
+        gsv->sv[i].prn = sv[i][0];
+        gsv->sv[i].elevation = sv[i][1];
+        gsv->sv[i].azimuth = sv[i][2];
+        gsv->sv[i].snr = sv[i][3];
+    }
+    gsv->count = i;
+
+    return true;
+}
+
 nmea_type_t Nmea_GetSentenceType(const char *msg)
 {
     /* skip $GP part of the message */
@@ -442,6 +481,9 @@ nmea_type_t Nmea_GetSentenceType(const char *msg)
     }
     if (strncmp("GGA", msg, 3) == 0) {
         return NMEA_SENTENCE_GGA;
+    }
+    if (strncmp("GSV", msg, 3) == 0) {
+        return NMEA_SENTENCE_GSV;
     }
 
     return NMEA_SENTENCE_UNKNOWN;

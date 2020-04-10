@@ -48,6 +48,14 @@ typedef struct {
     int32_t scale;
 } nmea_float_t;
 
+/** Satellite in view info */
+typedef struct {
+    uint8_t prn;
+    uint8_t elevation;
+    uint16_t azimuth;
+    uint8_t snr;
+} nmea_sv_info_t;
+
 typedef struct {
     nmea_time_t fix_time;
     bool valid;
@@ -70,10 +78,19 @@ typedef struct {
     nmea_float_t above_ellipsoid_m;
 } nmea_gga_t;
 
+typedef struct {
+    uint8_t messages;
+    uint8_t msg_id;
+    uint8_t visible;
+    uint8_t count;
+    nmea_sv_info_t sv[4];
+} nmea_gsv_t;
+
 typedef enum {
     NMEA_SENTENCE_UNKNOWN,
     NMEA_SENTENCE_RMC,
     NMEA_SENTENCE_GGA,
+    NMEA_SENTENCE_GSV,
 } nmea_type_t;
 
 /**
@@ -109,6 +126,15 @@ extern bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc);
  * @return True if succeeded
  */
 extern bool Nmea_ParseGga(const char *msg, nmea_gga_t *gga);
+
+/**
+ * Parse NMEA GSV message into structure
+ *
+ * @param msg   Message
+ * @param rmc   Structure to parse data to
+ * @return True if succeeded
+ */
+extern bool Nmea_ParseGsv(const char *msg, nmea_gsv_t *gsv);
 
 /**
  * Get type of the NMEA message

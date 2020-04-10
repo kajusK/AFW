@@ -221,6 +221,39 @@ TEST(NMEA, ParseGga)
     TEST_ASSERT_EQUAL(10, gga.above_ellipsoid_m.scale);
 }
 
+TEST(NMEA, ParseGsv)
+{
+    nmea_gsv_t gsv;
+
+    TEST_ASSERT_FALSE(Nmea_ParseGsv(
+            "$GPGSF,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D",
+            &gsv));
+
+    TEST_ASSERT_TRUE(Nmea_ParseGsv(
+            "$GPGSV,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D",
+            &gsv));
+
+    TEST_ASSERT_EQUAL(3, gsv.messages);
+    TEST_ASSERT_EQUAL(3, gsv.msg_id);
+    TEST_ASSERT_EQUAL(11, gsv.visible);
+    TEST_ASSERT_EQUAL(3, gsv.count);
+
+    TEST_ASSERT_EQUAL(22, gsv.sv[0].prn);
+    TEST_ASSERT_EQUAL(42, gsv.sv[0].elevation);
+    TEST_ASSERT_EQUAL(67, gsv.sv[0].azimuth);
+    TEST_ASSERT_EQUAL(42, gsv.sv[0].snr);
+
+    TEST_ASSERT_EQUAL(24, gsv.sv[1].prn);
+    TEST_ASSERT_EQUAL(14, gsv.sv[1].elevation);
+    TEST_ASSERT_EQUAL(311, gsv.sv[1].azimuth);
+    TEST_ASSERT_EQUAL(43, gsv.sv[1].snr);
+
+    TEST_ASSERT_EQUAL(27, gsv.sv[2].prn);
+    TEST_ASSERT_EQUAL(5, gsv.sv[2].elevation);
+    TEST_ASSERT_EQUAL(244, gsv.sv[2].azimuth);
+    TEST_ASSERT_EQUAL(0, gsv.sv[2].snr);
+}
+
 TEST(NMEA, GetSentenceType)
 {
     TEST_ASSERT_EQUAL(NMEA_SENTENCE_RMC, Nmea_GetSentenceType(
@@ -228,6 +261,9 @@ TEST(NMEA, GetSentenceType)
 
     TEST_ASSERT_EQUAL(NMEA_SENTENCE_GGA, Nmea_GetSentenceType(
         "$GPGGA,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,*76"));
+
+    TEST_ASSERT_EQUAL(NMEA_SENTENCE_GSV, Nmea_GetSentenceType(
+        "$GPGSV,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D"));
 
     TEST_ASSERT_EQUAL(NMEA_SENTENCE_UNKNOWN, Nmea_GetSentenceType(
         "$GPFOO,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,"));
@@ -266,6 +302,7 @@ TEST_GROUP_RUNNER(NMEA)
     RUN_TEST_CASE(NMEA, VerifyMsg);
     RUN_TEST_CASE(NMEA, ParseRmc);
     RUN_TEST_CASE(NMEA, ParseGga);
+    RUN_TEST_CASE(NMEA, ParseGsv);
     RUN_TEST_CASE(NMEA, GetSentenceType);
     RUN_TEST_CASE(NMEA, AddChar);
 }
