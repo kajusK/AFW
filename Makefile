@@ -85,7 +85,7 @@ CFLAGS = -Wall -Wextra -Wstrict-prototypes -Wundef -Wshadow -Wredundant-decls \
 	-Wimplicit-function-declaration  \
 	--specs=nano.specs --specs=nosys.specs \
 	$(CSTD) $(OPT) $(ARCH_FLAGS) $(addprefix -I, $(INCLUDES)) \
-	-I $(OPENCM3_DIR)/include
+	-I $(OPENCM3_DIR)/include -g
 
 LDFLAGS = -T$(LDSCRIPT) -L$(OPENCM3_DIR)/lib $(ARCH_FLAGS) -nostartfiles \
 	  --specs=nano.specs -Wl,--gc-sections -Wl,-Map=$(PROJECT).map -lc
