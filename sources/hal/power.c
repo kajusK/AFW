@@ -64,8 +64,6 @@ void Powerd_EnableDebugging(void)
 
 void Powerd_Sleep(void)
 {
-    /* Wait for exit from lowest priority IRQ */
-    SCB_SCR |= SCB_SCR_SLEEPONEXIT;
     SCB_SCR &= ~SCB_SCR_SLEEPDEEP;
     /* Sleep */
     __WFI();
@@ -78,7 +76,7 @@ void Powerd_Sleep(void)
 
 void Powerd_Stop(void)
 {
-    SCB_SCR |= SCB_SCR_SLEEPONEXIT | SCB_SCR_SLEEPDEEP;
+    SCB_SCR |= SCB_SCR_SLEEPDEEP;
     /* Set stop mode, disable power regulator */
     PWR_CR &= ~PWR_CR_PDDS;
     PWR_CR |= PWR_CR_LPDS;
