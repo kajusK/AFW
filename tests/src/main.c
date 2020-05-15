@@ -40,6 +40,7 @@ static void RunAll(void)
     Log_RunTests();
     AES_RunTests();
     Lora_RunTests();
+    Config_RunTests();
 }
 
 int main(int argc, const char *argv[])
