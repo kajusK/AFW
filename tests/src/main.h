@@ -46,9 +46,10 @@ extern uint8_t assert_should_fail;
 /** assert testing */
 #define ASSERT(exp) \
     _Pragma("GCC diagnostic push") \
-/*    _Pragma("GCC diagnostic warning \"-w\"") */ \
+    _Pragma("GCC diagnostic ignored \"-Wreturn-type\"")  \
     if (assert_should_fail) { \
         TEST_ASSERT_FALSE(exp); \
+        return; \
          \
     } else { \
         TEST_ASSERT_TRUE(exp); \
