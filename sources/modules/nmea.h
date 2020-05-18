@@ -28,6 +28,9 @@
 
 #include <types.h>
 
+/** Maximum value that can be stored in SNR in satellite info */
+#define MAX_SV_SNR 100
+
 /** Date keeping structure, -1 means field is not valid */
 typedef struct {
     int8_t day;
@@ -51,9 +54,9 @@ typedef struct {
 /** Satellite in view info */
 typedef struct {
     uint8_t prn;
-    uint8_t elevation;
-    uint16_t azimuth;
-    uint8_t snr;
+    uint8_t elevation;  /* 0-90 */
+    uint16_t azimuth;   /* 0-359 */
+    uint8_t snr;        /* 0-99 */
 } nmea_sv_info_t;
 
 typedef struct {
