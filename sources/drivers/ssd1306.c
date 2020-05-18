@@ -58,7 +58,7 @@ typedef enum {
  * set data transfer to display ram, followed by raw data, 1 byte equals
  * to 8 vertically arranged pixels
  */
-static uint8_t ssd1306i_fbuf[SSD1306_WIDTH*SSD1306_HEIGHT/8+1];
+static uint8_t ssd1306i_fbuf[(SSD1306_WIDTH+1)*SSD1306_HEIGHT/8];
 
 /**
  * Send graphical data to display
@@ -183,7 +183,7 @@ bool SSD1306_Init(void)
     /* Initialize first item in framebuffer - data command for ssd1306 */
     uint32_t pos;
     for (pos = 0; pos < sizeof(ssd1306i_fbuf); pos += SSD1306_WIDTH + 1) {
-        ssd1306i_fbuf[pos] = 0x40;
+        ssd1306i_fbuf[pos] = SSD1306_START_LINE;
     }
 
     IOd_SetLine(LINE_SSD1306_RES, 0);
