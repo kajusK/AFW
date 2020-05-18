@@ -111,6 +111,16 @@ extern void Cgui_DrawFilledBox(uint16_t x1, uint16_t y1, uint16_t x2,
         uint16_t y2, bool value);
 
 /**
+ * Draw a circle
+ *
+ * @param center_x  Center X position
+ * @param center_y  Center Y position
+ * @param radius    Circle radius
+ */
+extern void Cgui_DrawCircle(uint16_t center_x, uint16_t centery_y,
+        uint16_t radius);
+
+/**
  * Draw rectangular filled box
  *
  * @param pos_x    Upper left corner

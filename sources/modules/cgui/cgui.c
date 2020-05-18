@@ -39,7 +39,7 @@ static cgui_display_t cguii_disp;
  * @param num   Number to be printed
  * @return      Amount of characters printed
  */
-static uint8_t Cgui_PrintNum(uint16_t x, uint16_t y, int num)
+static uint8_t Cguii_PrintNum(uint16_t x, uint16_t y, int num)
 {
     char buf[16];
     uint8_t chars = 0;
@@ -71,6 +71,27 @@ static uint8_t Cgui_PrintNum(uint16_t x, uint16_t y, int num)
         chars += 1;
     }
     return chars;
+}
+
+/**
+ * Draw points in all 8 45degree wide parts of the circle
+ *
+ * @param center_x  X position of the circle center
+ * @param center_y  Y position of the circle center
+ * @param x         x distance from the center
+ * @param y         y distance from the center
+ */
+static void Cguii_DrawPartCircle(uint16_t center_x, uint16_t center_y,
+        int16_t x, int16_t y)
+{
+    cguii_disp.draw(center_x + x, center_y + y, true);
+    cguii_disp.draw(center_x + x, center_y - y, true);
+    cguii_disp.draw(center_x - x, center_y + y, true);
+    cguii_disp.draw(center_x - x, center_y - y, true);
+    cguii_disp.draw(center_x + y, center_y + x, true);
+    cguii_disp.draw(center_x + y, center_y - x, true);
+    cguii_disp.draw(center_x - y, center_y + x, true);
+    cguii_disp.draw(center_x - y, center_y - x, true);
 }
 
 
@@ -152,6 +173,25 @@ void Cgui_DrawFilledBox(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2,
         for (y = y1; y <= y2; y++) {
             cguii_disp.draw(x, y, value);
         }
+    }
+}
+
+void Cgui_DrawCircle(uint16_t center_x, uint16_t center_y, uint16_t radius)
+{
+    int16_t x = 0, y = radius;
+    int16_t d = 3 - 2*radius;
+
+    /* Bresenham's algorithm */
+    Cguii_DrawPartCircle(center_x, center_y, x, y);
+    while (x <= y) {
+        x++;
+        if (d > 0) {
+            y--;
+            d = d + 4 * (x - y) + 10;
+        } else {
+            d = d + 4 * x + 6;
+        }
+        Cguii_DrawPartCircle(center_x, center_y, x, y);
     }
 }
 
@@ -278,7 +318,7 @@ void Cgui_Printf(uint16_t px, uint16_t py, const char *fmt, ...)
                 x += strlen(str)*Cgui_GetFontWidth();
                 break;
             case 'd':
-                chars = Cgui_PrintNum(x, y, va_arg(ap, int));
+                chars = Cguii_PrintNum(x, y, va_arg(ap, int));
                 x += chars*Cgui_GetFontWidth();
                 break;
             default:
