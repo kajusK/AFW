@@ -26,12 +26,9 @@
 #ifndef __UTILS_ASSERT_H
 #define __UTILS_ASSERT_H
 
-#include "modules/log.h"
-
 #ifndef ASSERT
     #define ASSERT(condition) \
         if (!(condition)) { \
-            Log_Error("ASSERT", "Assertion failed in "__FILE__", line %d", __LINE__); \
             while (1); \
         }
 #endif
