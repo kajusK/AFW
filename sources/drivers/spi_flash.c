@@ -196,7 +196,6 @@ void SpiFlash_Read(uint32_t addr, uint8_t *buf, size_t len)
 void SpiFlash_Write(uint32_t addr, const uint8_t *buf, size_t len)
 {
     uint16_t bytes;
-    size_t offset = 0;
 
     /* up to 256 bytes in single write */
     while (len != 0) {
