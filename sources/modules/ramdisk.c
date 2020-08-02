@@ -16,13 +16,13 @@
  */
 
 /**
- * @file    drivers/ramdisk.h
+ * @file    modules/ramdisk.h
  * @brief   RAMdisk emulation with on the fly file creation, uses FAT16
  *
  * FAT16 description http://www.maverick-os.dk/FileSystemFormats/FAT16_FileSystem.html
  * http://www.tavi.co.uk/phobos/fat.html
  *
- * @addtogroup drivers
+ * @addtogroup modules
  * @{
  */
 
@@ -38,7 +38,7 @@
 
 /* Do not change below defines */
 /* bytes in sector */
-#define SECTOR_SIZE 512U
+#define SECTOR_SIZE 512
 #define CLUSTER_SIZE    (SECTOR_SIZE*SECTORS_PER_CLUSTER)
 /* Size of single entry in directory */
 #define DIR_ENTRY_SIZE 32
@@ -61,30 +61,59 @@
     #error Too many files for ramdisk defined
 #endif
 
+/** Directory entry FAT16 structure */
+typedef struct {
+    char filename[8];       /**< Filename, zero padded, [0]=0x00 stop search */
+    char extension[3];
+    uint8_t attribute;
+    uint8_t reserved;
+    uint8_t creation;
+    uint16_t creation_time;
+    uint16_t creation_date;
+    uint16_t last_access_date;
+    uint16_t reserved2;
+    uint16_t last_write_time;
+    uint16_t last_write_date;
+    uint16_t start_cluster;
+    uint32_t file_size;
+} __attribute__((__packed__)) fat_dir_entry_t;
+
 /** Type for virtual files */
 typedef struct {
-    char name[8];       /** File name (padded with spaces) */
-    char extension[3];  /** File extension */
-    uint8_t time[2];    /** Time created in fat format */
-    uint8_t date[2];    /** Date created in fat format */
-    uint8_t attr;       /** File attributes */
-    uint32_t size;      /** File size in bytes */
-    uint16_t cluster;   /** First cluster of the file */
-    ramdisk_read_t read;/** Function called upon read requests or NULL */
-    const char *content;/** Text content of the file when read is NULL */
+    uint8_t name[8];       /**< File name (padded with spaces) */
+    uint8_t extension[3];  /**< File extension */
+    uint8_t time[2];        /**< Time created in fat format */
+    uint8_t date[2];        /**< Date created in fat format */
+    uint8_t attr;           /**< File attributes */
+    uint32_t size;          /**< File size in bytes */
+    uint16_t cluster;       /**< First cluster of the file */
+    ramdisk_read_t read;    /**< Function called upon read requests or NULL */
+    const char *content;    /**< Text content of the file when read is NULL */
 } ramdisk_file_t;
 
+/** Ramdisk parameters */
 typedef struct {
-    uint32_t sectors_count; /* size of volume in sectors */
-    uint16_t fat_sectors;   /* size of fat table in sectors */
-    char name[11];          /* volume label */
+    uint32_t sectors_count; /**< Size of volume in sectors */
+    uint16_t fat_sectors;   /**< Size of fat table in sectors */
+    char name[11];          /**< Volume label */
 } ramdisk_info_t;
+
+/** Info about a new file being written to ramdisk */
+typedef struct {
+    char name[9];       /**< File name including termination character */
+    char extension[4];  /**< File extension including termination character */
+    uint32_t size;      /**< File size in bytes */
+    uint16_t cluster;   /**< Start cluster */
+} ramdisk_write_file_t;
 
 /** Files shown in ramdisk, if name starts with 0, file is ignored */
 static ramdisk_file_t ramdiski_files[RAMDISK_MAX_FILES];
 
 /** Parameters of the ramdisk that are calculated during runtime */
 static ramdisk_info_t ramdiski_info;
+
+/** Write file callback */
+static ramdisk_write_file_cb_t ramdiski_write_file_cb;
 
 /** FAT16 Boot sector header */
 static const uint8_t fat16i_boot_sector[] = {
@@ -104,7 +133,7 @@ static const uint8_t fat16i_boot_sector[] = {
     FAT_4BYTES(0), /* Hidden sectors */
     FAT_4BYTES(0), /* Large number of sectors, partitions >32Mb, overridden in code */
     /* Extended bios parameters block */
-    0x00, /* Drive number */
+    0x80, /* Drive number */
     0x00, /* Reserved */
     0x29, /* Extended boot signature */
     FAT_4BYTES(0xdeadbeef), /* Volume serial number */
@@ -166,12 +195,12 @@ static void Ramdiski_ReadTextFile(int id, uint32_t offset, uint8_t *buf)
  * @param read          Function to read data from file or NULL
  * @param content       String content of the file if read is NULL
  *
- * @return  True if succeeded (enough virtual space in ramdisk)
+ * @return  id of the file added or -1 if failed
  */
-static bool Ramdiski_AddFile(const char *filename, const char *extension,
+static int Ramdiski_AddFile(const char *filename, const char *extension,
         time_t time, size_t size, ramdisk_read_t read, const char *content)
 {
-    int id;
+    uint16_t id;
     struct tm *s_tm;
     uint32_t cluster = 2;
 
@@ -186,22 +215,22 @@ static bool Ramdiski_AddFile(const char *filename, const char *extension,
                 ramdiski_files[id].size/CLUSTER_SIZE + 1;
     }
     if (id >= RAMDISK_MAX_FILES) {
-        return false;
+        return -1;
     }
 
     /* check if there's enough clusters for the file */
     if (cluster + size/CLUSTER_SIZE >= 0xffef) {
-        return false;
+        return -1;
     }
 
     /* Set filename, pad with spaces */
-    strncpy(ramdiski_files[id].name, filename, 8);
+    strncpy((char *)ramdiski_files[id].name, filename, 8);
     for (size_t i = 7; i >= strlen(filename); i--) {
         ramdiski_files[id].name[i] = ' ';
     }
 
     /* Set file extension, pad with spaces */
-    strncpy(ramdiski_files[id].extension, extension, 3);
+    strncpy((char *)ramdiski_files[id].extension, extension, 3);
     for (size_t i = 2; i >= strlen(extension); i--) {
         ramdiski_files[id].extension[i] = ' ';
     }
@@ -219,12 +248,12 @@ static bool Ramdiski_AddFile(const char *filename, const char *extension,
 
     ramdiski_files[id].cluster = cluster;
     ramdiski_files[id].size = size;
-    ramdiski_files[id].attr = 0x01; /* read only */
+    ramdiski_files[id].attr = 0x21; /* archive, read only */
     ramdiski_files[id].read = read;
     if (read == NULL) {
         ramdiski_files[id].content = content;
     }
-    return true;
+    return id;
 }
 
 /**
@@ -237,76 +266,45 @@ static bool Ramdiski_AddFile(const char *filename, const char *extension,
  */
 static void Ramdiski_GetRootDirectory(uint8_t *buf, uint32_t block)
 {
-    int id;
-    uint16_t offset = 0;
-    uint16_t start;
+    uint16_t id;
+    uint16_t skip;  /* amount of dir entries to skip */
+    fat_dir_entry_t *entry = (fat_dir_entry_t *) buf;
 
     memset(buf, 0x00, SECTOR_SIZE);
     /* First entry in the root directory is the volume label */
     if (block == 0) {
-        memcpy(&buf[offset], ramdiski_info.name, 11);
-        buf[offset+11] = 0x08; /* volume label attribute */
-        offset += 32;
-        start = 0;
+        memcpy(buf, ramdiski_info.name, 11);
+        buf[11] = 0x08;     /* volume label attribute */
+        entry += 1;
+        skip = 0;
     } else {
-        /* first entry taken by the volume label entry */
-        start = (SECTOR_SIZE/DIR_ENTRY_SIZE)*block - 1;
+        /*
+         * Amount of files already contained in previous blocks
+         * (-1 for volume label)
+         */
+        skip = (SECTOR_SIZE/DIR_ENTRY_SIZE)*block - 1;
     }
 
     /* Each record is 32 bytes wide, so it aligns to 512B sectors nicely */
-    for (id = start; id < RAMDISK_MAX_FILES && offset < SECTOR_SIZE; id++) {
-        if (ramdiski_files[id].name[0] == 0x00) {
-            return;
-        }
-        memcpy(&buf[offset], ramdiski_files[id].name, 8);
-        memcpy(&buf[offset+8], ramdiski_files[id].extension, 3);
-        buf[offset+11] = ramdiski_files[id].attr;
-        memcpy(&buf[offset+22], ramdiski_files[id].time, 2);
-        memcpy(&buf[offset+24], ramdiski_files[id].date, 2);
-        Ramdiski_To2Bytes(ramdiski_files[id].cluster, &buf[offset+26]);
-        Ramdiski_To4Bytes(ramdiski_files[id].size, &buf[offset+28]);
-        offset += 32;
-    }
-}
-
-/**
- * Writing to root directory handler
- *
- * Only file creation is allowed, upon file creation, user callback is triggered
- * and file record is added to list of files
- *
- * @param buf   Data to be written (512 bytes)
- * @param block Block offset relative to the first block of root entries (0-...)
- */
-static void Ramdiski_WriteRootDirectory(uint8_t *buf, uint32_t block)
-{
-    int id = 0;
-    uint16_t offset = 0;
-    uint16_t records = 1;
-
-    for (id = 0; id < RAMDISK_MAX_FILES; id++) {
+    for (id = 0; id < RAMDISK_MAX_FILES && ((uint8_t *)entry - buf) < SECTOR_SIZE; id++) {
         if (ramdiski_files[id].name[0] == 0x00) {
             break;
         }
-    }
-    /* first record is volume name */
-    id++;
-    /* Each record is 32 bytes long */
-    offset = id*32;
+        /* skip files for previous blocks */
+        if (skip != 0) {
+            skip--;
+            continue;
+        }
 
-    /* ignore writes to existing files records */
-    if ((block + 1)*SECTOR_SIZE <= offset) {
-        return;
+        memcpy(entry->filename, ramdiski_files[id].name, 8);
+        memcpy(entry->extension, ramdiski_files[id].extension, 3);
+        entry->attribute = ramdiski_files[id].attr;
+        memcpy(&entry->last_write_time, ramdiski_files[id].time, 2);
+        memcpy(&entry->last_write_date, ramdiski_files[id].date, 2);
+        Ramdiski_To2Bytes(ramdiski_files[id].cluster, (uint8_t *) &entry->start_cluster);
+        Ramdiski_To4Bytes(ramdiski_files[id].size, (uint8_t *) &entry->file_size);
+        entry++;
     }
-
-    /* offset should be multiply of 32 */
-    offset -= block * SECTOR_SIZE;
-    /* File name must not start with 0 = empty record */
-    if (buf[offset] == 0x00) {
-        return;
-    }
-
-    //TODO call file created function
 }
 
 /**
@@ -340,7 +338,7 @@ static void Ramdiski_GetFAT16(uint8_t *buf, uint32_t block)
 
     for (id = 0; id < RAMDISK_MAX_FILES && offset < SECTOR_SIZE; id++) {
         if (ramdiski_files[id].name[0] == 0x00) {
-            return;
+            break;
         }
         /* Skip files which were stored to FAT in previous blocks */
         if (ramdiski_files[id].cluster + ramdiski_files[id].size/CLUSTER_SIZE < cluster) {
@@ -374,7 +372,7 @@ static void Ramdiski_GetFAT16(uint8_t *buf, uint32_t block)
  */
 static void Ramdiski_GetFile(uint8_t *buf, uint32_t block)
 {
-    int id;
+    uint16_t id;
     uint16_t cluster = block / SECTORS_PER_CLUSTER + 2;
     uint32_t offset;
 
@@ -409,15 +407,43 @@ static void Ramdiski_GetFile(uint8_t *buf, uint32_t block)
 /**
  * Writing to data area
  *
- * If data are written outside existing files, user function is called
- * with data and offset from first empty cluster
+ * As the data are written before root directory file entry, assume all
+ * data written in first empty cluster belong to a file being written.
  *
  * @param buf   Data to be written
  * @param block Block offset relative to the first block of data area (0-...)
  */
-static void Ramdiski_WriteData(uint8_t *buf, uint32_t block)
+static void Ramdiski_WriteData(const uint8_t *buf, uint32_t block)
 {
-    //TODO
+    uint16_t cur_cluster = block / SECTORS_PER_CLUSTER + 2;
+    uint16_t last_cluster = 0;
+    uint16_t end_cluster;
+    uint16_t id;
+    uint32_t offset;
+
+    /* Calculate cluster where the last virtual file ends */
+    for (id = 0; id < RAMDISK_MAX_FILES; id++) {
+        if (ramdiski_files[id].name[0] == 0x00) {
+            break;
+        }
+
+        end_cluster = ramdiski_files[id].cluster + ramdiski_files[id].size/CLUSTER_SIZE;
+        if (end_cluster > last_cluster) {
+            last_cluster = end_cluster;
+        }
+    }
+
+    if (last_cluster >= cur_cluster) {
+        /* Trying to write to virtual files area */
+        return;
+    }
+
+    offset = block - (last_cluster + 1 - 2)*SECTORS_PER_CLUSTER;
+    offset *= SECTOR_SIZE;
+
+    if (ramdiski_write_file_cb != NULL) {
+        ramdiski_write_file_cb(buf, SECTOR_SIZE, offset);
+    }
 }
 
 int Ramdisk_Read(uint32_t lba, uint8_t *buf)
@@ -457,30 +483,52 @@ int Ramdisk_Write(uint32_t lba, const uint8_t *buf)
 {
     ASSERT_NOT(buf == NULL);
 
-    if (lba >= FAT1_START_SECTOR && lba < FAT2_START_SECTOR) {
+    if (lba == 0) {
+        /* Boot sector writes are ignored */
+    } else if (lba >= FAT1_START_SECTOR && lba < FAT2_START_SECTOR) {
         /* FAT writes are ignored */
     } else if (lba >= FAT2_START_SECTOR && lba < ROOT_START_SECTOR) {
         /* FAT writes are ignored */
     } else if (lba >= ROOT_START_SECTOR && lba < DATA_START_SECTOR) {
-        Ramdiski_WriteRootDirectory(buf, lba - ROOT_START_SECTOR);
+        /* Root directory writes are ignored */
     } else if (lba >= DATA_START_SECTOR) {
         Ramdiski_WriteData(buf, lba - DATA_START_SECTOR);
     }
     return 0;
 }
 
-bool Ramdisk_AddFile(const char *filename, const char *extension, time_t time,
+int Ramdisk_AddFile(const char *filename, const char *extension, time_t time,
         size_t size, ramdisk_read_t read)
 {
     ASSERT_NOT(read == NULL);
     return Ramdiski_AddFile(filename, extension, time, size, read, NULL);
 }
 
-bool Ramdisk_AddTextFile(const char *filename, const char *extension,
+int Ramdisk_AddTextFile(const char *filename, const char *extension,
         time_t time, const char *text)
 {
     ASSERT_NOT(text == NULL);
     return Ramdiski_AddFile(filename, extension, time, strlen(text), NULL, text);
+}
+
+bool Ramdisk_RenameFile(int handle, const char *filename, const char *extension)
+{
+    if (handle >= RAMDISK_MAX_FILES || ramdiski_files[handle].name[0] == 0x00) {
+        return false;
+    }
+
+    /* Set filename, pad with spaces */
+    strncpy((char *)ramdiski_files[handle].name, filename, 8);
+    for (size_t i = 7; i >= strlen(filename); i--) {
+        ramdiski_files[handle].name[i] = ' ';
+    }
+
+    /* Set file extension, pad with spaces */
+    strncpy((char *)ramdiski_files[handle].extension, extension, 3);
+    for (size_t i = 2; i >= strlen(extension); i--) {
+        ramdiski_files[handle].extension[i] = ' ';
+    }
+    return true;
 }
 
 void Ramdisk_Clear(void)
@@ -491,6 +539,11 @@ void Ramdisk_Clear(void)
 uint32_t Ramdisk_GetSectors(void)
 {
     return ramdiski_info.sectors_count;
+}
+
+void Ramdisk_RegisterWriteCb(ramdisk_write_file_cb_t cb)
+{
+    ramdiski_write_file_cb = cb;
 }
 
 void Ramdisk_Init(size_t size, const char *name)
@@ -506,6 +559,8 @@ void Ramdisk_Init(size_t size, const char *name)
     ramdiski_info.sectors_count = ceil_div(size, SECTOR_SIZE);
     clusters = ceil_div(ramdiski_info.sectors_count, SECTORS_PER_CLUSTER) + 2;
     ramdiski_info.fat_sectors = ceil_div(clusters, SECTOR_SIZE/2);
+
+    /* set volume label, pad with spaces */
     strncpy(ramdiski_info.name, name, sizeof(ramdiski_info.name));
     for (uint8_t i = strlen(name); i < sizeof(ramdiski_info.name); i++) {
         ramdiski_info.name[i] = ' ';
