@@ -32,15 +32,21 @@
 #include "modules/nmea.h"
 
 typedef struct {
-    nmea_float_t lat;   /* In decimal degrees */
-    nmea_float_t lon;   /* In deciaml degrees */
-    int32_t altitude_dm;/* Altitude in dm */
-    int32_t speed_dmh;  /* speed in dm/s */
-    int32_t hdop_dm;    /* location precision */
-    uint8_t satellites; /* Visible satellites */
-    time_t time;        /* Unix time (s since 1.1.1970) of the data received */
-    uint32_t timestamp; /* Millis timestamp when the gps fix was obtained */
+    nmea_float_t lat;   /**< In decimal degrees */
+    nmea_float_t lon;   /**< In deciaml degrees */
+    int32_t altitude_dm;/**< Altitude in dm */
+    int32_t speed_dmh;  /**< speed in dm/s */
+    int32_t hdop_dm;    /**< location precision */
+    uint8_t satellites; /**< Visible satellites */
+    time_t time;        /**< Unix time (s since 1.1.1970) of the data received */
+    uint32_t timestamp; /**< Millis timestamp when the gps fix was obtained */
 } gps_info_t;
+
+typedef struct {
+    uint8_t visible;    /**< Total number of satellites in view */
+    uint8_t count;      /**< Amount of valid records in sat array */
+    nmea_sv_info_t sat[10];
+} gps_sat_t;
 
 /**
  * Put GPS device into low power mode (invalidates currently stored gps info)
@@ -58,6 +64,13 @@ extern void Gps_WakeUp(void);
  * @return Data if any or NULL if no data received yet
  */
 extern gps_info_t *Gps_Get(void);
+
+/**
+ * Get GPS satellite info
+ *
+ * @return Pointer to satellite data
+ */
+extern gps_sat_t *Gps_GetSat(void);
 
 /**
  * Reset GPS recorded data to wait for brand new in loop/get functions

@@ -37,6 +37,7 @@ static ring_t gpsi_ringbuf;
 /** GPS data are valid when set to 0x03, 0 invalid, 1 gga, 2 rmc */
 static uint8_t gpsi_data_valid = 0;
 static gps_info_t gpsi_info;
+static gps_sat_t gpsi_sat;
 
 /**
  * Callback for data received from GPS
@@ -125,6 +126,37 @@ static bool Gpsi_ProcessGga(const char *msg, gps_info_t *info)
     return true;
 }
 
+static void Gpsi_ProcessGsv(const char *msg, gps_sat_t *info)
+{
+    nmea_gsv_t gsv;
+    uint8_t pos;
+    uint8_t count;
+
+    if (!Nmea_ParseGsv(msg, &gsv)) {
+        return;
+    }
+
+    info->visible = gsv.visible;
+
+    for (int i = 0; i < gsv.count; i++) {
+        /* There are up to 4 satellites per message */
+        pos = 4*(gsv.msg_id - 1) + i;
+        if (pos >= sizeof(info->sat)/sizeof(info->sat[0])) {
+            break;
+        }
+
+        info->sat[pos] = gsv.sv[i];
+    }
+
+    if (gsv.messages == gsv.msg_id) {
+        count = (gsv.messages - 1)*4 + gsv.count;
+        if (count > sizeof(info->sat)/sizeof(info->sat[0])) {
+            count = sizeof(info->sat)/sizeof(info->sat[0]);
+        }
+        info->count = count;
+    }
+}
+
 void Gps_Sleep(void)
 {
     gpsi_data_valid = 0;
@@ -143,6 +175,11 @@ gps_info_t *Gps_Get(void)
         return &gpsi_info;
     }
     return NULL;
+}
+
+gps_sat_t *Gps_GetSat(void)
+{
+    return &gpsi_sat;
 }
 
 void Gps_InvalidateData(void)
@@ -172,6 +209,9 @@ gps_info_t *Gps_Loop(void)
                 if (Gpsi_ProcessRmc(msg, &gpsi_info)) {
                     gpsi_data_valid |= 0x02;
                 }
+                break;
+            case NMEA_SENTENCE_GSV:
+                Gpsi_ProcessGsv(msg, &gpsi_sat);
                 break;
             default:
                 break;
