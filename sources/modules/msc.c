@@ -549,9 +549,8 @@ static void msci_data_rx(usbd_device *usbd_dev, uint8_t ep)
         if (left > 0) {
             trans->csw_sent += usbd_ep_write_packet(usbd_dev, ms->ep_in,
                     &((uint8_t *) &trans->csw)[trans->csw_sent], left);
-            if (sizeof(trans->csw) == trans->csw_sent) {
-                scsi_finish_transaction(trans);
-            }
+        } else if (sizeof(trans->csw) == trans->csw_sent) {
+            scsi_finish_transaction(trans);
         }
     }
 }
@@ -588,9 +587,8 @@ static void msci_data_tx(usbd_device *usbd_dev, uint8_t ep)
     if (left > 0) {
         trans->csw_sent += usbd_ep_write_packet(usbd_dev, ep,
                 &((uint8_t *) &trans->csw)[trans->csw_sent], left);
-        if (sizeof(trans->csw) == trans->csw_sent) {
-            scsi_finish_transaction(trans);
-        }
+    } else if (sizeof(trans->csw) == trans->csw_sent) {
+        scsi_finish_transaction(trans);
     }
 }
 
@@ -616,7 +614,6 @@ static enum usbd_request_return_codes msci_control_request(
     switch (req->bRequest) {
         case USB_MSC_REQ_BULK_ONLY_RESET:
             /* Do any special reset code here. */
-            //TODO reset the transaction?
             scsi_finish_transaction(&msci_desc.trans);
             return USBD_REQ_HANDLED;
         case USB_MSC_REQ_GET_MAX_LUN:
