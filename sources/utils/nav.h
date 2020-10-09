@@ -48,8 +48,9 @@
  *
  * @return Distance in decimeters
  */
-extern uint32_t Nav_GetDistanceDm(nmea_float_t *lat1, nmea_float_t *lon1,
-        nmea_float_t *lat2, nmea_float_t *lon2);
+extern uint32_t Nav_GetDistanceDm(const nmea_float_t *lat1,
+        const nmea_float_t *lon1, const nmea_float_t *lat2,
+        const nmea_float_t *lon2);
 
 #endif
 

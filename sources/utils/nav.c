@@ -26,8 +26,8 @@
 #include "utils/math.h"
 #include "nav.h"
 
-uint32_t Nav_GetDistanceDm(nmea_float_t *lat1, nmea_float_t *lon1,
-        nmea_float_t *lat2, nmea_float_t *lon2)
+uint32_t Nav_GetDistanceDm(const nmea_float_t *lat1, const nmea_float_t *lon1,
+        const nmea_float_t *lat2, const nmea_float_t *lon2)
 {
     int32_t x, y, mdeg;
 

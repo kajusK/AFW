@@ -27,17 +27,15 @@
 #include "hal/io.h"
 #include "utils/ringbuf.h"
 #include "utils/time.h"
+#include "utils/assert.h"
 #include "modules/log.h"
-
 #include "gps.h"
 
-#define GPS_DEVICE USART_GPS_TX
+/** Data older than 5 seconds are considered invalid */
+#define GPS_VALID_TIMEOUT_MS 5000
 
-static ring_t gpsi_ringbuf;
-/** GPS data are valid when set to 0x03, 0 invalid, 1 gga, 2 rmc */
-static uint8_t gpsi_data_valid = 0;
-static gps_info_t gpsi_info;
-static gps_sat_t gpsi_sat;
+/** Descriptor used for receiving function */
+static gps_desc_t *gpsi_desc;
 
 /**
  * Callback for data received from GPS
@@ -46,7 +44,9 @@ static gps_sat_t gpsi_sat;
  */
 static void Gpsi_RxCb(uint8_t c)
 {
-    Ring_Push(&gpsi_ringbuf, c);
+    if (gpsi_desc != NULL) {
+        Ring_Push(&gpsi_desc->ringbuf, c);
+    }
 }
 
 /**
@@ -157,42 +157,40 @@ static void Gpsi_ProcessGsv(const char *msg, gps_sat_t *info)
     }
 }
 
-void Gps_Sleep(void)
+void Gps_Sleep(gps_desc_t *desc)
 {
-    gpsi_data_valid = 0;
-    UARTd_Puts(GPS_DEVICE, "$PMTK161,0*28\r\n");
+    desc->data_valid = 0;
+    UARTd_Puts(desc->uart_device, "$PMTK161,0*28\r\n");
 }
 
-void Gps_WakeUp(void)
+void Gps_WakeUp(const gps_desc_t *desc)
 {
     /* just random command to wake device up (acking nonexisting message) */
-    UARTd_Puts(GPS_DEVICE, "$PMTK001,604,3*32\r\n");
+    UARTd_Puts(desc->uart_device, "$PMTK001,604,3*32\r\n");
 }
 
-gps_info_t *Gps_Get(void)
+const gps_info_t *Gps_Get(gps_desc_t *desc)
 {
-    if (gpsi_data_valid == 0x03) {
-        return &gpsi_info;
+    if (desc->data_valid == 0x03) {
+        return &desc->info;
     }
     return NULL;
 }
 
-gps_sat_t *Gps_GetSat(void)
+const gps_sat_t *Gps_GetSat(gps_desc_t *desc)
 {
-    return &gpsi_sat;
+    return &desc->sat;
 }
 
-void Gps_InvalidateData(void)
+void Gps_InvalidateData(gps_desc_t *desc)
 {
-    gpsi_data_valid = 0;
+    desc->data_valid = 0;
 }
 
-gps_info_t *Gps_Loop(void)
+const gps_info_t *Gps_Loop(gps_desc_t *desc)
 {
-    static uint8_t prev = 0;
-
-    while (!Ring_Empty(&gpsi_ringbuf)) {
-        const char *msg = Nmea_AddChar(Ring_Pop(&gpsi_ringbuf));
+    while (!Ring_Empty(&desc->ringbuf)) {
+        const char *msg = Nmea_AddChar(Ring_Pop(&desc->ringbuf));
         if (msg == NULL) {
             continue;
         }
@@ -201,39 +199,43 @@ gps_info_t *Gps_Loop(void)
         switch (Nmea_GetSentenceType(msg)) {
             case NMEA_SENTENCE_GGA:
                 /* Main source of data, sets data validity */
-                if (Gpsi_ProcessGga(msg, &gpsi_info)) {
-                    gpsi_data_valid |= 0x01;
+                if (Gpsi_ProcessGga(msg, &desc->info)) {
+                    desc->data_valid |= 0x01;
                 }
                 break;
             case NMEA_SENTENCE_RMC:
-                if (Gpsi_ProcessRmc(msg, &gpsi_info)) {
-                    gpsi_data_valid |= 0x02;
+                if (Gpsi_ProcessRmc(msg, &desc->info)) {
+                    desc->data_valid |= 0x02;
+                    desc->info.timestamp = millis();
                 }
                 break;
             case NMEA_SENTENCE_GSV:
-                Gpsi_ProcessGsv(msg, &gpsi_sat);
+                Gpsi_ProcessGsv(msg, &desc->sat);
                 break;
             default:
                 break;
         }
     }
 
-    if (gpsi_data_valid != prev && gpsi_data_valid == 0x03) {
-        gpsi_info.timestamp = millis();
-        prev = gpsi_data_valid;
-        return &gpsi_info;
+    /* Invalidate data if no update was received withing reasonable time */
+    if (millis() - desc->info.timestamp > GPS_VALID_TIMEOUT_MS) {
+        desc->data_valid = 0;
     }
 
-    prev = gpsi_data_valid;
+    if (desc->data_valid == 0x03) {
+        return &desc->info;
+    }
     return NULL;
 }
 
-void Gps_Init(void)
+void Gps_Init(gps_desc_t *desc, uint8_t uart_device)
 {
-    static char gpsi_buf[32];
+    ASSERT_NOT(desc == NULL);
 
-    Ring_Init(&gpsi_ringbuf, gpsi_buf, sizeof(gpsi_buf));
-    UARTd_SetRxCallback(GPS_DEVICE, Gpsi_RxCb);
+    desc->uart_device = uart_device;
+    Ring_Init(&desc->ringbuf, desc->buf, sizeof(desc->buf));
+    gpsi_desc = desc;
+    UARTd_SetRxCallback(uart_device, Gpsi_RxCb);
 }
 
 /** @} */

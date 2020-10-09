@@ -30,11 +30,13 @@
 
 #include "drivers/spi_flash.h"
 
-#define SPI_DEVICE 1
 #define PAGE_BYTES 256
 #define CHIP_ERASE_TIME_MS 40
 #define PAGE_ERASE_TIME_MS 20
 #define WRITE_PAGE_TIME_MS 2
+
+#define cs_set() IOd_SetLine(desc->cs_port, desc->cs_pad, 0)
+#define cs_unset() IOd_SetLine(desc->cs_port, desc->cs_pad, 1)
 
 /** status register */
 enum {
@@ -86,25 +88,16 @@ typedef enum {
 } spiflash_cmd_t;
 
 /**
- * Drive cs pin to selected level
- *
- * @param val       true for low (selected), false for high
- */
-static void SpiFlashi_Cs(bool val)
-{
-    IOd_SetLine(LINE_FLASH_CS, !val);
-}
-
-/**
  * Send command followed by address and optionally also dummy bytes
  *
+ * @param desc      The device descriptor
  * @param cmd       Command
  * @param addr      24 bytes of address
  * @param dummy     Amount (up to 4) of dummy bytes to send after address
  * @param release_cs    Release cs pin after sending data
  */
-static void SpiFlashi_CmdWithAddr(spiflash_cmd_t cmd, uint32_t addr,
-        uint8_t dummy, bool release_cs)
+static void SpiFlashi_CmdWithAddr(const spiflash_desc_t *desc,
+        spiflash_cmd_t cmd, uint32_t addr, uint8_t dummy, bool release_cs)
 {
     uint8_t data[8] = {0};
 
@@ -115,85 +108,94 @@ static void SpiFlashi_CmdWithAddr(spiflash_cmd_t cmd, uint32_t addr,
     data[2] = addr >> 8;
     data[3] = addr;
 
-    SpiFlashi_Cs(true);
-    SPId_Send(SPI_DEVICE, data, 4+dummy);
+    cs_set();
+    SPId_Send(desc->spi_device, data, 4+dummy);
 
     if (release_cs) {
-        SpiFlashi_Cs(false);
+        cs_unset();
     }
 }
 
 /**
  * Send Flash command without any additional parameters
  *
+ * @param desc      The device descriptor
  * @param cmd   Command to be executed
  */
-static void SpiFlashi_Cmd(spiflash_cmd_t cmd)
+static void SpiFlashi_Cmd(const spiflash_desc_t *desc, spiflash_cmd_t cmd)
 {
-    SpiFlashi_Cs(true);
-    SPId_Send(SPI_DEVICE, &cmd, 1);
-    SpiFlashi_Cs(false);
+    cs_set();
+    SPId_Send(desc->spi_device, &cmd, 1);
+    cs_unset();
 }
 
 /**
  * Wait for flash operation to finish
  *
+ * @param desc      The device descriptor
  * @param timeout_ms    Time to wait for op to finish
  */
-static void SpiFlashi_WaitReady(uint32_t timeout_ms)
+static void SpiFlashi_WaitReady(const spiflash_desc_t *desc,
+        uint32_t timeout_ms)
 {
     const uint8_t cmd = CMD_RDSR;
     uint32_t start = millis();
 
-    SpiFlashi_Cs(true);
-    SPId_Send(SPI_DEVICE, &cmd, 1);
+    cs_set();
+    SPId_Send(desc->spi_device, &cmd, 1);
 
     while ((millis() - start) < timeout_ms) {
         /* continuously read status register, command send only once */
-        if ((SPId_Transceive(SPI_DEVICE, 0xff) & STATUS_BUSY) == 0) {
+        if ((SPId_Transceive(desc->spi_device, 0xff) & STATUS_BUSY) == 0) {
             break;
         }
     }
 
-    SpiFlashi_Cs(false);
+    cs_unset();
 }
 
 /**
  * Enable write protection
+ *
+ * @param desc      The device descriptor
  */
-static void SpiFlashi_WriteEnable(void)
+static void SpiFlashi_WriteEnable(const spiflash_desc_t *desc)
 {
-    SpiFlashi_Cmd(CMD_WREN);
+    SpiFlashi_Cmd(desc, CMD_WREN);
 }
 
 /**
  * Disable write protection
+ *
+ * @param desc      The device descriptor
  */
-static void SpiFlashi_WriteDisable(void)
+static void SpiFlashi_WriteDisable(const spiflash_desc_t *desc)
 {
-    SpiFlashi_Cmd(CMD_WRDI);
+    SpiFlashi_Cmd(desc, CMD_WRDI);
 }
 
-void SpiFlash_WriteUnlock(void)
+void SpiFlash_WriteUnlock(const spiflash_desc_t *desc)
 {
     uint8_t buf[11] = {0};
     buf[0] = CMD_WBPR;
 
-    SpiFlashi_WriteEnable();
-    SpiFlashi_Cs(true);
-    SPId_Send(SPI_DEVICE, buf, sizeof(buf));
-    SpiFlashi_Cs(false);
-    SpiFlashi_WriteDisable();
+    SpiFlashi_WriteEnable(desc);
+    cs_set();
+    SPId_Send(desc->spi_device, buf, sizeof(buf));
+    cs_unset();
+    SpiFlashi_WriteDisable(desc);
 }
 
-void SpiFlash_Read(uint32_t addr, uint8_t *buf, size_t len)
+void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr, uint8_t *buf,
+        size_t len)
 {
-    SpiFlashi_CmdWithAddr(CMD_READ, addr, 0, false);
-    SPId_Receive(SPI_DEVICE, buf, len);
-    SpiFlashi_Cs(false);
+    SpiFlashi_CmdWithAddr(desc, CMD_READ, addr, 0, false);
+    SPId_Receive(desc->spi_device, buf, len);
+    cs_unset();
 }
 
-void SpiFlash_Write(uint32_t addr, const uint8_t *buf, size_t len)
+void SpiFlash_Write(const spiflash_desc_t *desc, uint32_t addr,
+        const uint8_t *buf, size_t len)
 {
     uint16_t bytes;
 
@@ -204,33 +206,41 @@ void SpiFlash_Write(uint32_t addr, const uint8_t *buf, size_t len)
         } else {
             bytes = len;
         }
-        SpiFlashi_WriteEnable();
-        SpiFlashi_CmdWithAddr(CMD_PP, addr, 0, false);
-        SPId_Send(SPI_DEVICE, buf, bytes);
-        SpiFlashi_Cs(false);
-        SpiFlashi_WaitReady(WRITE_PAGE_TIME_MS);
+        SpiFlashi_WriteEnable(desc);
+        SpiFlashi_CmdWithAddr(desc, CMD_PP, addr, 0, false);
+        SPId_Send(desc->spi_device, buf, bytes);
+        cs_unset();
+        SpiFlashi_WaitReady(desc, WRITE_PAGE_TIME_MS);
 
         buf += bytes;
         addr += bytes;
         len -= bytes;
     }
-    SpiFlashi_WriteDisable();
+    SpiFlashi_WriteDisable(desc);
 }
 
-void SpiFlash_Erase(void)
+void SpiFlash_Erase(const spiflash_desc_t *desc)
 {
-    SpiFlashi_WriteEnable();
-    SpiFlashi_Cmd(CMD_CE);
-    SpiFlashi_WaitReady(CHIP_ERASE_TIME_MS);
-    SpiFlashi_WriteDisable();
+    SpiFlashi_WriteEnable(desc);
+    SpiFlashi_Cmd(desc, CMD_CE);
+    SpiFlashi_WaitReady(desc, CHIP_ERASE_TIME_MS);
+    SpiFlashi_WriteDisable(desc);
 }
 
-void SpiFlash_EraseSector(uint32_t addr)
+void SpiFlash_EraseSector(const spiflash_desc_t *desc, uint32_t addr)
 {
-    SpiFlashi_WriteEnable();
-    SpiFlashi_CmdWithAddr(CMD_SE, addr, 0, true);
-    SpiFlashi_WaitReady(PAGE_ERASE_TIME_MS);
-    SpiFlashi_WriteDisable();
+    SpiFlashi_WriteEnable(desc);
+    SpiFlashi_CmdWithAddr(desc, CMD_SE, addr, 0, true);
+    SpiFlashi_WaitReady(desc, PAGE_ERASE_TIME_MS);
+    SpiFlashi_WriteDisable(desc);
+}
+
+void SpiFlash_Init(spiflash_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
+        uint8_t cs_pad)
+{
+    desc->spi_device = spi_device;
+    desc->cs_port = cs_port;
+    desc->cs_pad = cs_pad;
 }
 
 /** @} */

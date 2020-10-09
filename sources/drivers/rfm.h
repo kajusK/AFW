@@ -53,6 +53,18 @@ typedef enum {
     RFM_REGION_AS920
 } rfm_lora_region_t;
 
+/** The RFM device descriptor */
+typedef struct {
+    uint8_t spi_device;     /**< SPI device the RFM is connected to */
+    uint32_t cs_port;       /**< MCU port the CS signal is connected to */
+    uint8_t cs_pad;         /**< MCU pin the CS signal is connected to */
+    uint32_t reset_port;    /**< MCU port the reset signal is connected to */
+    uint8_t reset_pad;      /**< MCU pin the reset signal is connected to */
+    uint32_t io0_port;      /**< MCU port the IO0 signal is connected to */
+    uint32_t io0_pad;       /**< MCU pin the IO0 signal is connected to */
+    const uint8_t (*region)[3];
+} rfm_desc_t;
+
 /**
  * Set transmit power
  *
@@ -63,9 +75,10 @@ typedef enum {
  * As the RFM95 module doesn't seem to have RFO output connected, PA must
  * be enabled all the time, therefore the usable range starts really at 2 dBm
  *
+ * @param desc      The RFM device descriptor
  * @param power     Required power from 2 to 20 dBm
  */
-extern void RFM_SetPowerDBm(int8_t power);
+extern void RFM_SetPowerDBm(const rfm_desc_t *desc, int8_t power);
 
 /**
  * Set Lora transmission bandwidth and spreading factor
@@ -78,33 +91,47 @@ extern void RFM_SetPowerDBm(int8_t power);
  * Higher SF -> lower baudrate -> higher sensitivity -> longer airtime
  * Higher BW -> higher baudrate -> lower sensitivity -> shorter airtime
  *
+ * @param desc          The RFM device descriptor
  * @param bandwidth     Bandwidth selection
  * @param sf            Spreading factor
  */
-extern void RFM_SetLoraParams(rfm_bw_t bandwidth, rfm_sf_t sf);
-
+extern void RFM_SetLoraParams(const rfm_desc_t *desc, rfm_bw_t bandwidth,
+        rfm_sf_t sf);
 
 /**
  * Configure region we are in (sets frequency range)
  *
+ * @param desc      The RFM device descriptor
  * @param region        Region settings to be used
  */
-extern void RFM_SetLoraRegion(rfm_lora_region_t region);
+extern void RFM_SetLoraRegion(rfm_desc_t *desc, rfm_lora_region_t region);
 
 /**
  * Send raw Lora modulated data
  *
+ * @param desc      The RFM device descriptor
  * @param data      Data to be sent
  * @param len       Length of the data buffer
  */
-extern void RFM_LoraSend(const uint8_t *data, size_t len);
+extern void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data,
+        size_t len);
 
 /**
  * Initialize RFM module in lora mode
  *
+ * @param [out] desc    The RFM device descriptor
+ * @param spi_device    The SPI device to use
+ * @param cs_port       Port of the CS pin
+ * @param cs_pad        Pin of the CS pin
+ * @param reset_port    Port of the RESET pin
+ * @param reset_pad     Pin of the RESET pin
+ * @param io0_port      Port of the IO0 pin
+ * @param io0_pad       Pin of the IO0 pin
  * @return True if module is initialized, false if not responding
  */
-extern bool RFM_LoraInit(void);
+extern bool RFM_LoraInit(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
+        uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
+        uint32_t io0_port, uint8_t io0_pad);
 
 #endif
 /** @} */

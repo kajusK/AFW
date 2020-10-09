@@ -27,10 +27,10 @@
 
 #include <hal/i2c.h>
 #include <utils/time.h>
+#include <utils/assert.h>
 
 #include "drivers/si7020.h"
 
-#define I2C_DEVICE 1
 #define SI7020_ADDR 0x40
 
 #define CMD_RESET 0xfe
@@ -38,14 +38,15 @@
 #define CMD_MEASURE_TEMP 0xe3
 #define CMD_READ_TEMP 0xe0  /* read temperature from previous RH measurement */
 
-int32_t SI7020_ReadTempmDeg(void)
+int32_t SI7020_ReadTempmDeg(const si7020_desc_t *desc)
 {
     uint8_t cmd = CMD_MEASURE_TEMP;
     bool ret;
     uint16_t data;
 
     /* uses clock stretching to wait until measurement is finished */
-    ret = I2Cd_Transceive(I2C_DEVICE, SI7020_ADDR, &cmd, 1, (uint8_t *)&data, 2);
+    ret = I2Cd_Transceive(desc->i2c_device, SI7020_ADDR, &cmd, 1,
+            (uint8_t *)&data, 2);
     if (!ret) {
         return 0;
     }
@@ -53,7 +54,7 @@ int32_t SI7020_ReadTempmDeg(void)
     return 175720*(uint32_t)data/65536 - 46850;
 }
 
-uint8_t SI7020_RH(void)
+uint8_t SI7020_RH(const si7020_desc_t *desc)
 {
     uint8_t cmd = CMD_MEASURE_RH;
     bool ret;
@@ -61,7 +62,8 @@ uint8_t SI7020_RH(void)
     uint8_t res;
 
     /* uses clock stretching to wait until measurement is finished */
-    ret = I2Cd_Transceive(I2C_DEVICE, SI7020_ADDR, &cmd, 1, (uint8_t *)&data, 2);
+    ret = I2Cd_Transceive(desc->i2c_device, SI7020_ADDR, &cmd, 1,
+            (uint8_t *)&data, 2);
     if (!ret) {
         return 0;
     }
@@ -73,11 +75,13 @@ uint8_t SI7020_RH(void)
     return res;
 }
 
-bool SI7020_Init(void)
+bool SI7020_Init(si7020_desc_t *desc, uint8_t i2c_device)
 {
+    ASSERT_NOT(desc == NULL);
     uint8_t cmd = CMD_RESET;
+    desc->i2c_device = i2c_device;
 
-    return I2Cd_Transceive(I2C_DEVICE, SI7020_ADDR, &cmd, 1, NULL, 0);
+    return I2Cd_Transceive(desc->i2c_device, SI7020_ADDR, &cmd, 1, NULL, 0);
 }
 
 

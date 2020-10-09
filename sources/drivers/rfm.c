@@ -30,9 +30,8 @@
 
 #include "drivers/rfm.h"
 
-#define RFM_SPI 1
-#define cs_set() IOd_SetLine(LINE_RFM_CS, 0)
-#define cs_unset() IOd_SetLine(LINE_RFM_CS, 1)
+#define cs_set() IOd_SetLine(desc->cs_port, desc->cs_pad, 0)
+#define cs_unset() IOd_SetLine(desc->cs_port, desc->cs_pad, 1)
 
 /* Amount of usable frequency channels */
 #define RFM_CHANNELS 8
@@ -111,16 +110,13 @@ static const uint8_t rfmi_lora_region_as[RFM_CHANNELS][3] = {
     {0xE6, 0x80, 0x27},  /* 922.0 MHz */
 };
 
-/** Currently used region */
-static const uint8_t (*rfmi_lora_region)[3] = NULL;
-
 /**
  * Write value to given register
  *
  * @param reg       Register address
  * @param val       Register value
  */
-static void RFMi_WriteReg(uint8_t reg, uint8_t val)
+static void RFMi_WriteReg(const rfm_desc_t *desc, uint8_t reg, uint8_t val)
 {
     uint8_t data[2];
 
@@ -129,7 +125,7 @@ static void RFMi_WriteReg(uint8_t reg, uint8_t val)
     data[1] = val;
 
     cs_set();
-    SPId_Send(RFM_SPI, data, 2);
+    SPId_Send(desc->spi_device, data, 2);
     cs_unset();
 }
 
@@ -139,13 +135,13 @@ static void RFMi_WriteReg(uint8_t reg, uint8_t val)
  * @param reg   Register address
  * @return Register value
  */
-static uint8_t RFMi_ReadReg(uint8_t reg)
+static uint8_t RFMi_ReadReg(const rfm_desc_t *desc, uint8_t reg)
 {
     uint8_t data = reg & 0x7f;
 
     cs_set();
-    SPId_Send(RFM_SPI, &data, 1);
-    SPId_Receive(RFM_SPI, &data, 1);
+    SPId_Send(desc->spi_device, &data, 1);
+    SPId_Receive(desc->spi_device, &data, 1);
     cs_unset();
 
     return data;
@@ -158,17 +154,18 @@ static uint8_t RFMi_ReadReg(uint8_t reg)
  * @param data      Data to be written
  * @param len       Amount of bytes to write
  */
-static void RFMi_WriteFifo(uint8_t reg, const uint8_t *data, size_t len)
+static void RFMi_WriteFifo(const rfm_desc_t *desc, uint8_t reg,
+        const uint8_t *data, size_t len)
 {
     uint8_t addr = reg | 0x80;
 
     cs_set();
-    SPId_Send(RFM_SPI, &addr, 1);
-    SPId_Send(RFM_SPI, data, len);
+    SPId_Send(desc->spi_device, &addr, 1);
+    SPId_Send(desc->spi_device, data, len);
     cs_unset();
 }
 
-void RFM_SetPowerDBm(int8_t power)
+void RFM_SetPowerDBm(const rfm_desc_t *desc, int8_t power)
 {
     /* doesn't seem to work when PA is disabler - RFO pin not connected? */
     bool paEnabled = true;
@@ -182,16 +179,16 @@ void RFM_SetPowerDBm(int8_t power)
 
     /* Over 17, only 20 dBm mode is possible */
     if (power > 17) {
-        RFMi_WriteReg(RFM_REG_PA_DAC, 0x87);
-        RFMi_WriteReg(RFM_REG_PA, 0xff);
+        RFMi_WriteReg(desc, RFM_REG_PA_DAC, 0x87);
+        RFMi_WriteReg(desc, RFM_REG_PA, 0xff);
     } else {
-        RFMi_WriteReg(RFM_REG_PA_DAC, 0x84);
-        RFMi_WriteReg(RFM_REG_PA, (paEnabled << 7) |
+        RFMi_WriteReg(desc, RFM_REG_PA_DAC, 0x84);
+        RFMi_WriteReg(desc, RFM_REG_PA, (paEnabled << 7) |
                 (maxPower << 4) | outPower);
     }
 }
 
-void RFM_SetLoraParams(rfm_bw_t bandwidth, rfm_sf_t sf)
+void RFM_SetLoraParams(const rfm_desc_t *desc, rfm_bw_t bandwidth, rfm_sf_t sf)
 {
     uint8_t reg_bw;
     ASSERT_NOT(sf > 12 || sf < 7);
@@ -213,112 +210,122 @@ void RFM_SetLoraParams(rfm_bw_t bandwidth, rfm_sf_t sf)
 
 
     /* bandwidth, coding rate 4/5, explicit header mode */
-    RFMi_WriteReg(RFM_REG_MODEM_CONF1, (reg_bw << 4) | 0x02);
+    RFMi_WriteReg(desc, RFM_REG_MODEM_CONF1, (reg_bw << 4) | 0x02);
     /* SF rate, crc-enable */
-    RFMi_WriteReg(RFM_REG_MODEM_CONF2, (sf << 4) | 0x04);
+    RFMi_WriteReg(desc, RFM_REG_MODEM_CONF2, (sf << 4) | 0x04);
 
     /* Low data rate optimization when symbol length exceeds 16 ms */
     if (sf > 10 && bandwidth == RFM_BW_125k) {
         /* low data rate optimization on, agc on */
-        RFMi_WriteReg(RFM_REG_MODEM_CONF3, 0x0c);
+        RFMi_WriteReg(desc, RFM_REG_MODEM_CONF3, 0x0c);
     } else {
         /* Agc on */
-        RFMi_WriteReg(RFM_REG_MODEM_CONF3, 0x04);
+        RFMi_WriteReg(desc, RFM_REG_MODEM_CONF3, 0x04);
     }
 }
 
-void RFM_SetLoraRegion(rfm_lora_region_t region)
+void RFM_SetLoraRegion(rfm_desc_t *desc, rfm_lora_region_t region)
 {
     switch (region) {
         case RFM_REGION_AU915:
-            rfmi_lora_region = rfmi_lora_region_au;
+            desc->region = rfmi_lora_region_au;
             break;
         case RFM_REGION_EU863:
-            rfmi_lora_region = rfmi_lora_region_eu;
+            desc->region = rfmi_lora_region_eu;
             break;
         case RFM_REGION_US902:
-            rfmi_lora_region = rfmi_lora_region_us;
+            desc->region = rfmi_lora_region_us;
             break;
         case RFM_REGION_AS920:
-            rfmi_lora_region = rfmi_lora_region_as;
+            desc->region = rfmi_lora_region_as;
             break;
         default:
-            rfmi_lora_region = rfmi_lora_region_eu;
+            desc->region = rfmi_lora_region_eu;
             break;
     }
 }
 
-void RFM_LoraSend(const uint8_t *data, size_t len)
+void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data, size_t len)
 {
     uint8_t channel;
 
-    RFMi_WriteReg(RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_STDBY);
+    RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_STDBY);
     delay_ms(10);
     /* DIO pin at tx done event */
-    RFMi_WriteReg(RFM_REG_DIO_MAP, 0x40);
+    RFMi_WriteReg(desc, RFM_REG_DIO_MAP, 0x40);
 
     /* Random chanel, selection based on last byte of data (last byte of MIC) */
     channel = data[len - 1] % RFM_CHANNELS;
-    RFMi_WriteReg(RFM_REG_FR_MSB, rfmi_lora_region[channel][0]);
-    RFMi_WriteReg(RFM_REG_FR_MID, rfmi_lora_region[channel][1]);
-    RFMi_WriteReg(RFM_REG_FR_LSB, rfmi_lora_region[channel][2]);
+    RFMi_WriteReg(desc, RFM_REG_FR_MSB, desc->region[channel][0]);
+    RFMi_WriteReg(desc, RFM_REG_FR_MID, desc->region[channel][1]);
+    RFMi_WriteReg(desc, RFM_REG_FR_LSB, desc->region[channel][2]);
 
-    RFMi_WriteReg(RFM_REG_PAYLOAD_LEN, len);
-    RFMi_WriteReg(RFM_REG_FIFO_PTR, 0x80);
-    RFMi_WriteFifo(RFM_REG_FIFO, data, len);
-    RFMi_WriteReg(RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_TX);
+    RFMi_WriteReg(desc, RFM_REG_PAYLOAD_LEN, len);
+    RFMi_WriteReg(desc, RFM_REG_FIFO_PTR, 0x80);
+    RFMi_WriteFifo(desc, RFM_REG_FIFO, data, len);
+    RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_TX);
 
     /* Wait for data to be transmitted */
-    while (IOd_GetLine(LINE_RFM_IO0) != 0) {
+    while (IOd_GetLine(desc->io0_port, desc->io0_pad) != 0) {
         ;
     }
-    //hotfix
+    //hotfix TODO
     delay_ms(550);
 
-    RFMi_WriteReg(RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_SLEEP);
+    RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_SLEEP);
 }
 
-
-bool RFM_LoraInit(void)
+bool RFM_LoraInit(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
+        uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
+        uint32_t io0_port, uint8_t io0_pad)
 {
+    ASSERT_NOT(desc == NULL);
+    desc->spi_device = spi_device;
+    desc->cs_port = cs_port;
+    desc->cs_pad = cs_pad;
+    desc->reset_port = reset_port;
+    desc->reset_pad = reset_pad;
+    desc->io0_port = io0_port;
+    desc->io0_port = io0_pad;
+
     /* Reset the device */
-    IOd_SetLine(LINE_RFM_RESET, 0);
+    IOd_SetLine(desc->reset_port, desc->reset_pad, 0);
     delay_ms(1);
-    IOd_SetLine(LINE_RFM_RESET, 1);
+    IOd_SetLine(desc->reset_port, desc->reset_pad, 1);
     delay_ms(5);
 
     /* Verify device signature */
-    if (RFMi_ReadReg(RFM_REG_VER) != RFM_VER_ID) {
+    if (RFMi_ReadReg(desc, RFM_REG_VER) != RFM_VER_ID) {
         return false;
     }
 
     /* Mode can be changed only in sleep */
-    RFMi_WriteReg(RFM_REG_MODE, RFM_MODE_SLEEP);
-    RFMi_WriteReg(RFM_REG_MODE, RFM_MODE_LORA);
+    RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_SLEEP);
+    RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA);
 
     /* Set over current protection to 240 mA */
-    RFMi_WriteReg(RFM_REG_OCP, 0x1f);
+    RFMi_WriteReg(desc, RFM_REG_OCP, 0x1f);
     /* Rx timeout is 37 symbols */
-    RFMi_WriteReg(RFM_REG_SYMB_TIMEOUT, 0x25);
+    RFMi_WriteReg(desc, RFM_REG_SYMB_TIMEOUT, 0x25);
     /* Preamble length is 8 symbols */
-    RFMi_WriteReg(RFM_REG_PREAMBLE_MSB, 0x00);
-    RFMi_WriteReg(RFM_REG_PREAMBLE_LSB, 0x08);
+    RFMi_WriteReg(desc, RFM_REG_PREAMBLE_MSB, 0x00);
+    RFMi_WriteReg(desc, RFM_REG_PREAMBLE_LSB, 0x08);
     /* AGC auto, low data rate optimizations off */
-    RFMi_WriteReg(RFM_REG_MODEM_CONF3, 0x0c);
+    RFMi_WriteReg(desc, RFM_REG_MODEM_CONF3, 0x0c);
     /* LORA sync word */
-    RFMi_WriteReg(RFM_REG_SYNC_WORD, 0x34);
+    RFMi_WriteReg(desc, RFM_REG_SYNC_WORD, 0x34);
     /* IQ config */
-    RFMi_WriteReg(RFM_REG_INVERT_IQ, 0x27);
-    RFMi_WriteReg(RFM_REG_INVERT_IQ2, 0x1d);
+    RFMi_WriteReg(desc, RFM_REG_INVERT_IQ, 0x27);
+    RFMi_WriteReg(desc, RFM_REG_INVERT_IQ2, 0x1d);
 
     /* FIFO pointers */
-    RFMi_WriteReg(RFM_REG_FIFO_TX_BASE, 0x80);
-    RFMi_WriteReg(RFM_REG_FIFO_RX_BASE, 0x00);
+    RFMi_WriteReg(desc, RFM_REG_FIFO_TX_BASE, 0x80);
+    RFMi_WriteReg(desc, RFM_REG_FIFO_RX_BASE, 0x00);
 
     /* Default lora parameters */
-    RFM_SetLoraParams(RFM_BW_125k, RFM_SF_7);
-    RFM_SetPowerDBm(17);
-    RFM_SetLoraRegion(RFM_REGION_EU863);
+    RFM_SetLoraParams(desc, RFM_BW_125k, RFM_SF_7);
+    RFM_SetPowerDBm(desc, 17);
+    RFM_SetLoraRegion(desc, RFM_REGION_EU863);
 
     return true;
 }
