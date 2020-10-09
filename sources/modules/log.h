@@ -61,6 +61,13 @@ extern void Log_Raw(log_level_t level, const char *source,
 #define Log_Warning(source, format, ...) Log_Raw(LOG_WARNING, source, format, ##__VA_ARGS__)
 #define Log_Error(source, format, ...) Log_Raw(LOG_ERROR, source, format, ##__VA_ARGS__)
 
+/**
+ * Initialize logging subsystem
+ *
+ * @param uart_device   Uart device to send logs to
+ */
+extern void Log_Init(uint8_t uart_device);
+
 #endif
 
 /** @} */

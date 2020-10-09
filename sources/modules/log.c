@@ -41,7 +41,7 @@
 #define TERM_WHITE  "\x1B[37m"
 
 static log_level_t logi_level = LOG_INFO;
-static int logi_uart = USART_DEBUG_TX;
+static uint8_t logi_uart;
 
 /**
  * Convert number to string and send to serial
@@ -180,6 +180,11 @@ void Log_Raw(log_level_t level, const char *source, const char *format, ...)
     Logi_Printf(format, ap);
     va_end(ap);
     UARTd_Puts(logi_uart, "\r\n");
+}
+
+void Log_Init(uint8_t uart_device)
+{
+    logi_uart = uart_device;
 }
 
 /** @} */
