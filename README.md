@@ -10,6 +10,8 @@ Content
  * Lightweight HAL for STM32 (built on top of [libopencm3](libopencm3.org))
  * Drivers for various sensors, displays, etc
  * Simple logger
+ * FW update mechanism
+ * FAT16 virtual ramdisk
  * Various protocols (NMEA, LoRaWanMAC,...)
  * Tiny library for graphical displays
  * Naive implementation of AES128
@@ -17,9 +19,6 @@ Content
 
 Files:
 ------
- * *Makefile.tmpl* - Makefile template for projects using this library
- * *afwconfig.h.tmpl* - Template configuration file
-
 Sources
  * *drivers* - drivers for sensors, displays,...
  * *external* - subrepos for unit testing and libopencm3
@@ -29,10 +28,18 @@ Sources
  * *utils* - Common utilities (time, crc, aes128,...)
  * *types.h* - Common types definition
 
+Templates
+ * *Makefile.tmpl* - Makefile template for projects using this library
+ * *config_idems.ods* - Spreadsheet for *tools/config_items.py* generator
+
+
 Tools
  * *mx2board.py* - tool to generate pinmux configuration (from [ChibiOS-Contrib](https://github.com/ChibiOS/ChibiOS-Contrib/))
+ * *config_items.py* - Generator for configuration options header for *sources/modules/config.c*
+ * *bin2uf2.py* - uf2 binary format generator
+ * *fw.py* - Firmware images and image headers in *sources/modules/fw.c* compatible format
  * *templates* - templates for code generators
  * *cgui* - generator of fonts and image converter for cgui library
- 
+
 Tests
- * Unit tests for the library 
+ * Unit tests for the library
