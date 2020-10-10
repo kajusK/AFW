@@ -39,6 +39,9 @@ Morbi condimentum suscipit ante, nec venenatis sem consequat ut. Nullam dignissi
 Sed sagittis ipsum rhoncus nibh luctus convallis. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aenean mollis nibh et ligula gravida, at tincidunt tellus tincidunt. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Ut ac tortor ut justo elementum laoreet sit amet ac erat. Duis commodo lectus eget est aliquam, id porta sem fermentum. Suspendisse fermentum volutpat tellus, sed suscipit lorem faucibus eu. Quisque id vulputate elit, id iaculis turpis. Nunc cursus, enim ultrices mollis dictum, ligula diam dictum enim, id consectetur nibh dui non turpis. \
 "
 
+static uint8_t data_written[512];
+static uint32_t data_offset;
+
 /* *****************************************************************************
  * Helpers
 ***************************************************************************** */
@@ -54,6 +57,13 @@ static void Ramdisk_File2(uint32_t offset, uint8_t *buf, size_t len)
     memset(buf, 'b', len);
 }
 
+static void Ramdisk_WriteTest(const uint8_t *buf, size_t size, uint32_t offset)
+{
+    TEST_ASSERT_EQUAL(512, size);
+    memcpy(data_written, buf, size);
+    data_offset = offset;
+}
+
 /* *****************************************************************************
  * Tests
 ***************************************************************************** */
@@ -62,6 +72,9 @@ TEST_GROUP(RAMDISK);
 TEST_SETUP(RAMDISK)
 {
     struct tm time;
+
+    memset(data_written, 0xab, 512);
+    data_offset = (uint32_t)-1;
 
     /* 16 MB ramdisk */
     Ramdisk_Init(0, RAMDISK_NAME);
@@ -72,9 +85,9 @@ TEST_SETUP(RAMDISK)
     time.tm_mday = 11;
     time.tm_mon = 6;
     time.tm_year = 119;
-    TEST_ASSERT_TRUE(Ramdisk_AddFile("Foo", "br", mktime(&time), 12000000, Ramdisk_File1));
-    TEST_ASSERT_TRUE(Ramdisk_AddFile("bar", "txt", mktime(&time), 180000, Ramdisk_File2));
-    TEST_ASSERT_TRUE(Ramdisk_AddTextFile("lorem", "txt", mktime(&time), RAMDISK_TEXT));
+    TEST_ASSERT_GREATER_THAN(-1, Ramdisk_AddFile("Foo", "br", mktime(&time), 12000000, Ramdisk_File1));
+    TEST_ASSERT_GREATER_THAN(-1, Ramdisk_AddFile("bar", "txt", mktime(&time), 180000, Ramdisk_File2));
+    TEST_ASSERT_GREATER_THAN(-1, Ramdisk_AddTextFile("lorem", "txt", mktime(&time), RAMDISK_TEXT));
 }
 
 TEST_TEAR_DOWN(RAMDISK)
@@ -159,7 +172,7 @@ TEST(RAMDISK, RootDirectory)
     offset = 32;
     TEST_ASSERT_EQUAL_STRING_LEN("Foo     ", &buf[offset], 8);
     TEST_ASSERT_EQUAL_STRING_LEN("br ", &buf[offset+8], 3);
-    TEST_ASSERT_EQUAL_HEX8(0x01, buf[offset+0xb]);
+    TEST_ASSERT_EQUAL_HEX8(0x21, buf[offset+0xb]);
     /* time 12:32:11 */
     TEST_ASSERT_EQUAL_HEX8(5 | ((32 << 5) & 0x1f), buf[offset+0x16]);
     TEST_ASSERT_EQUAL_HEX8((32 >> 3) | (12 << 3), buf[offset+0x17]);
@@ -194,6 +207,46 @@ TEST(RAMDISK, GetFile)
     TEST_ASSERT_EACH_EQUAL_HEX8('b', buf, SECTOR_SIZE);
 }
 
+TEST(RAMDISK, Write)
+{
+    uint16_t last_cluster = 0;
+    uint16_t end_cluster;
+    uint16_t id;
+    uint32_t lba;
+    uint8_t buf[512];
+
+    /* Calculate cluster where the last virtual file ends */
+    for (id = 0; id < RAMDISK_MAX_FILES; id++) {
+        if (ramdiski_files[id].name[0] == 0x00) {
+            break;
+        }
+
+        end_cluster = ramdiski_files[id].cluster + ramdiski_files[id].size/CLUSTER_SIZE;
+        if (end_cluster > last_cluster) {
+            last_cluster = end_cluster;
+        }
+    }
+    lba = DATA_START_SECTOR + (last_cluster + 1 - 2)*SECTORS_PER_CLUSTER;
+
+    Ramdisk_RegisterWriteCb(Ramdisk_WriteTest);
+    for (int i = 0; i < 512; i++) {
+        buf[i] = i;
+    }
+
+    TEST_ASSERT_EQUAL(0, Ramdisk_Write(lba+5, buf));
+    TEST_ASSERT_EQUAL(5*512, data_offset);
+    TEST_ASSERT_EQUAL_HEX8_ARRAY(buf, data_written, 512);
+
+    /* Beginning of the user area */
+    TEST_ASSERT_EQUAL(0, Ramdisk_Write(lba, buf));
+    TEST_ASSERT_EQUAL(0, data_offset);
+
+    /* Before writable area should fail */
+    data_offset = 0xdeadbeef;
+    TEST_ASSERT_EQUAL(0, Ramdisk_Write(lba-1, buf));
+    TEST_ASSERT_EQUAL_HEX(0xdeadbeef, data_offset);
+}
+
 /*
  * Generate example ramdisk for optional checking with external tool
  */
@@ -219,6 +272,7 @@ TEST_GROUP_RUNNER(RAMDISK)
     RUN_TEST_CASE(RAMDISK, FatTable);
     RUN_TEST_CASE(RAMDISK, RootDirectory);
     RUN_TEST_CASE(RAMDISK, GetFile);
+    RUN_TEST_CASE(RAMDISK, Write);
     RUN_TEST_CASE(RAMDISK, GenerateRamdisk);
 }
 
