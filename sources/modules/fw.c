@@ -187,16 +187,20 @@ static void Fwi_CopyImage(uint8_t img)
     fw_hdr_t hdr;
     uint32_t addr = FW_IMG_HDR_ADDR(0);
     uint8_t *p = (uint8_t *) FW_IMG_HDR_ADDR(img);
+    uint32_t end;
     ASSERT_NOT(img == 0);
 
     Fwi_GetImgHeader(1, &hdr);
+    end = FW_IMG_DATA_ADDR(img) + hdr.len;
 
-    while (addr < hdr.len) {
+    Flashd_WriteEnable();
+    while ((uint32_t)p < end) {
         Flashd_ErasePage(addr);
         Flashd_Write(addr, p, FLASHD_PAGE_SIZE);
         addr += FLASHD_PAGE_SIZE;
         p += FLASHD_PAGE_SIZE;
     }
+    Flashd_WriteDisable();
 }
 
 void Fw_Run(void)
@@ -242,6 +246,7 @@ bool Fw_UpdateInit(uint16_t crc, uint32_t len)
     fwi_update.img = img;
     fwi_update.running = true;
 
+    Flashd_WriteEnable();
     /* Erase image */
     Flashd_ErasePage(FW_IMG_HDR_ADDR(img));
     while (addr < len) {
@@ -267,7 +272,6 @@ bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len)
 
 bool Fw_UpdateFinish(void)
 {
-    uint8_t *addr;
     uint16_t crc;
 
     if (!fwi_update.running) {
@@ -276,18 +280,21 @@ bool Fw_UpdateFinish(void)
     fwi_update.running = false;
 
     if (fwi_update.written != fwi_update.hdr.len) {
+        Flashd_WriteDisable();
         return false;
     }
 
-    addr = (uint8_t *) FW_IMG_DATA_ADDR(fwi_update.img);
-    crc = CRC16(addr, fwi_update.hdr.len);
+    crc = CRC16((uint8_t *) FW_IMG_DATA_ADDR(fwi_update.img),
+            fwi_update.hdr.len);
 
     if (fwi_update.hdr.crc != crc) {
+        Flashd_WriteDisable();
         return false;
     }
 
     Flashd_Write(FW_IMG_HDR_ADDR(fwi_update.img), (uint8_t *)&fwi_update.hdr,
             sizeof(fwi_update));
+    Flashd_WriteDisable();
     return true;
 }
 
@@ -299,7 +306,7 @@ bool Fw_UpdateIsRunning(void)
 uint8_t *Fw_GetCurrent(uint32_t *length, uint32_t *crc)
 {
     fw_hdr_t hdr;
-    Fwi_GetImgHeader(1, &hdr);
+    Fwi_GetImgHeader(0, &hdr);
 
     if (length != NULL) {
         *length = hdr.len;

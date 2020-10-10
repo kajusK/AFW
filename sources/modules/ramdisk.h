@@ -23,8 +23,8 @@
  * @{
  */
 
-#ifndef __DRIVERS_RAMDISK_H
-#define __DRIVERS_RAMDISK_H
+#ifndef __MODULES_RAMDISK_H
+#define __MODULES_RAMDISK_H
 
 #include <types.h>
 #include <time.h>
