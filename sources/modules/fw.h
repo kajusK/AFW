@@ -39,7 +39,7 @@ extern void Fw_Run(void);
 extern void Fw_Reboot(void);
 
 /**
- * Initialize fw update and erase fw area
+ * Initialize FW update and erase FW area
  *
  * @param major     Major fw version
  * @param minor     Minor fw version
@@ -48,7 +48,7 @@ extern void Fw_Reboot(void);
  *
  * @return True if succeeded
  */
-extern bool Fw_UpdateInit(uint8_t major, uint8_t minor, uint16_t crc, uint32_t len);
+extern bool Fw_UpdateInit(uint16_t crc, uint32_t len);
 
 /**
  * Write update data to selected address
@@ -57,14 +57,31 @@ extern bool Fw_UpdateInit(uint8_t major, uint8_t minor, uint16_t crc, uint32_t l
  * @param buf       Data to be written
  * @param len       Length of the data
  */
-extern void Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len);
+extern bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len);
 
 /**
- * Finish the fw update - check final crc, write headers,...
+ * Finish the FW update - check final CRC, write headers,...
  *
  * @return true if suceeded (crc matches,...)
  */
 extern bool Fw_UpdateFinish(void);
+
+/**
+ * Get state of the FW update
+ *
+ * @return True if running, false otherwise
+ */
+extern bool Fw_UpdateIsRunning(void);
+
+/**
+ * Get current FW image
+ *
+ * @param [out] length  NULL or address to store image length
+ * @param [out] crc     NULL or address to store image crc
+ *
+ * @return Pointer to the image image start
+ */
+extern uint8_t *Fw_GetCurrent(uint32_t *length, uint32_t *crc);
 
 #endif
 

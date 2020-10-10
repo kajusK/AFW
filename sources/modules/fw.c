@@ -19,11 +19,20 @@
  * @file    modules/fw.c
  * @brief   Firmware upgrade module
  *
+ * We use two separate images, one is used to launch the application, the second
+ * is used to store the data during the FW update. The bootloader decides if the
+ * data in the second partition are valid and if so, the second partition
+ * is copied to the first one and booted. Else the first partition is booted
+ * directly
+ *
  * @addtogroup modules
  * @{
  */
 #include <string.h>
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/syscfg.h>
 #include <libopencm3/cm3/scb.h>
+#include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/cortex.h>
 #include "utils/assert.h"
 #include "utils/crc.h"
@@ -32,36 +41,30 @@
 
 /** Total amount of fw images */
 #define FW_IMG_COUNT                2
+/** Flash address memory map */
+#define FW_FLASH_START              0x08000000
 /** Area reserved for bootloader */
-#define FW_BL_RESERVED              0x1000
-/** Area reserved for bootloader */
-#define FW_HDR_SIZE                 FLASHD_PAGE_SIZE
+#define FW_BL_RESERVED              0x800
+/** Image Header size */
+#define FW_HDR_SIZE                 0x80 /* align at 7 bits for VTOR settings */
 /** Size of the image area including fw header */
-#define FW_IMG_SIZE                 ((FLASHD_SIZE - FW_BL_RESERVED)/2)
+#define FW_IMG_SIZE                 ((FLASHD_SIZE - FW_BL_RESERVED)/FW_IMG_COUNT)
 /** Max size of the image itself */
 #define FW_IMG_DATA_SIZE            (FW_IMG_SIZE - FW_HDR_SIZE)
 /** Address of the image header */
-#define FW_IMG_HDR_ADDR(img)        ((img) * FW_IMG_SIZE + FW_BL_RESERVED)
+#define FW_IMG_HDR_ADDR(img)        ((img) * FW_IMG_SIZE + FW_BL_RESERVED + FW_FLASH_START)
 /** Address of the image itself */
-#define FW_IMG_DATA_ADDR(img)       ((img) * FW_IMG_SIZE + FW_HDR_SIZE + FW_BL_RESERVED)
-
-/** Image was not booted yet */
-#define FW_FLAG_FIRST_BOOT 0x01
-/** Image was not yet verified by itself */
-#define FW_FLAG_VERIFIED 0x02
-/** Image is the latest one flashed */
-#define FW_FLAG_LATEST 0x04
+#define FW_IMG_DATA_ADDR(img)       ((img) * FW_IMG_SIZE + FW_HDR_SIZE + FW_BL_RESERVED + FW_FLASH_START)
+/** Magic number for the image header signature */
+#define FW_MAGIC 0xDEADBEEF
 
 /** Header describing stored firmware image */
 typedef struct {
-    uint8_t major;
-    uint8_t minor;
-    uint16_t crc;
+    uint32_t magic;
     uint32_t len;
-    uint8_t flags;
+    uint16_t crc;
 } fw_hdr_t;
 
-/** Info about currently running fw update */
 typedef struct {
     fw_hdr_t hdr;
     uint32_t written;
@@ -69,7 +72,44 @@ typedef struct {
     bool running;
 } fw_update_t;
 
+/** Pointer to application to jump to */
+typedef void (*app_t)(void);
+
 static fw_update_t fwi_update;
+
+/**
+ * Replace current vector table with fw image one
+ *
+ * @param addr      Address of the firmware image vector table (address 0)
+ */
+static void Fwi_RelocateVectors(uint32_t addr)
+{
+    uint32_t cpuid = SCB_CPUID;
+    if (((cpuid & SCB_CPUID_IMPLEMENTER) >> SCB_CPUID_IMPLEMENTER_LSB) == 0x41 &&
+            ((cpuid & SCB_CPUID_VARIANT) >> SCB_CPUID_VARIANT_LSB) == 0x00 &&
+            ((cpuid & SCB_CPUID_CONSTANT) >> SCB_CPUID_CONSTANT_LSB) == 0xc &&
+            ((cpuid & SCB_CPUID_PARTNO) >> SCB_CPUID_PARTNO_LSB) == 0xc20) {
+        /*
+         * The Cortex-M0 doesn't have VTOR register, move vector table
+         * to beggining of RAM and remap RAM to address 0x0
+         * In this case, first XY bytes of RAM must be reserved in image linker
+         */
+        /* Cortex-M0 has 48 interrupt handlers, 4 bytes wide */
+        memcpy((void *)0x20000000, (void *)addr, 0xC0);
+
+        /* Clock for SYSCFG must be enabled for remmaping to work */
+        rcc_periph_clock_enable(RCC_SYSCFG_COMP);
+
+        /* Remap RAM to 0x0 */
+        SYSCFG_CFGR1 &= SYSCFG_CFGR1_MEM_MODE;
+        SYSCFG_CFGR1 |= SYSCFG_CFGR1_MEM_MODE_SRAM;
+    } else {
+        /* If running other core than M0, the VTOR can be use to point to a new
+         * vector table. The address must be 7 bit aligned though */
+        ASSERT((addr & 0x7f) == 0);
+        SCB_VTOR = addr << SCB_VTOR_TBLOFF_LSB;
+    }
+}
 
 /**
  * Set stack pointer and jump to fw image on given address
@@ -78,13 +118,23 @@ static fw_update_t fwi_update;
  */
 static void Fwi_JumpToApp(uint32_t addr)
 {
-    (void) addr;
-    /* Set stack pointer to initial stack address */
-    asm("mov sp, r0");
-    /* Can't access pc directly in thumb mode */
-    asm("ldr r7, [r0, #4]");
-    /* Jump to app */
-    asm("mov pc, r7");
+    uint32_t app = *((uint32_t *)(addr + 4));
+    uint32_t sp = *((uint32_t *)addr);
+
+    /* Disable all interrupts */
+    for (uint8_t i = 0; i < NVIC_IRQ_COUNT; i++) {
+        nvic_disable_irq(i);
+    }
+    /*
+     * Memory/instruction barrier to make sure pending interrupts
+     * were not triggered
+     */
+    asm volatile("dsb");
+    asm volatile("isb");
+
+    Fwi_RelocateVectors(addr);
+    asm volatile("mov sp, %0" : : "r" (sp));
+    asm volatile("bx %0" : : "r" (app));
 }
 
 /**
@@ -93,42 +143,10 @@ static void Fwi_JumpToApp(uint32_t addr)
  * @param img   Image number
  * @param hdr   Address to store header to
  */
-static void Fw_GetImgHeader(uint8_t img, fw_hdr_t *hdr)
+static void Fwi_GetImgHeader(uint8_t img, fw_hdr_t *hdr)
 {
     uint8_t *src = (uint8_t *) FW_IMG_HDR_ADDR(img);
     memcpy((uint8_t *)hdr, src, sizeof(fw_hdr_t));
-}
-
-/**
- * Write image header (only bits in 1 are updated)
- *
- * @param img   Image number
- * @param hdr   Image header
- */
-static void Fw_SetImgHeader(uint8_t img, const fw_hdr_t *hdr)
-{
-    Flashd_Write(FW_IMG_HDR_ADDR(img), (uint8_t *) hdr, sizeof(fw_hdr_t));
-}
-
-/**
- * Clear latest flags of all images except img
- *
- * @param img   Image that should have latest flag unchanged
- */
-static void Fw_SetLatest(uint8_t img)
-{
-    fw_hdr_t hdr;
-
-    for (uint8_t i = 0; i < FW_IMG_COUNT; i++) {
-        if (i == img) {
-            continue;
-        }
-        Fw_GetImgHeader(img, &hdr);
-        if (hdr.flags & FW_FLAG_LATEST) {
-            hdr.flags &= ~FW_FLAG_LATEST;
-            Fw_SetImgHeader(i, &hdr);
-        }
-    }
 }
 
 /**
@@ -137,18 +155,21 @@ static void Fw_SetLatest(uint8_t img)
  * @param img       Image number
  * @return True if valid
  */
-static bool Fw_CheckImgValid(uint8_t img)
+static bool Fwi_CheckImgValid(uint8_t img)
 {
     fw_hdr_t hdr;
     uint16_t crc;
 
-    Fw_GetImgHeader(img, &hdr);
+    Fwi_GetImgHeader(img, &hdr);
 
+    if (hdr.magic != FW_MAGIC) {
+        return false;
+    }
     if (hdr.len > FW_IMG_DATA_SIZE) {
         return false;
     }
 
-    crc = CRC16((uint8_t *) FW_IMG_DATA_ADDR(fwi_update.img), hdr.len);
+    crc = CRC16((uint8_t *) FW_IMG_DATA_ADDR(img), hdr.len);
     if (crc != hdr.crc) {
         return false;
     }
@@ -157,139 +178,66 @@ static bool Fw_CheckImgValid(uint8_t img)
 }
 
 /**
- * Get ID of the currently running image
+ * Copy the selected image into runnable area
  *
- * @return Image number or 0xff if failed (bootloader?)
+ * @param img       Image number
  */
-static uint8_t Fw_GetRunningImg(void)
+static void Fwi_CopyImage(uint8_t img)
 {
-    /* Use address of this function to determine partition we are running from */
-    uint32_t addr = (uint32_t) Fw_GetRunningImg;
+    fw_hdr_t hdr;
+    uint32_t addr = FW_IMG_HDR_ADDR(0);
+    uint8_t *p = (uint8_t *) FW_IMG_HDR_ADDR(img);
+    ASSERT_NOT(img == 0);
 
-    if (addr >= FW_IMG_DATA_ADDR(0) && addr < FW_IMG_HDR_ADDR(1)) {
-        return 0;
+    Fwi_GetImgHeader(1, &hdr);
+
+    while (addr < hdr.len) {
+        Flashd_ErasePage(addr);
+        Flashd_Write(addr, p, FLASHD_PAGE_SIZE);
+        addr += FLASHD_PAGE_SIZE;
+        p += FLASHD_PAGE_SIZE;
     }
-    if (addr >= FW_IMG_DATA_ADDR(1)) {
-        return 1;
-    }
-    return 0xff;
-}
-
-/**
- * Select fw image to be rewritten by fw update
- *
- * @return Image number or 0xff if failed
- */
-static uint8_t Fw_SelectUpdateImg(void)
-{
-    uint8_t running = Fw_GetRunningImg();
-    if (running == 0xff) {
-        //TODO called from bootloader???
-        return 0;
-    }
-
-    return (running + 1) % FW_IMG_COUNT;
-}
-/**
- * Select fw image to be booted
- *
- * @return Image number or 0xff if failed
- */
-static uint8_t Fw_SelectBootImg(void)
-{
-    fw_hdr_t hdr[FW_IMG_COUNT];
-    uint8_t i;
-
-    for (i = 0; i < FW_IMG_COUNT; i++) {
-        Fw_GetImgHeader(i, &hdr[i]);
-    }
-
-    /* First check for images that were not booted yet */
-    for (i = 0; i < FW_IMG_COUNT; i++) {
-        /* not booted yet, this one should be launched */
-        if (hdr[i].flags & FW_FLAG_FIRST_BOOT) {
-            /* verify image has valid crc */
-            if (Fw_CheckImgValid(i)) {
-                return i;
-            }
-        }
-    }
-
-    /* Check for image that is marked as latest and is verified */
-    for (i = 0; i < FW_IMG_COUNT; i++) {
-        if (hdr[i].flags & FW_FLAG_LATEST && hdr[i].flags & FW_FLAG_VERIFIED) {
-            if (Fw_CheckImgValid(i)) {
-                return i;
-            }
-        }
-    }
-
-    /* Try any verified image */
-    for (i = 0; i < FW_IMG_COUNT; i++) {
-        if (hdr[i].flags & FW_FLAG_VERIFIED) {
-            if (Fw_CheckImgValid(i)) {
-                return i;
-            }
-        }
-    }
-
-    /* last chance, try to boot image that has valid crc */
-    for (i = 0; i < FW_IMG_COUNT; i++) {
-        if (Fw_CheckImgValid(i)) {
-            return i;
-        }
-    }
-
-    return 0xff;
 }
 
 void Fw_Run(void)
 {
-    uint8_t img = Fw_SelectBootImg();
-    fw_hdr_t hdr;
-    uint32_t addr;
+    fw_hdr_t hdr_run;
+    fw_hdr_t hdr_img;
+    bool img_valid;
 
-    /* No valid image found */
-    if (img == 0xff) {
-        return;
+    Fwi_GetImgHeader(0, &hdr_run);
+    Fwi_GetImgHeader(1, &hdr_img);
+    img_valid = Fwi_CheckImgValid(1);
+
+    if ((hdr_run.crc != hdr_img.crc) && img_valid) {
+        Fwi_CopyImage(1);
+    } else if (!Fwi_CheckImgValid(0) && img_valid) {
+        Fwi_CopyImage(1);
     }
 
-    Fw_GetImgHeader(img, &hdr);
-    if (hdr.flags & FW_FLAG_FIRST_BOOT) {
-        hdr.flags &= ~FW_FLAG_FIRST_BOOT;
-        Fw_SetImgHeader(img, &hdr);
-    }
-
-    addr = FW_IMG_DATA_ADDR(img);
-
-    cm_disable_interrupts();
-    /* Set vector table address to fw image */
-    SCB_VTOR = addr << SCB_VTOR_TBLOFF_LSB;
-    /* Set initial stack pointer */
-    Fwi_JumpToApp(addr);
+    Fwi_JumpToApp(FW_IMG_DATA_ADDR(0));
 }
 
 void Fw_Reboot(void)
 {
     scb_reset_system();
-    while(1);
+    while(1) {
+        ;
+    }
 }
 
-bool Fw_UpdateInit(uint8_t major, uint8_t minor, uint16_t crc, uint32_t len)
+bool Fw_UpdateInit(uint16_t crc, uint32_t len)
 {
     uint32_t addr = 0;
-    uint8_t img;
+    uint8_t img = 1;
 
     if (len > FW_IMG_DATA_SIZE) {
         return false;
     }
-    img = Fw_SelectUpdateImg();
 
-    fwi_update.hdr.major = major;
-    fwi_update.hdr.minor = minor;
     fwi_update.hdr.crc = crc;
     fwi_update.hdr.len = len;
-    fwi_update.hdr.flags = 0xff;
+    fwi_update.hdr.magic = FW_MAGIC;
     fwi_update.written = 0;
     fwi_update.img = img;
     fwi_update.running = true;
@@ -303,17 +251,18 @@ bool Fw_UpdateInit(uint8_t major, uint8_t minor, uint16_t crc, uint32_t len)
     return true;
 }
 
-void Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len)
+bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len)
 {
     if (addr + len > FW_IMG_DATA_SIZE) {
-        return;
+        return false;
     }
     if (!fwi_update.running) {
-        return;
+        return false;
     }
 
     Flashd_Write(addr + FW_IMG_DATA_ADDR(fwi_update.img), buf, len);
     fwi_update.written += len;
+    return true;
 }
 
 bool Fw_UpdateFinish(void)
@@ -337,9 +286,28 @@ bool Fw_UpdateFinish(void)
         return false;
     }
 
-    Fw_SetImgHeader(fwi_update.img, &fwi_update.hdr);
-    Fw_SetLatest(fwi_update.img);
+    Flashd_Write(FW_IMG_HDR_ADDR(fwi_update.img), (uint8_t *)&fwi_update.hdr,
+            sizeof(fwi_update));
     return true;
+}
+
+bool Fw_UpdateIsRunning(void)
+{
+    return fwi_update.running;
+}
+
+uint8_t *Fw_GetCurrent(uint32_t *length, uint32_t *crc)
+{
+    fw_hdr_t hdr;
+    Fwi_GetImgHeader(1, &hdr);
+
+    if (length != NULL) {
+        *length = hdr.len;
+    }
+    if (crc != NULL) {
+        *crc = hdr.crc;
+    }
+    return (uint8_t *) FW_IMG_DATA_ADDR(0);
 }
 
 /** @} */

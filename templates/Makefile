@@ -130,6 +130,9 @@ $(BUILD_DIR)/%.o: $(AFW)/%.c
 $(PROJECT).elf: $(BOARD_GPIO_FILE) $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@
 
+$(PROJECT).bin: $(PROJECT).elf
+	$(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
+
 flash: $(PROJECT).elf
 	st-flash write $< 0x8000000
 

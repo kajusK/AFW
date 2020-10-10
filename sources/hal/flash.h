@@ -28,8 +28,8 @@
 
 #include <types.h>
 
-/** Flash memory size for stm32f030c8tx mcu */
-#define FLASHD_SIZE 0x10000
+/** Flash memory size for stm32f072cbt6 mcu - 128kB */
+#define FLASHD_SIZE 0x20000
 
 /** Flash page size - 2kB per page */
 #define FLASHD_PAGE_SIZE 0x800UL

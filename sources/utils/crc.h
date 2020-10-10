@@ -47,7 +47,7 @@ extern uint16_t CRC16_Add(uint8_t buf, uint16_t crc);
  * @param [in] buf  Data to calculate crc for
  * @param [in] len  Length of data buffer
  *
- * @return CRC 8 (polynomial 0x07)
+ * @return CRC 16 (polynomial 0x1021 16)
  */
 extern uint16_t CRC16(const uint8_t *buf, uint32_t len);
 
