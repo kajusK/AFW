@@ -41,20 +41,20 @@
 
 /** Total amount of fw images */
 #define FW_IMG_COUNT                2
-/** Flash address memory map */
-#define FW_FLASH_START              0x08000000
+/** Start of RAM memory */
+#define FW_RAM_START                0x20000000
 /** Area reserved for bootloader */
 #define FW_BL_RESERVED              0x800
 /** Image Header size */
 #define FW_HDR_SIZE                 0x80 /* align at 7 bits for VTOR settings */
 /** Size of the image area including fw header */
-#define FW_IMG_SIZE                 ((FLASHD_SIZE - FW_BL_RESERVED)/FW_IMG_COUNT)
+#define FW_IMG_SIZE                 ((Flashd_GetFlashSize() - FW_BL_RESERVED)/FW_IMG_COUNT)
 /** Max size of the image itself */
 #define FW_IMG_DATA_SIZE            (FW_IMG_SIZE - FW_HDR_SIZE)
 /** Address of the image header */
-#define FW_IMG_HDR_ADDR(img)        ((img) * FW_IMG_SIZE + FW_BL_RESERVED + FW_FLASH_START)
+#define FW_IMG_HDR_ADDR(img)        ((img) * FW_IMG_SIZE + FW_BL_RESERVED + FLASHD_START)
 /** Address of the image itself */
-#define FW_IMG_DATA_ADDR(img)       ((img) * FW_IMG_SIZE + FW_HDR_SIZE + FW_BL_RESERVED + FW_FLASH_START)
+#define FW_IMG_DATA_ADDR(img)       ((img) * FW_IMG_SIZE + FW_HDR_SIZE + FW_BL_RESERVED + FLASHD_START)
 /** Magic number for the image header signature */
 #define FW_MAGIC 0xDEADBEEF
 
@@ -95,7 +95,7 @@ static void Fwi_RelocateVectors(uint32_t addr)
          * In this case, first XY bytes of RAM must be reserved in image linker
          */
         /* Cortex-M0 has 48 interrupt handlers, 4 bytes wide */
-        memcpy((void *)0x20000000, (void *)addr, 0xC0);
+        memcpy((void *)FW_RAM_START, (void *)addr, 0xC0);
 
         /* Clock for SYSCFG must be enabled for remmaping to work */
         rcc_periph_clock_enable(RCC_SYSCFG_COMP);
@@ -185,20 +185,22 @@ static bool Fwi_CheckImgValid(uint8_t img)
 static void Fwi_CopyImage(uint8_t img)
 {
     fw_hdr_t hdr;
+    uint32_t end;
+    uint32_t page_size;
     uint32_t addr = FW_IMG_HDR_ADDR(0);
     uint8_t *p = (uint8_t *) FW_IMG_HDR_ADDR(img);
-    uint32_t end;
     ASSERT_NOT(img == 0);
 
     Fwi_GetImgHeader(1, &hdr);
     end = FW_IMG_DATA_ADDR(img) + hdr.len;
 
+    page_size = Flashd_GetPageSize();
     Flashd_WriteEnable();
     while ((uint32_t)p < end) {
         Flashd_ErasePage(addr);
-        Flashd_Write(addr, p, FLASHD_PAGE_SIZE);
-        addr += FLASHD_PAGE_SIZE;
-        p += FLASHD_PAGE_SIZE;
+        Flashd_Write(addr, p, page_size);
+        addr += page_size;
+        p += page_size;
     }
     Flashd_WriteDisable();
 }
@@ -233,6 +235,7 @@ void Fw_Reboot(void)
 bool Fw_UpdateInit(uint16_t crc, uint32_t len)
 {
     uint32_t addr = 0;
+    uint32_t page_size;
     uint8_t img = 1;
 
     if (len > FW_IMG_DATA_SIZE) {
@@ -247,11 +250,12 @@ bool Fw_UpdateInit(uint16_t crc, uint32_t len)
     fwi_update.running = true;
 
     Flashd_WriteEnable();
+    page_size = Flashd_GetPageSize();
     /* Erase image */
     Flashd_ErasePage(FW_IMG_HDR_ADDR(img));
     while (addr < len) {
         Flashd_ErasePage(FW_IMG_HDR_ADDR(img) + addr);
-        addr += FLASHD_PAGE_SIZE;
+        addr += page_size;
     }
     return true;
 }

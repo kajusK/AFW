@@ -27,12 +27,20 @@
 #define __HAL_FLASH_H_
 
 #include <types.h>
+#include <libopencm3/stm32/memorymap.h>
 
-/** Flash memory size for stm32f072cbt6 mcu - 128kB */
-#define FLASHD_SIZE 0x20000
+/** Flash address memory map */
+#define FLASHD_START              FLASH_BASE
 
-/** Flash page size - 2kB per page */
-#define FLASHD_PAGE_SIZE 0x800UL
+/**
+ * Get size of the flash memory in the MCU in bytes
+ */
+extern uint32_t Flashd_GetFlashSize(void);
+
+/**
+ * Get size of the memory page in the MCU in bytes
+ */
+extern uint32_t Flashd_GetPageSize(void);
 
 /**
  * Enable writing to the flash memory

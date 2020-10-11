@@ -24,7 +24,22 @@
  */
 
 #include <libopencm3/stm32/flash.h>
+#include <libopencm3/stm32/desig.h>
 #include "hal/flash.h"
+
+uint32_t Flashd_GetFlashSize(void)
+{
+    return desig_get_flash_size()*1024;
+}
+
+uint32_t Flashd_GetPageSize(void)
+{
+    /* Might not be valid for all MCUs, but should work for at least for F0 */
+    if (desig_get_flash_size() >= 128) {
+        return 2048;
+    }
+    return 1024;
+}
 
 void Flashd_WriteEnable(void)
 {
