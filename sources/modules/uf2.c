@@ -26,7 +26,6 @@
  */
 
 #include <string.h>
-#include <hal/flash.h>
 #include <modules/fw.h>
 #include "uf2.h"
 
@@ -39,11 +38,7 @@
 #define UF2_FLAG_FAMILY_ID_PRESENT 0x00002000
 #define UF2_FLAG_MD5_CHECKSUM 0x00004000
 
-#if FLASHD_PAGE_SIZE > 476
-    #define UF2_CHUNK_SIZE 256
-#else
-    #define UF2_CHUNK_SIZE FLASHD_PAGE_SIZE
-#endif
+#define UF2_CHUNK_SIZE 256
 
 /** Structure of the UF2 block */
 typedef struct {

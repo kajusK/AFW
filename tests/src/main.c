@@ -41,6 +41,7 @@ static void RunAll(void)
     AES_RunTests();
     Lora_RunTests();
     Config_RunTests();
+    UF2_RunTests();
 }
 
 int main(int argc, const char *argv[])

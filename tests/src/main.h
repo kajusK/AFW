@@ -41,6 +41,7 @@ extern void Log_RunTests(void);
 extern void AES_RunTests(void);
 extern void Lora_RunTests(void);
 extern void Config_RunTests(void);
+extern void UF2_RunTests(void);
 
 extern uint8_t assert_should_fail;
 
