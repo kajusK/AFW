@@ -42,6 +42,7 @@ static void RunAll(void)
     Lora_RunTests();
     Config_RunTests();
     UF2_RunTests();
+    Temperature_RunTests();
 }
 
 int main(int argc, const char *argv[])
