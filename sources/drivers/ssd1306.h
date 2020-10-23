@@ -61,10 +61,10 @@ typedef struct {
  * @param desc  The device descriptor
  * @param x     Horizontal position
  * @param y     Vertical position
- * @param value Value for given pixel
+ * @param color Value for given pixel (0 = white, others = black)
  */
 extern void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x,
-        uint16_t y, bool value);
+        uint16_t y, uint16_t color);
 
 /**
  * Flush data from internal frame buffer to display
@@ -77,7 +77,7 @@ extern void SSD1306_Flush(const ssd1306_desc_t *desc);
  * Control display power
  *
  * @param desc      The device descriptor
- * @param on    If true, turn display on, if false, make it sleep
+ * @param on        If true, turn display on, if false, make it sleep
  */
 extern void SSD1306_DispEnable(const ssd1306_desc_t *desc, bool on);
 
@@ -85,9 +85,9 @@ extern void SSD1306_DispEnable(const ssd1306_desc_t *desc, bool on);
  * Set display contrast
  *
  * @param desc      The device descriptor
- * @param contrast  Contrast value, 0-255
+ * @param pct       Contrast value in percent
  */
-extern void SSD1306_SetContrast(const ssd1306_desc_t *desc, uint8_t contrast);
+extern void SSD1306_SetContrast(const ssd1306_desc_t *desc, uint8_t pct);
 
 /**
  * Set display orientation

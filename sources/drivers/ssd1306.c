@@ -114,7 +114,7 @@ static void SSD1306i_Cmd3(const ssd1306_desc_t *desc, ssd1306_cmd_t cmd,
 }
 
 void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x, uint16_t y,
-        bool value)
+        uint16_t color)
 {
     uint8_t bit = 1 << (y & 7);
     uint16_t pos = x+y/8*(SSD1306_WIDTH+1);
@@ -122,11 +122,11 @@ void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x, uint16_t y,
     pos += 1;
 
     /* Ignore drawing outside the buffer */
-    if (pos >= SSD1306_FBUF_SIZE) {
+    if (pos >= SSD1306_FBUF_SIZE || x >= SSD1306_WIDTH) {
         return;
     }
 
-    if (value) {
+    if (color) {
         desc->fbuf[pos] |= bit;
     } else {
         desc->fbuf[pos] &= ~bit;
@@ -158,9 +158,9 @@ void SSD1306_DispEnable(const ssd1306_desc_t *desc, bool on)
     }
 }
 
-void SSD1306_SetContrast(const ssd1306_desc_t *desc, uint8_t contrast)
+void SSD1306_SetContrast(const ssd1306_desc_t *desc, uint8_t pct)
 {
-    SSD1306i_Cmd2(desc, SSD1306_CONTRAST, contrast);
+    SSD1306i_Cmd2(desc, SSD1306_CONTRAST, pct*255U/100);
 }
 
 void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip)
@@ -177,15 +177,15 @@ void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip)
 bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf, uint8_t i2c_device,
         uint8_t address, uint32_t reset_port, uint8_t reset_pad)
 {
-    /* Initialize first item in framebuffer - data command for ssd1306 */
     uint32_t pos;
 
-    ASSERT_NOT(desc == NULL || desc == NULL);
+    ASSERT_NOT(desc == NULL || fbuf == NULL);
 
     desc->address = address;
     desc->i2c_device = i2c_device;
     desc->fbuf = fbuf;
 
+    /* Initialize first item in framebuffer - data command for ssd1306 */
     for (pos = 0; pos < SSD1306_FBUF_SIZE; pos += SSD1306_WIDTH + 1) {
         desc->fbuf[pos] = SSD1306_START_LINE;
     }
