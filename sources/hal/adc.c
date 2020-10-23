@@ -95,16 +95,16 @@ void Adcd_UpdateVdda(void)
 
 void Adcd_Sleep(void)
 {
-    adc_power_off(ADC1);
     adc_disable_temperature_sensor();
     adc_disable_vrefint();
+    adc_power_off(ADC1);
 }
 
 void Adcd_Wakeup(void)
 {
+    adc_power_on(ADC1);
     adc_enable_temperature_sensor();
     adc_enable_vrefint();
-    adc_power_on(ADC1);
 
     /* Wait for ADC starting up. */
     for (int i = 0; i < 800000; i++) {
@@ -118,17 +118,18 @@ void Adcd_Init(void)
     rcc_periph_clock_enable(RCC_ADC);
 
     adc_power_off(ADC1);
-    adc_enable_temperature_sensor();
-    adc_enable_vrefint();
-    adc_set_clk_source(ADC1, ADC_CLKSOURCE_ADC);
+    adc_calibrate(ADC1);
+    adc_power_on(ADC1);
+
+    adc_set_clk_source(ADC1, ADC_CLKSOURCE_PCLK_DIV4);
     adc_set_sample_time_on_all_channels(ADC1, ADC_SMPTIME_071DOT5);
     adc_set_resolution(ADC1, ADC_RESOLUTION_12BIT);
     adc_set_operation_mode(ADC1, ADC_MODE_SCAN);
     adc_disable_external_trigger_regular(ADC1);
     adc_set_right_aligned(ADC1);
     adc_disable_analog_watchdog(ADC1);
-    adc_calibrate(ADC1);
-    adc_power_on(ADC1);
+    adc_enable_temperature_sensor();
+    adc_enable_vrefint();
 
     /* Wait for ADC starting up. */
     for (int i = 0; i < 800000; i++) {
