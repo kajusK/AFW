@@ -133,7 +133,7 @@ $(PROJECT).elf: $(BOARD_GPIO_FILE) $(OBJS)
 $(PROJECT).bin: $(PROJECT).elf
 	$(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
 
-flash: $(PROJECT).elf
+flash: $(PROJECT).bin
 	st-flash write $< 0x8000000
 
 clean:
