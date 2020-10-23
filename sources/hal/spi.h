@@ -80,6 +80,8 @@ extern void SPId_Receive(uint8_t device, uint8_t *buf, size_t len);
  * GPIO pins are not initialized and must be initialize separately
  *
  * @param device	Device ID (1 to 6)
+ * @param prescaler Clock prescaler
+ * @param mode      SPI mode to use
  * @return True if init was successful
  */
 extern void SPId_Init(uint8_t device, spid_prescaler_t prescaler,
