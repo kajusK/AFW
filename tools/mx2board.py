@@ -35,11 +35,15 @@ PIN_PUPDR_FLOATING = "PIN_PUPDR_FLOATING({0})"
 PIN_PUPDR_PULLUP = "PIN_PUPDR_PULLUP({0})"
 PIN_PUPDR_PULLDOWN = "PIN_PUPDR_PULLDOWN({0})"
 PIN_AFIO_AF = "PIN_AFIO_AF({0}, {1})"
+PIN_ASCR_DISABLED = "PIN_ASCR_DISABLED({0})"
+PIN_ASCR_ENABLED = "PIN_ASCR_ENABLED({0})"
+PIN_LOCKR_DISABLED = "PIN_LOCKR_DISABLED({0})"
+PIN_LOCKR_ENABLED = "PIN_LOCKR_ENABLED({0})"
 
 FMT = '{0}'
 FMT_DEF = '({0})'
 
-PIN_CONF_LIST = ['MODER', 'OTYPER', 'OSPEEDR', 'PUPDR', 'ODR']
+PIN_CONF_LIST = ['MODER', 'OTYPER', 'OSPEEDR', 'PUPDR', 'ODR', 'ASCR', 'LOCKR']
 PIN_CONF_LIST_AF = ['AFRL', 'AFRH']
 
 DEFAULT_PAD = {"SIGNAL": "UNUSED",
@@ -48,7 +52,9 @@ DEFAULT_PAD = {"SIGNAL": "UNUSED",
                "OTYPER": PIN_OTYPE_PUSHPULL,
                "OSPEEDR": PIN_OSPEED_VERYLOW,
                "PUPDR": PIN_PUPDR_FLOATING,
-               "ODR": PIN_ODR_LOW}
+               "ODR": PIN_ODR_LOW,
+               "ASCR": PIN_ASCR_DISABLED,
+               "LOCKR": PIN_LOCKR_DISABLED}
 
 PIN_MODE_TRANSLATE = {"GPIO_MODE_AF_PP": PIN_MODE_ALTERNATE,
                       "GPIO_MODE_ANALOG": PIN_MODE_ANALOG,
@@ -138,7 +144,7 @@ def get_gpio_file(proj_file, mx_path):
         print('Could not find GPIO file')
         exit(1)
 
-    print('Opened ' + path)
+    print('Opened ' + path + mcu_name)
 
     for ip in mcu_info.findall("IP"):
         if ip.attrib['Name'] == 'GPIO':
@@ -207,13 +213,18 @@ def read_project(gpio, filename):
     with open(filename, 'r') as mx_file:
         tmp = mx_file.readlines()
     pads = {}
+    mcu = 'Unknown'
 
-    # Default all pads to analog
+    for l in tmp:
+        if l.startswith('Mcu.Name'):
+            mcu = l.split('=')[-1].strip()
+
+    # Default pad mode is analog, here we assign proper mode and speed.
     for p in gpio['ports'].keys():
         pads[p] = {}
         for i in range(0, 16):
             pads[p][i] = DEFAULT_PAD.copy()
-            pads[p][i]['PUPDR'] = PIN_PUPDR_TRANSLATE[gpio['defaults']['GPIO_PuPdOD']]
+            pads[p][i]['PUPDR'] = PIN_PUPDR_TRANSLATE[gpio['defaults']['GPIO_PuPd']]
             pads[p][i]['OTYPER'] = PIN_OTYPE_TRANSLATE[gpio['defaults']['GPIO_ModeDefaultOutputPP']]
             pads[p][i]['OSPEEDR'] = PIN_OSPEED_TRANSLATE[gpio['defaults']['GPIO_Speed']]
 
@@ -267,7 +278,7 @@ def read_project(gpio, filename):
                     pads[pad_port][pad_num]["OTYPER"] = PIN_OTYPE_OPENDRAIN
 
 
-    return pads
+    return mcu, pads
 
 
 # Add defines for all pins with labels
@@ -389,7 +400,8 @@ if __name__ == '__main__':
     else:
         gpio_file = get_gpio_file(args.project, args.mx)
         gpio = read_gpio(gpio_file)
-    proj = read_project(gpio, args.project)
+
+    mcu, proj = read_project(gpio, args.project)
     defines = gen_defines(proj)
     ports = gen_ports(gpio, proj)
 
@@ -405,6 +417,6 @@ if __name__ == '__main__':
     for p in sorted(ports.keys()):
         ports_sorted.append((p, ports[p]))
 
-    template.stream(defines=defines_sorted, ports=ports_sorted).dump(args.output)
+    template.stream(defines=defines_sorted, ports=ports_sorted, ascr_lockr='L4' in mcu).dump(args.output)
 
     print('File generated at ' + args.output)
