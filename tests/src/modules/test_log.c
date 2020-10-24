@@ -53,14 +53,14 @@ uint32_t millis(void)
 
 void UARTd_Puts(uint8_t device, const char *msg)
 {
-    (void) device;
+    TEST_ASSERT_EQUAL(123, device);
     strcat(uart_output, msg);
     uart_pos += strlen(msg);
 }
 
 void UARTd_Putc(uint8_t device, char c)
 {
-    (void) device;
+    TEST_ASSERT_EQUAL(123, device);
     uart_output[uart_pos] = c;
     uart_output[uart_pos + 1] = '\0';
     uart_pos += 1;
@@ -75,6 +75,7 @@ TEST_SETUP(LOG)
 {
     uart_pos = 0;
     uart_output[0] = '\0';
+    Log_Init(123);
 }
 
 TEST_TEAR_DOWN(LOG)

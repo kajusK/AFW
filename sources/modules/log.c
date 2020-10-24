@@ -41,7 +41,7 @@
 #define TERM_WHITE  "\x1B[37m"
 
 static log_level_t logi_level = LOG_INFO;
-static uint8_t logi_uart;
+static uint8_t logi_uart = 0xff;
 
 /**
  * Convert number to string and send to serial
@@ -148,6 +148,9 @@ void Log_Raw(log_level_t level, const char *source, const char *format, ...)
     va_list ap;
 
     if (level < logi_level) {
+        return;
+    }
+    if (logi_uart == 0xff) {
         return;
     }
 
