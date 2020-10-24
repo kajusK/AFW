@@ -126,7 +126,7 @@ TEST(NMEA, Scan)
     nmea_date_t date;
     nmea_time_t time1, time2, time3;
 
-    TEST_ASSERT_TRUE(Nmeai_Scan("GPFOO,f,ign,05,+12.04,-4912.12345", "sc_ifp",
+    TEST_ASSERT_TRUE(Nmeai_Scan("GPFOO,f,ign,05,+12.04,-4912.12345,", "sc_ifp_",
             str, &c, &i, &f1, &f2));
     TEST_ASSERT_EQUAL_STRING("GPFOO", str);
     TEST_ASSERT_EQUAL('f', c);
@@ -137,7 +137,7 @@ TEST(NMEA, Scan)
     TEST_ASSERT_EQUAL(-492020575, f2.num);
     TEST_ASSERT_EQUAL(10000000, f2.scale);
 
-    TEST_ASSERT_TRUE(Nmeai_Scan("$N,S,120125,122508,053011.123,*23", "DDdttt",
+    TEST_ASSERT_TRUE(Nmeai_Scan("$N,S,120125,122508,053011.123,,A*23", "DDdttt_",
             &dir1, &dir2, &date, &time1, &time2, &time3));
     TEST_ASSERT_EQUAL(1, dir1);
     TEST_ASSERT_EQUAL(-1, dir2);
@@ -173,6 +173,7 @@ TEST(NMEA, ParseRmc)
     TEST_ASSERT_TRUE(Nmea_ParseRmc(
             "$GPRMC,081836,A,3751.65,S,14507.36,E,999.99,123.4,130998,011.3,W",
             &rmc));
+
     TEST_ASSERT_TRUE(rmc.valid);
     TEST_ASSERT_EQUAL(8, rmc.fix_time.hour);
     TEST_ASSERT_EQUAL(18, rmc.fix_time.minute);
@@ -191,6 +192,28 @@ TEST(NMEA, ParseRmc)
     TEST_ASSERT_EQUAL(98, rmc.date.year);
     TEST_ASSERT_EQUAL(-113, rmc.mag_variation.num);
     TEST_ASSERT_EQUAL(10, rmc.mag_variation.scale);
+
+    TEST_ASSERT_TRUE(Nmea_ParseRmc(
+            "$GPRMC,191118.000,A,4911.3987,N,01745.4449,E,0.01,6.42,241020,,,A",
+            &rmc));
+    TEST_ASSERT_TRUE(rmc.valid);
+    TEST_ASSERT_EQUAL(19, rmc.fix_time.hour);
+    TEST_ASSERT_EQUAL(11, rmc.fix_time.minute);
+    TEST_ASSERT_EQUAL(18, rmc.fix_time.second);
+    TEST_ASSERT_EQUAL(49189978, rmc.lat.num);
+    TEST_ASSERT_EQUAL(1000000, rmc.lat.scale);
+    TEST_ASSERT_EQUAL(17757415, rmc.lon.num);
+    TEST_ASSERT_EQUAL(1000000, rmc.lon.scale);
+    /* 999,99 knots is equal to 1851,981 kmh/h */
+    TEST_ASSERT_EQUAL(2, rmc.speed_kmh.num);
+    TEST_ASSERT_EQUAL(100, rmc.speed_kmh.scale);
+    TEST_ASSERT_EQUAL(642, rmc.course.num);
+    TEST_ASSERT_EQUAL(100, rmc.course.scale);
+    TEST_ASSERT_EQUAL(24, rmc.date.day);
+    TEST_ASSERT_EQUAL(10, rmc.date.month);
+    TEST_ASSERT_EQUAL(20, rmc.date.year);
+    TEST_ASSERT_EQUAL(0, rmc.mag_variation.num);
+    TEST_ASSERT_EQUAL(1, rmc.mag_variation.scale);
 }
 
 TEST(NMEA, ParseGga)

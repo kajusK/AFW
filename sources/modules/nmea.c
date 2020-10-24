@@ -106,8 +106,8 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
         /* ignored character */
         case '_':
             if (!Nmeai_IsEnd(*msg)) {
-                while (!Nmeai_IsEnd(*msg++)) {
-                    ;
+                while (!Nmeai_IsEnd(*msg)) {
+                    msg++;
                 }
             }
             break;
@@ -289,8 +289,7 @@ static bool Nmeai_Scan(const char *msg, const char *format, ...)
         msg = Nmeai_ScanHelper(msg, *format++, &ap);
         /* failed to parse field */
         if (msg == NULL) {
-            ret = false;
-            break;
+            return false;
         }
 
         if (*msg == ',') {
@@ -304,6 +303,10 @@ static bool Nmeai_Scan(const char *msg, const char *format, ...)
         }
     }
 
+    /* Skip ignored fields at the end (newer standards use more items) */
+    while (*format == '_') {
+        format++;
+    }
     if (*format != '\0') {
         ret = false;
     }
@@ -375,7 +378,7 @@ bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc)
         return false;
     }
     /* $GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68 */
-    ret = Nmeai_Scan(msg, "stcpDpDffdfD",
+    ret = Nmeai_Scan(msg, "stcpDpDffdfD_",
             type, &rmc->fix_time, &c, &rmc->lat, &dir_lat, &rmc->lon, &dir_lon,
             &rmc->speed_kmh, &rmc->course, &rmc->date,
             &rmc->mag_variation, &dir_var);
@@ -496,6 +499,9 @@ const char *Nmea_AddChar(char c)
 
     if (pos == 0 && c != '$') {
         return NULL;
+    }
+    if (c == '$') {
+        pos = 0;
     }
 
     if (pos >= NMEA_MAX_MSG_LEN) {
