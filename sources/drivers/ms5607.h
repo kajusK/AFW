@@ -52,8 +52,8 @@ typedef struct {
  * Read temperature and pressure from the sensor
  *
  * @param desc              Device descriptor
- * @param pressure_mbar     Measured pressure in Pascals
- * @param temp_mdeg         Measured temperature in milli degrees Celsius
+ * @param [out] pressure_mbar   Measured pressure in Pascals or NULL
+ * @param [out] temp_mdeg       Measured temperature in milli degrees or NULL
  *
  * @return True if device responded and data are valid
  */

@@ -178,8 +178,12 @@ bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
     sens = sens - sens2;
     p = (((d1*sens) >> 21) - off) >> 15;
 
-    *temp_mdeg = temp * 10;
-    *pressure_Pa = p; /* result in mbar * 100, same as Pa */
+    if (temp_mdeg != NULL) {
+        *temp_mdeg = temp * 10;
+    }
+    if (pressure_Pa != NULL) {
+        *pressure_Pa = p; /* result in mbar * 100, same as Pa */
+    }
 
     return true;
 }
