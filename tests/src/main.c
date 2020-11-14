@@ -30,6 +30,7 @@ uint8_t assert_should_fail = false;
 static void RunAll(void)
 {
     Time_RunTests();
+    String_RunTests();
     Crc_RunTests();
     Button_RunTests();
     Math_RunTests();

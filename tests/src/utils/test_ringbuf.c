@@ -90,6 +90,11 @@ TEST(RINGBUF, buf)
     TEST_ASSERT_EQUAL('g', Ring_Pop(&rbuf));
     TEST_ASSERT_EQUAL('h', Ring_Pop(&rbuf));
     TEST_ASSERT_TRUE(Ring_Empty(&rbuf));
+
+    TEST_ASSERT_TRUE(Ring_Push(&rbuf, 'f'));
+    TEST_ASSERT_TRUE(Ring_Push(&rbuf, 'g'));
+    Ring_Clear(&rbuf);
+    TEST_ASSERT_TRUE(Ring_Empty(&rbuf));
 }
 
 TEST_GROUP_RUNNER(RINGBUF)

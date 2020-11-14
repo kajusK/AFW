@@ -16,39 +16,49 @@
  */
 
 /**
- * @file    utils/time.h
- * @brief   Usual time measurement utilities - millis, etc.
+ * @file    utils/string.c
+ * @brief   Helper functions for working with strings
  *
  * @addtogroup utils
  * @{
  */
 
-#ifndef __UTILS_TIME_H
-#define __UTILS_TIME_H
+#include <ctype.h>
+#include "utils/string.h"
 
-#include <types.h>
+uint8_t hex2dec(char c)
+{
+    if (!isxdigit(c)) {
+        return 0;
+    }
+    if (isdigit(c)) {
+        return c - '0';
+    }
+    return tolower(c) - 'a' + 10;
+}
 
-/**
- * Get time since initialization in milliseconds
- *
- * @return time since initialization
- */
-extern uint32_t millis(void);
+char dec2hex(uint8_t num)
+{
+    if (num > 15) {
+        return '0';
+    }
+    if (num > 9) {
+        return num + 'A' - 10;
+    }
+    return num + '0';
+}
 
-/**
- * Wait for given amount of time (in ms)
- *
- * Precission is up to 1 ms
- *
- * @param ms    Amount of milliseconds to wait for
- */
-extern void delay_ms(uint32_t ms);
-
-/**
- * Initialize timer module (start systick, etc)
- */
-extern void Time_Init(void);
-
-#endif
+void num2hex(uint32_t value, uint8_t places, char *buf)
+{
+    if (places > 8) {
+        *buf = '\0';
+        return;
+    }
+    for (int8_t i = places-1; i >= 0; i--) {
+        buf[i] = dec2hex(value % 16);
+        value /= 16;
+    }
+    buf[places] = '\0';
+}
 
 /** @} */

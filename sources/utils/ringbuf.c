@@ -76,6 +76,13 @@ bool Ring_Empty(const ring_t *ring)
     return ring->start == ring->end;
 }
 
+void Ring_Clear(ring_t *ring)
+{
+    while (!Ring_Empty(ring)) {
+        (void)Ring_Pop(ring);
+    }
+}
+
 void Ring_Init(ring_t *ring, char *buffer, uint8_t size)
 {
     ring->buffer = buffer;

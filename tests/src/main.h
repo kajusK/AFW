@@ -30,6 +30,7 @@
 #include <types.h>
 
 extern void Time_RunTests(void);
+extern void String_RunTests(void);
 extern void Crc_RunTests(void);
 extern void Button_RunTests(void);
 extern void Math_RunTests(void);
