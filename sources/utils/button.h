@@ -39,6 +39,7 @@ typedef struct {
     uint32_t start;
     uint8_t debounce;
     bool prev;
+    bool inverted;
 } button_t;
 
 typedef enum {
@@ -58,6 +59,16 @@ typedef enum {
  * @return Button events
  */
 extern button_event_t Button(button_t *button);
+
+/**
+ * Initialize button structure
+ *
+ * @param port      MCU port to which the button is connected
+ * @param pad       MCU pin to which the button is connected
+ * @param inverted  If true, the button is pressed when pin is zero
+ */
+extern void Button_Init(button_t *button, uint32_t port, uint8_t pad,
+        bool inverted);
 
 #endif
 

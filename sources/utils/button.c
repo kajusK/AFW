@@ -25,6 +25,7 @@
 
 #include "hal/io.h"
 #include "utils/time.h"
+#include "utils/assert.h"
 #include "button.h"
 
 /**
@@ -37,7 +38,10 @@
  */
 static bool Buttoni_Debounce(button_t *button)
 {
-    bool current = !IOd_GetLine(button->port, button->pad);
+    bool current = IOd_GetLine(button->port, button->pad);
+    if (button->inverted) {
+        current = !current;
+    }
 
     if (!current) {
         button->debounce = BTN_DEBOUNCE_STEPS - 1;
@@ -54,7 +58,10 @@ static bool Buttoni_Debounce(button_t *button)
 
 button_event_t Button(button_t *button)
 {
-    bool current = Buttoni_Debounce(button);
+    bool current;
+    ASSERT_NOT(button == NULL);
+
+    current = Buttoni_Debounce(button);
 
     /* No change */
     if (button->prev == current) {
@@ -81,6 +88,14 @@ button_event_t Button(button_t *button)
         return BTN_RELEASED_LONG;
     }
     return BTN_RELEASED_SHORT;
+}
+
+void Button_Init(button_t *button, uint32_t port, uint8_t pad, bool inverted)
+{
+    ASSERT_NOT(button == NULL);
+    button->port = port;
+    button->pad = pad;
+    button->inverted = inverted;
 }
 
 /** @} */

@@ -27,9 +27,14 @@
 #include <main.h>
 
 #include "utils/button.h"
+
+#define BUTTON_PORT 1234
+#define BUTTON_PAD 12
+
 static uint32_t time_ms;
 static bool gpio;
 static button_t btn;
+
 /* *****************************************************************************
  * Mocks
 ***************************************************************************** */
@@ -40,9 +45,9 @@ static uint32_t millis(void)
 
 static bool IOd_GetLine(uint32_t port, uint8_t pad)
 {
-    (void) port;
-    (void) pad;
-    return !gpio;
+    TEST_ASSERT_EQUAL(BUTTON_PORT, port);
+    TEST_ASSERT_EQUAL(BUTTON_PAD, pad);
+    return gpio;
 }
 
 /* *****************************************************************************
@@ -55,7 +60,7 @@ TEST_SETUP(BUTTON)
 {
     time_ms = 0;
     gpio = false;
-    memset((uint8_t *)&btn, 0, sizeof(btn));
+    Button_Init(&btn, BUTTON_PORT, BUTTON_PAD, false);
 }
 
 TEST_TEAR_DOWN(BUTTON)
@@ -131,11 +136,29 @@ TEST(BUTTON, LongPress)
     TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
 }
 
+TEST(BUTTON, inverted)
+{
+    Button_Init(&btn, BUTTON_PORT, BUTTON_PAD, true);
+    gpio = 1;
+    TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
+    gpio = 0;
+    btn.debounce = 0;
+    TEST_ASSERT_EQUAL(BTN_PRESSED, Button(&btn));
+
+    time_ms += 10;
+    TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
+
+    gpio = 1;
+    TEST_ASSERT_EQUAL(BTN_RELEASED_SHORT, Button(&btn));
+    TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
+}
+
 TEST_GROUP_RUNNER(BUTTON)
 {
     RUN_TEST_CASE(BUTTON, debounce);
     RUN_TEST_CASE(BUTTON, shortPress);
     RUN_TEST_CASE(BUTTON, LongPress);
+    RUN_TEST_CASE(BUTTON, inverted);
 }
 
 void Button_RunTests(void)
