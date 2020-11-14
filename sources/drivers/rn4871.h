@@ -44,8 +44,6 @@ typedef enum {
     BLE_EVT_REBOOTED,           /**< BLE module was rebooted */
     BLE_EVT_DISCONNECTED,       /**< Disconnected from a device */
     BLE_EVT_CONNECTED,          /**< Connected to the device */
-    BLE_EVT_INDICATION,         /**< Indication arrived */
-    BLE_EVT_NOTIFICATION,       /**< Notification arrived */
     BLE_EVT_WRITE,              /**< Write request arrived */
 } rn4871_evt_t;
 
