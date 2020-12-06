@@ -41,7 +41,7 @@
 #define PROMPT_TIMEOUT_MS 300
 
 /** Timeout for device reboot */
-#define REBOOT_TIMEOUT_MS  1000
+#define REBOOT_TIMEOUT_MS  5000
 
 /* Commands */
 #define CMD_SET_SERIALIZED_NAME "S-"
@@ -122,10 +122,14 @@ static void RN4871i_ProcessStatus(rn4871_desc_t *desc, const char *msg)
         evt = BLE_EVT_ADV_TIMEOUT;
     } else if (len == 10 && strcmp("DISCONNECT", msg) == 0) {
         evt = BLE_EVT_DISCONNECTED;
+        desc->connected = false;
     } else if (len == 6 && strcmp("REBOOT", msg) == 0) {
         evt = BLE_EVT_REBOOTED;
+        desc->connected = false;
+        desc->rebooted = true;
     } else if (len > 7 && strncmp("CONNECT", msg, 7) == 0) {
         evt = BLE_EVT_CONNECTED;
+        desc->connected = true;
     } else if (len > 8 && strncmp("WV", msg, 2) == 0) {
         evt = BLE_EVT_WRITE;
         data.handle = 0;
@@ -232,8 +236,8 @@ static bool RN4871i_Expect(rn4871_desc_t *desc, const char *expect,
             continue;
         }
         c = Ring_Pop(&desc->rbuf);
+
         if (terminated && (c == '\n' || c == '\r')) {
-            if (expect[pos] != '\0')
             return expect[pos] == '\0';
         }
         if (c == expect[pos]) {
@@ -245,6 +249,7 @@ static bool RN4871i_Expect(rn4871_desc_t *desc, const char *expect,
             pos = 0;
         }
     }
+
     return false;
 }
 
@@ -301,8 +306,27 @@ static bool RN4871i_Cmd(rn4871_desc_t *desc, const char *cmd,
  */
 static bool RN4871i_EnterCmdMode(rn4871_desc_t *desc)
 {
+    Ring_Clear(&desc->rbuf);
     UARTd_Puts(desc->uart_device, ENTER_CMD_MODE);
     return RN4871i_WaitPrompt(desc);
+}
+
+/**
+ * Wait until the device is rebooted
+ *
+ * @param desc      Device descriptor
+ * @param True if rebooted, false otherwise
+ */
+static bool RN4871i_WaitReboot(rn4871_desc_t *desc)
+{
+    uint32_t start = millis();
+    while ((millis() - start) < REBOOT_TIMEOUT_MS && !desc->rebooted) {
+        ;
+    }
+    if (millis() - start >= REBOOT_TIMEOUT_MS) {
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -313,12 +337,12 @@ static bool RN4871i_EnterCmdMode(rn4871_desc_t *desc)
  */
 static bool RN4871i_ResetFactory(rn4871_desc_t *desc)
 {
-    bool ret = RN4871i_CmdRaw(desc, CMD_SET_FACTORY, "2",
-            "Reboot after Factory Reset", REBOOT_TIMEOUT_MS);
-    if (!ret) {
+    desc->rebooted = false;
+    RN4871i_CmdRaw(desc, CMD_SET_FACTORY, "2", "Reboot after Factory Reset",
+            COMMAND_TIMEOUT_MS);
+    if (!RN4871i_WaitReboot(desc)) {
         return false;
     }
-    delay_ms(REBOOT_TIMEOUT_MS);
     return RN4871i_EnterCmdMode(desc);
 }
 
@@ -550,10 +574,7 @@ uint8_t RN4871_ReadChar(rn4871_desc_t *desc, uint16_t handle, uint8_t *data,
 
 bool RN4871_IsConnected(rn4871_desc_t *desc)
 {
-    bool ret;
-    ret = RN4871i_CmdRaw(desc, CMD_GET_CONNECTED, NULL, "none", COMMAND_TIMEOUT_MS);
-    RN4871i_WaitPrompt(desc);
-    return !ret;
+    return desc->connected;
 }
 
 bool RN4871_StartAdvertising(rn4871_desc_t *desc, uint16_t interval_ms,
@@ -572,8 +593,11 @@ bool RN4871_StartAdvertising(rn4871_desc_t *desc, uint16_t interval_ms,
 
 bool RN4871_Reboot(rn4871_desc_t *desc)
 {
-    RN4871i_CmdRaw(desc, CMD_REBOOT, "1", "Rebooting", REBOOT_TIMEOUT_MS);
-    delay_ms(REBOOT_TIMEOUT_MS);
+    desc->rebooted = false;
+    RN4871i_CmdRaw(desc, CMD_REBOOT, "1", "Rebooting", COMMAND_TIMEOUT_MS);
+    if (!RN4871i_WaitReboot(desc)) {
+        return false;
+    }
     return RN4871i_EnterCmdMode(desc);
 }
 
@@ -662,6 +686,7 @@ bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device, const char *name,
     desc->low_power = false;
     desc->uart_device = uart_device;
     desc->cb = NULL;
+    desc->connected = false;
     UARTd_SetRxCallback(uart_device, RN4871i_UartCb);
 
     if (RN4871i_EnterCmdMode(desc) == false) {
@@ -673,8 +698,8 @@ bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device, const char *name,
     /* Configure default services and stuff */
     RN4871i_SetGAPService(desc, name, appearance);
     if (dis != NULL) {
-        RN4871i_SetDeviceInformation(desc, dis);
         RN4871i_SetDefaultServices(desc, SERVICE_DEV_INFO);
+        RN4871i_SetDeviceInformation(desc, dis);
     } else {
         RN4871i_SetDefaultServices(desc, 0);
     }

@@ -83,6 +83,8 @@ typedef struct {
     char rbuf_data[16];         /**< Ringbuf data storage */
     ring_t rbuf;                /**< Ring buffer for incoming data */
     rn4871_evt_cb_t cb;         /**< Event callback */
+    bool connected;             /**< Is connected */
+    bool rebooted;              /**< Recentry rebooted */
 } rn4871_desc_t;
 
 /**
