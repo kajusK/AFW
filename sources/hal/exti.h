@@ -47,6 +47,8 @@ typedef enum {
 #define EXTID_LINE_TAMPER 19
 //TODO available only on stm32f0x0xC devices */
 #define EXTID_LINE_RTC_WAKEUP 20
+#define EXTID_LINE_COMP1 21
+#define EXTID_LINE_COMP2 22
 
 /**
  * Set callback for the exti interrupts
