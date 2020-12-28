@@ -236,6 +236,19 @@ void Timerd_SetPrescaler(uint8_t device, uint32_t prescaler)
     timer_set_prescaler(Timerdi_GetDevice(device), prescaler);
 }
 
+uint32_t Timerd_GetFrequency(uint8_t device)
+{
+    uint32_t timer_clk;
+    /* If APB prescaler is not 1, the timers clock is multiplied by 2 first */
+    if ((RCC_CFGR & ~RCC_CFGR_PPRE) == RCC_CFGR_PPRE_NODIV) {
+        timer_clk = rcc_apb1_frequency;
+    } else {
+        timer_clk = rcc_apb1_frequency*2;
+    }
+
+    return timer_clk / (TIM_PSC(Timerdi_GetDevice(device)) + 1);
+}
+
 void Timerd_SetClockFreq(uint8_t device, uint32_t freq_hz)
 {
     uint32_t timer_clk;
@@ -248,7 +261,7 @@ void Timerd_SetClockFreq(uint8_t device, uint32_t freq_hz)
 
     ASSERT(freq_hz <= timer_clk);
     timer_set_prescaler(Timerdi_GetDevice(device),
-            (timer_clk / freq_hz));
+            (timer_clk / freq_hz) - 1);
 }
 
 void Timerd_SetPeriod(uint8_t device, uint32_t period)

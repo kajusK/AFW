@@ -89,6 +89,14 @@ extern void Timerd_DisableEvent(uint8_t device, timerd_event_t event,
 extern void Timerd_SetPrescaler(uint8_t device, uint32_t prescaler);
 
 /**
+ * Get current timer frequency
+ *
+ * @param device    Device ID (starts from 1)
+ * @return Frequency in Hz
+ */
+uint32_t Timerd_GetFrequency(uint8_t device);
+
+/**
  * Set timer clock frequency
  * Calculates prescaler value from timer clock and required frequency
  *
