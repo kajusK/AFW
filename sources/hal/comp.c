@@ -26,29 +26,30 @@
 #include <libopencm3/stm32/rcc.h>
 #include "comp.h"
 
+#define REG_COMP_CSR      MMIO32(SYSCFG_COMP_BASE + 0x1c)
+
 void Compd_Enable(uint8_t channel)
 {
-    comp_enable(channel);
+    REG_COMP_CSR |= COMP_CSR_EN << channel*16;
 }
 
 void Compd_Disable(uint8_t channel)
 {
-    comp_disable(channel);
+    REG_COMP_CSR &= ~(COMP_CSR_EN << channel*16);
 }
 
 void Compd_Init(uint8_t channel, comp_speed_t speed, comp_hyst_t hyst,
         comp_in_neg_t input, comp_out_t output, bool invert)
 {
     rcc_periph_clock_enable(RCC_SYSCFG_COMP);
-    comp_select_speed(channel, speed);
-    comp_select_hyst(channel, hyst);
-    comp_select_input(channel, input);
-    comp_select_output(channel, output);
+    REG_COMP_CSR &= ~(0xffff << channel*16);
+    REG_COMP_CSR |= speed << channel*16;
+    REG_COMP_CSR |= hyst << channel*16;
+    REG_COMP_CSR |= input << channel*16;
+    REG_COMP_CSR |= output << channel*16;
 
     if (invert) {
-        COMP_CSR(channel) |= COMP_CSR_POL;
-    } else {
-        COMP_CSR(channel) &= ~COMP_CSR_POL;
+        REG_COMP_CSR |= COMP_CSR_POL << channel*16;
     }
 }
 
