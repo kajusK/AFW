@@ -310,7 +310,7 @@ def gen_defines(project):
                 defines['CCR_' + label] = 'CCR' + timer[-1]
                 defines['PWMD_' + label] = 'PWMD' + timer[-1]
                 defines['ICUD_' + label] = 'ICUD' + timer[-1]
-                defines['CHN_' + label] = ch_num - 1
+                defines['CHN_' + label] = ch_num
                 continue
 
             match = re.search(r"ADC(\d*)_IN(\d+)$", signal)
