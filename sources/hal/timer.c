@@ -31,9 +31,9 @@
 #include "hal/timer.h"
 
 static const enum tim_oc_id timerdi_oc_id[] = {TIM_OC1, TIM_OC2, TIM_OC3, TIM_OC4};
-#define Timerdi_GetOcId(channel) timerdi_oc_id[(channel)]
+#define Timerdi_GetOcId(channel) timerdi_oc_id[(channel-1)]
 static const enum tim_ic_id timerdi_ic_id[] = {TIM_IC1, TIM_IC2, TIM_IC3, TIM_IC4};
-#define Timerdi_GetIcId(channel) timerdi_ic_id[(channel)]
+#define Timerdi_GetIcId(channel) timerdi_ic_id[(channel-1)]
 
 static timerd_cb_t timerdi_cb[3];
 
@@ -271,7 +271,7 @@ void Timerd_SetPeriod(uint8_t device, uint32_t period)
 
 void Timerd_SetCompare(uint8_t device, timerd_ch_t channel, uint32_t value)
 {
-    ASSERT(channel < 4);
+    ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
     timer_set_oc_value(Timerdi_GetDevice(device), Timerdi_GetOcId(channel),
             value);
 }
@@ -329,14 +329,14 @@ void Timerd_SetOneShot(uint8_t device, bool value)
 
 void Timerd_DisableCompare(uint8_t device, timerd_ch_t channel)
 {
-    ASSERT(channel < 4);
+    ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
     timer_disable_oc_output(Timerdi_GetDevice(device),
             Timerdi_GetOcId(channel));
 }
 
 void Timerd_EnableCompare(uint8_t device, timerd_ch_t channel, bool invert)
 {
-    ASSERT(channel < 4);
+    ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
     uint32_t timer = Timerdi_GetDevice(device);
     enum tim_oc_id oc_id = Timerdi_GetOcId(channel);
 
@@ -357,13 +357,15 @@ void Timerd_EnableCompare(uint8_t device, timerd_ch_t channel, bool invert)
 
 void Timerd_DisableCapture(uint8_t device, timerd_ch_t channel)
 {
+    ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
     timer_ic_disable(Timerdi_GetDevice(device), Timerdi_GetIcId(channel));
 }
 
 void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel,
         timerd_edge_t edge)
 {
-    ASSERT(channel < 4);
+    ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
+    uint8_t offset = channel - 1;
     uint32_t timer = Timerdi_GetDevice(device);
     enum tim_ic_id ic_id = Timerdi_GetIcId(channel);
     uint32_t edge_val = 0;
@@ -379,16 +381,16 @@ void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel,
             edge_val = 0x03;
             break;
     }
-    TIM_CCER(timer) &= ~((0x03 << 1) << channel*4);
-    TIM_CCER(timer) |= (edge_val << 1) << channel*4;
+    TIM_CCER(timer) &= ~((0x03 << 1) << offset*4);
+    TIM_CCER(timer) |= (edge_val << 1) << offset*4;
 
     /* Set channel to input */
-    if (channel < 2) {
-        TIM_CCMR1(timer) &= ~(0x03 << channel*8);
-        TIM_CCMR1(timer) |= 0x01 << channel*8;
+    if (offset < 2) {
+        TIM_CCMR1(timer) &= ~(0x03 << offset*8);
+        TIM_CCMR1(timer) |= 0x01 << offset*8;
     } else {
-        TIM_CCMR2(timer) &= ~(0x03 << (channel - 2)*8);
-        TIM_CCMR2(timer) |= 0x01 << (channel - 2)*8;
+        TIM_CCMR2(timer) &= ~(0x03 << (offset - 2)*8);
+        TIM_CCMR2(timer) |= 0x01 << (offset - 2)*8;
     }
 
     timer_ic_set_prescaler(timer, ic_id, TIM_IC_PSC_OFF);
@@ -398,7 +400,7 @@ void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel,
 
 void Timerd_EnablePWM(uint8_t device, timerd_ch_t channel, bool invert)
 {
-    ASSERT(channel < 4);
+    ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
     uint32_t timer = Timerdi_GetDevice(device);
     enum tim_oc_id oc_id = Timerdi_GetOcId(channel);
 
