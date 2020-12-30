@@ -33,6 +33,9 @@
 /** Channel with internal voltage reference (for measuring Vcc) */
 #define ADC_INT_REF_CHANNEL 17
 
+/** Typical voltage of the internal reference */
+#define VREF_TYP_MV 1230
+
 /**
  * Measure channel and get a raw ADC output value
  *
