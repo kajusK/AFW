@@ -55,6 +55,12 @@ bool IOd_GetLine(uint32_t port, uint8_t pad)
     return gpio_get(port, 1 << pad);
 }
 
+void IOd_SetLineMode(uint32_t port, uint8_t pad, io_mode_t mode)
+{
+    GPIO_MODER(port) &= ~(0x3 << pad*2);
+    GPIO_MODER(port) |= mode << pad*2;
+}
+
 void IOd_Init(void)
 {
 #ifdef VAL_GPIOA_MODER

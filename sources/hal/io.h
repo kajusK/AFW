@@ -55,6 +55,14 @@
 
 #include "board_gpio.h"
 
+/** Possible port modes */
+typedef enum {
+    IO_MODE_INPUT,
+    IO_MODE_OUTPUT,
+    IO_MODE_ALTERNATE,
+    IO_MODE_ANALOG
+} io_mode_t;
+
 /**
  * Set pin output
  *
@@ -64,7 +72,7 @@
  * @param pad       Pin number
  * @param value     Value to set pin to
  */
-void IOd_SetLine(uint32_t port, uint8_t pad, bool value);
+extern void IOd_SetLine(uint32_t port, uint8_t pad, bool value);
 
 /**
  * Get value on input
@@ -75,12 +83,21 @@ void IOd_SetLine(uint32_t port, uint8_t pad, bool value);
  * @param pad       Pin number
  * @return          Value of given port,pin
  */
-bool IOd_GetLine(uint32_t port, uint8_t pad);
+extern bool IOd_GetLine(uint32_t port, uint8_t pad);
+
+/**
+ * Set pin mode
+ *
+ * @param port      GPIO register (GPIOA, ...)
+ * @param pad       Pin number
+ * @param mode       Required port direction
+ */
+extern void IOd_SetLineMode(uint32_t port, uint8_t pad, io_mode_t mode);
 
 /**
  * Initialize IO pins of the MCU based on configuration from board_gpio.h
  */
-void IOd_Init(void);
+extern void IOd_Init(void);
 
 #endif
 
