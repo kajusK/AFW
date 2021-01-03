@@ -67,21 +67,29 @@ typedef enum {
 /**
  * Enable comparator
  *
- * @param channel   Comparator channel
+ * @param channel   Comparator channel (0/1)
  */
 extern void Compd_Enable(uint8_t channel);
 
 /**
  * Disable comparator
  *
- * @param channel   Comparator channel
+ * @param channel   Comparator channel (0/1)
  */
 extern void Compd_Disable(uint8_t channel);
 
 /**
+ * Set comparator output connection
+ *
+ * @param channel   Comparator channel (0/1)
+ * @param output    Required comparator output connection
+ */
+extern void Compd_SetOutput(uint8_t channel, comp_out_t output);
+
+/**
  * Initialize comparator
  *
- * @param channel   Comparator channel
+ * @param channel   Comparator channel (0/1)
  * @param speed     Comparator speed (higher = higher consumption)
  * @param hyst      Comparator hystersis
  * @param input     Comparator negative input selection

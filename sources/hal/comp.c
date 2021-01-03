@@ -38,6 +38,12 @@ void Compd_Disable(uint8_t channel)
     REG_COMP_CSR &= ~(COMP_CSR_EN << channel*16);
 }
 
+void Compd_SetOutput(uint8_t channel, comp_out_t output)
+{
+    REG_COMP_CSR &= ~(COMP_CSR_OUTSEL << channel*16);
+    REG_COMP_CSR |= output << channel*16;
+}
+
 void Compd_Init(uint8_t channel, comp_speed_t speed, comp_hyst_t hyst,
         comp_in_neg_t input, comp_out_t output, bool invert)
 {
