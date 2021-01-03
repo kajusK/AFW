@@ -41,7 +41,6 @@ extern void Ringbuf_RunTests(void);
 extern void Log_RunTests(void);
 extern void AES_RunTests(void);
 extern void Lora_RunTests(void);
-extern void Config_RunTests(void);
 extern void UF2_RunTests(void);
 extern void Temperature_RunTests(void);
 

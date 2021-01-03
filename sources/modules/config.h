@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Jakub Kaderka
+ * Copyright (C) 2021 Jakub Kaderka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,16 @@
  * @file    modules/config.h
  * @brief   System configuration handling
  *
- * A config_items.h file is required for this to work, the file can be generated
- * with tools/config_items.py from templates/config_items.ods. Example file can
- * be found in tests/src/config_items.h
+ * A config_struct.h file is required for this to work, the file has to contain
+ * a config_t type definition, this config type will be stored to the flash.
+ *
+ * Additionally two linker symbols in flash memory must be defined for two
+ * config partitions: _config_part1 and _config_part2. Each partition should
+ * be placed in a separate flash page.
+ *
+ * Optionally the CONFIG_USE_TWO_PARITIONS can be defined to 0 to avoid
+ * using the _config_part2 partition, in such cases, the config is stored
+ * in a single partition.
  *
  * @addtogroup modules
  * @{
@@ -31,97 +38,34 @@
 #define __MODULES_CONFIG_H
 
 #include <types.h>
-#include "config_items.h"
+#include "config_struct.h"
 
-#ifdef CONFIG_INT_DEFAULTS
-/**
- * Get integer config value
- *
- * @param [in] item ID of item requested
- * @return requested item value
- */
-extern int32_t Config_GetInt(config_item_int_t item);
-
-/**
- * Set integer item config value
- *
- * @param [in] item ID of item requested
- * @param [in] value value to store
- */
-extern void Config_SetInt(config_item_int_t item, int32_t value);
+#ifndef CONFIG_USE_TWO_PARTITIONS
+    #define CONFIG_USE_TWO_PARTITIONS 1
 #endif
 
-#ifdef CONFIG_FLOAT_DEFAULTS
 /**
- * Get float item config value
+ * Get the configuration
  *
- * @param [in] item ID of item requested
- * @return requested item value
+ * @return Pointer to config or null if no valid config found
  */
-extern float Config_GetFloat(config_item_float_t item);
+extern const config_t *Config_Get(void);
 
 /**
- * Set float item config value
+ * Read the stored configuration
  *
- * @param [in] item ID of item requested
- * @param [in] value value to store
+ * @return True if succeeded, false if no valid config found (in this case,
+ *          the caller should provide default values and write them to storage)
  */
-extern void Config_SetFloat(config_item_float_t item, float value);
-#endif
-
-#ifdef CONFIG_BOOL_DEFAULTS
-/**
- * Get bool item config value
- *
- * @param [in] item ID of item requested
- * @return requested item value
- */
-extern bool Config_GetBool(config_item_bool_t item);
+extern bool Config_Read(void);
 
 /**
- * Set bool item config value
+ * Write the configuration to memory
  *
- * @param [in] item ID of item requested
- * @param [in] value value to store
+ * @param config        Config data to write
  */
-extern void Config_SetBool(config_item_bool_t item, bool value);
-#endif
-
-#ifdef CONFIG_STRING_DEFAULTS
-/**
- * Get string item config value
- *
- * @param [in] item ID of item requested
- * @return requested item value
- */
-extern const char *Config_GetString(config_item_string_t item);
-
-/**
- * Set string item config value
- *
- * @param [in] item ID of item requested
- * @param [in] value value to store
- */
-extern void Config_SetString(config_item_string_t item, const char *value);
-#endif
-
-#ifdef CONFIG_PTR_DEFAULTS
-/**
- * Get string pointer item config value
- *
- * @param [in] item ID of item requested
- * @return requested item value
- */
-extern const char *Config_GetPtr(config_item_ptr_t item);
-
-/**
- * Set string pointer item config value
- *
- * @param [in] item ID of item requested
- * @param [in] value value to store
- */
-extern void Config_SetPtr(config_item_ptr_t item, const char *value);
-#endif
+extern void Config_Write(const config_t *config);
 
 #endif
+
 /** @} */

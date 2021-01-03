@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Jakub Kaderka
+ * Copyright (C) 2021 Jakub Kaderka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,107 +19,78 @@
  * @file    modules/config.c
  * @brief   System configuration handling
  *
+ * The data are stored at the end of the flash memory in two separate partitions,
+ * each partition has a CRC at the beginning. Two copies are for fault tolerance
+ * when the writing is aborted during the process.
+ *
  * @addtogroup modules
  * @{
  */
 
 #include <string.h>
+#include "hal/flash.h"
+#include "utils/crc.h"
 #include "utils/assert.h"
 #include "config.h"
 
-#ifdef CONFIG_INT_DEFAULTS
-static int config_item_int[CONFIG_INT_COUNT] = CONFIG_INT_DEFAULTS;
+typedef struct {
+    uint16_t crc;
+    config_t config;
+} config_internal_t;
 
-int32_t Config_GetInt(config_item_int_t item)
-{
-    ASSERT_NOT(item >= CONFIG_INT_COUNT);
-    return config_item_int[item];
-}
-
-void Config_SetInt(config_item_int_t item, int32_t value)
-{
-    ASSERT_NOT(item >= CONFIG_INT_COUNT);
-    config_item_int[item] = value;
-}
+extern const config_internal_t _config_part1;
+#if CONFIG_USE_TWO_PARTITIONS
+    extern const config_internal_t _config_part2;
 #endif
 
-#ifdef CONFIG_FLOAT_DEFAULTS
-static float config_item_float[CONFIG_FLOAT_COUNT] = CONFIG_FLOAT_DEFAULTS;
+static const config_t *conf_valid;
 
-float Config_GetFloat(config_item_float_t item)
+const config_t *Config_Get(void)
 {
-    ASSERT_NOT(item >= CONFIG_FLOAT_COUNT);
-    return config_item_float[item];
+    return conf_valid;
 }
 
-void Config_SetFloat(config_item_float_t item, float value)
+bool Config_Read(void)
 {
-    ASSERT_NOT(item >= CONFIG_FLOAT_COUNT);
-    config_item_float[item] = value;
-}
+    if (CRC16((uint8_t *)&_config_part1.config, sizeof(config_t)) == _config_part1.crc) {
+        conf_valid = &_config_part1.config;
+#if CONFIG_USE_TWO_PARTITIONS
+    } else if (CRC16((uint8_t *)&_config_part2.config, sizeof(config_t)) == _config_part2.crc) {
+        conf_valid = &_config_part2.config;
 #endif
-
-#ifdef CONFIG_BOOL_DEFAULTS
-static uint8_t config_item_bool[CONFIG_BOOL_COUNT/8+1] = CONFIG_BOOL_DEFAULTS;
-
-bool Config_GetBool(config_item_bool_t item)
-{
-    uint8_t mask;
-    ASSERT_NOT(item >= CONFIG_BOOL_COUNT);
-
-    mask = 1 << (item % 8);
-    return config_item_bool[item / 8] & mask;
-}
-
-void Config_SetBool(config_item_bool_t item, bool value)
-{
-    uint8_t mask;
-    ASSERT_NOT(item >= CONFIG_BOOL_COUNT);
-
-    mask = 1 << (item % 8);
-    if (value) {
-        config_item_bool[item / 8] |= mask;
     } else {
-        config_item_bool[item / 8] &= ~mask;
+        return false;
     }
+    return true;
 }
+
+void Config_Write(const config_t *config)
+{
+    ASSERT_NOT(config == NULL);
+    config_internal_t loc_config;
+
+    /*
+     * Avoid issues when config points directly to flash memory that will be
+     * overwritten
+     */
+    memcpy(&loc_config.config, config, sizeof(config_t));
+    loc_config.crc = CRC16((uint8_t *)config, sizeof(config_t));
+
+    Flashd_WriteEnable();
+
+#if CONFIG_USE_TWO_PARTITIONS
+    if (_config_part2.crc != loc_config.crc) {
+        Flashd_ErasePage((uint32_t)&_config_part2);
+        Flashd_Write((uint32_t)&_config_part2, (uint8_t *)&loc_config, sizeof(config_internal_t));
+    }
 #endif
+    if (_config_part1.crc != loc_config.crc) {
+        Flashd_ErasePage((uint32_t)&_config_part1);
+        Flashd_Write((uint32_t)&_config_part1, (uint8_t *)&loc_config, sizeof(config_internal_t));
+    }
+    Flashd_WriteDisable();
 
-#ifdef CONFIG_STRING_DEFAULTS
-static char config_item_string[CONFIG_STRING_COUNT][CONFIG_STRING_MAX_LEN+1] =
-        CONFIG_STRING_DEFAULTS;
-
-const char *Config_GetString(config_item_string_t item)
-{
-    ASSERT_NOT(item >= CONFIG_STRING_COUNT);
-    return config_item_string[item];
+    conf_valid = &_config_part1.config;
 }
-
-void Config_SetString(config_item_string_t item, const char *value)
-{
-    ASSERT_NOT(item >= CONFIG_STRING_COUNT);
-    uint32_t max_len = sizeof(config_item_string[item]);
-
-    strncpy(config_item_string[item], value, max_len - 1);
-    config_item_string[item][max_len-1] = '\0';
-}
-#endif
-
-#ifdef CONFIG_PTR_DEFAULTS
-static const char *config_item_ptr[CONFIG_PTR_COUNT] = CONFIG_PTR_DEFAULTS;
-
-const char *Config_GetPtr(config_item_ptr_t item)
-{
-    ASSERT_NOT(item >= CONFIG_PTR_COUNT);
-    return config_item_ptr[item];
-}
-
-void Config_SetPtr(config_item_ptr_t item, const char *value)
-{
-    ASSERT_NOT(item >= CONFIG_PTR_COUNT);
-    config_item_ptr[item] = value;
-}
-
-#endif
 
 /** @} */

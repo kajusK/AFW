@@ -41,7 +41,6 @@ static void RunAll(void)
     Log_RunTests();
     AES_RunTests();
     Lora_RunTests();
-    Config_RunTests();
     UF2_RunTests();
     Temperature_RunTests();
 }
