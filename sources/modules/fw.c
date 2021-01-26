@@ -274,6 +274,13 @@ bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len)
     return true;
 }
 
+void Fw_UpdateAbort(void)
+{
+    if (fwi_update.running) {
+        fwi_update.running = false;
+    }
+}
+
 bool Fw_UpdateFinish(void)
 {
     uint16_t crc;

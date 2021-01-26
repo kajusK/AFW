@@ -60,6 +60,11 @@ extern bool Fw_UpdateInit(uint16_t crc, uint32_t len);
 extern bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len);
 
 /**
+ * Abort the FW update process
+ */
+extern void Fw_UpdateAbort(void);
+
+/**
  * Finish the FW update - check final CRC, write headers,...
  *
  * @return true if suceeded (crc matches,...)
