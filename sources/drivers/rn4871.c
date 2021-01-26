@@ -135,15 +135,15 @@ static void RN4871i_ProcessStatus(rn4871_desc_t *desc, const char *msg)
         data.handle = 0;
         msg += 3;
         /* read handle */
-        for (uint8_t i = 0; i < 4; i++) {
-            data.handle *= 10;
+        while (*msg != ',' && *msg != '\0') {
+            data.handle *= 16;
             c = *msg++;
             if (c >= '0' && c <= '9') {
                 data.handle += c - '0';
-            } else if (c >= 'a' && c <= 'z') {
-                data.handle += c - 'a';
-            } else if (c >= 'A' && c <= 'Z') {
-                data.handle += c - 'A';
+            } else if (c >= 'a' && c <= 'f') {
+                data.handle += c - 'a' + 10;
+            } else if (c >= 'A' && c <= 'F') {
+                data.handle += c - 'A' + 10;
             } else {
                 return;
             }
@@ -340,6 +340,8 @@ static bool RN4871i_ResetFactory(rn4871_desc_t *desc)
     desc->rebooted = false;
     RN4871i_CmdRaw(desc, CMD_SET_FACTORY, "2", "Reboot after Factory Reset",
             COMMAND_TIMEOUT_MS);
+    /* factory reset clears the baudrate */
+    UARTd_SetBaudrate(desc->uart_device, RN4871_DEF_BAUDRATE);
     if (!RN4871i_WaitReboot(desc)) {
         return false;
     }
@@ -660,6 +662,7 @@ void RN4871_SetLowPower(rn4871_desc_t *desc, bool state)
     }
 }
 
+
 bool RN4871_EnableLowPowerSupport(rn4871_desc_t *desc, uint32_t rx_ind_port,
         uint8_t rx_ind_pad)
 {
@@ -676,10 +679,16 @@ void RN4871_RegisterEventCb(rn4871_desc_t *desc, rn4871_evt_cb_t cb)
     desc->cb = cb;
 }
 
-bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device, const char *name,
-        uint16_t appearance, const rn4871_dis_t *dis)
+bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device,
+        rn4871_baudrate_t baudrate, const char *name, uint16_t appearance,
+        const rn4871_dis_t *dis)
 {
-    ASSERT_NOT(desc == NULL || name == NULL);
+    char buf[3];
+    static const uint32_t baudrates[] = {921600, 460800, 230400, 115200, 57600,
+        38400, 28800, 19200, 14400, 9600, 4800, 2400};
+
+    ASSERT_NOT(desc == NULL || name == NULL ||
+            baudrate >= sizeof(baudrates)/sizeof(baudrates[0]));
 
     Ring_Init(&desc->rbuf, desc->rbuf_data, sizeof(desc->rbuf_data));
     rn4871i_desc = desc;
@@ -689,9 +698,15 @@ bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device, const char *name,
     desc->connected = false;
     UARTd_SetRxCallback(uart_device, RN4871i_UartCb);
 
+    /* Try to enter cmd mode with default baudrate, if not working, try new */
     if (RN4871i_EnterCmdMode(desc) == false) {
-        return false;
+        UARTd_SetBaudrate(desc->uart_device, baudrates[baudrate]);
+        if (RN4871i_EnterCmdMode(desc) == false) {
+            return false;
+        }
     }
+
+    /* Factory reset aso restarts the baudrate */
     RN4871i_ResetFactory(desc);
     RN4871i_Cmd(desc, CMD_STOP_ADVERTISING, NULL);
 
@@ -703,7 +718,23 @@ bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device, const char *name,
     } else {
         RN4871i_SetDefaultServices(desc, 0);
     }
-    return RN4871_Reboot(desc);
+
+    /* Switch to required baudrate */
+    if (baudrate != BLE_BAUD_115200) {
+        num2hex(baudrate, 2, buf);
+        if (!RN4871i_Cmd(desc, CMD_SET_BAUD, buf)) {
+            return false;
+        }
+    }
+
+    /* New baudrate is applicable after reboot */
+    desc->rebooted = false;
+    RN4871i_CmdRaw(desc, CMD_REBOOT, "1", "Rebooting", COMMAND_TIMEOUT_MS);
+    UARTd_SetBaudrate(desc->uart_device, baudrates[baudrate]);
+    if (!RN4871i_WaitReboot(desc)) {
+        return false;
+    }
+    return RN4871i_EnterCmdMode(desc);
 }
 
 /** @} */

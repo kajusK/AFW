@@ -54,6 +54,22 @@ typedef struct {
     uint8_t len;                /** Lenght of the data received */
 } rn4871_evt_data_t;
 
+/** BLE module baudrates */
+typedef enum {
+    BLE_BAUD_921600 = 0x00,
+    BLE_BAUD_460800 = 0x01,
+    BLE_BAUD_230400 = 0x02,
+    BLE_BAUD_115200 = 0x03,
+    BLE_BAUD_57600 = 0x04,
+    BLE_BAUD_38400 = 0x05,
+    BLE_BAUD_28800 = 0x06,
+    BLE_BAUD_19200 = 0x07,
+    BLE_BAUD_14400 = 0x08,
+    BLE_BAUD_9600 = 0x09,
+    BLE_BAUD_4800 = 0x0a,
+    BLE_BAUD_2400 = 0x0b
+} rn4871_baudrate_t;
+
 /**
  * Event callback
  *
@@ -80,7 +96,7 @@ typedef struct {
     uint8_t rx_ind_pad;         /**< Pad the UART_RX_IND is connected to */
     bool low_power;             /**< True if initialized in low power mode */
     uint8_t uart_device;        /**< Uart device to use for communication */
-    char rbuf_data[16];         /**< Ringbuf data storage */
+    char rbuf_data[32];         /**< Ringbuf data storage */
     ring_t rbuf;                /**< Ring buffer for incoming data */
     rn4871_evt_cb_t cb;         /**< Event callback */
     bool connected;             /**< Is connected */
@@ -250,15 +266,21 @@ extern void RN4871_RegisterEventCb(rn4871_desc_t *desc, rn4871_evt_cb_t cb);
  * WARNING - currently only one instance is possible, the uart callback
  * is shared, only last initialized descriptor will be used
  *
+ * When setting different baudrate than 115200, the module will use this value
+ * event after reboot, therefore on next init call (e.g. after reboot) the
+ * value must be same or you must determine the baudrate and change
+ * it manually.
+ *
  * @param desc          Device descriptor
  * @param uart_device   Uart device to be used for communication (must be already initialized)
- * @param name          Name of the BLE device
+ * @param baudrate      Required baudrate
  * @param appearance    Appearance of this device
  * @param dis           Device Information Service content or NULL if not used
  * @return True if succeeded (device is responding)
  */
 extern bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device,
-        const char *name, uint16_t appearance, const rn4871_dis_t *dis);
+        rn4871_baudrate_t baudrate, const char *name, uint16_t appearance,
+        const rn4871_dis_t *dis);
 
 #endif
 

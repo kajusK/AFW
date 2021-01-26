@@ -76,8 +76,8 @@ static uartd_callback_t uartdi_rx_cb[UARTD_INTERFACES];
 /**
  * Common handler for uart IRQ requests, send data to callback if defined
  *
- * @param device	Device ID (starts from 1)
- * @param uart		Address of first register of given uart
+ * @param device    Device ID (starts from 1)
+ * @param uart        Address of first register of given uart
  */
 static void UARTdi_IRQHandler(uint8_t device, uint32_t uart)
 {
@@ -89,7 +89,7 @@ static void UARTdi_IRQHandler(uint8_t device, uint32_t uart)
 
     data = usart_recv(uart);
     if (uartdi_rx_cb[device-1] != NULL) {
-    	uartdi_rx_cb[device-1](data);
+        uartdi_rx_cb[device-1](data);
     }
 
     /*
@@ -101,13 +101,13 @@ static void UARTdi_IRQHandler(uint8_t device, uint32_t uart)
 
 void usart1_isr(void)
 {
-	UARTdi_IRQHandler(1, USART1);
+    UARTdi_IRQHandler(1, USART1);
 }
 
 #ifdef USART2_BASE
 void usart2_isr(void)
 {
-	UARTdi_IRQHandler(2, USART2);
+    UARTdi_IRQHandler(2, USART2);
 }
 
 #ifdef USART3_BASE
@@ -128,68 +128,76 @@ void usart3_4_isr(void)
 /**
  * Get UART device address from device id
  *
- * @param device	Device ID (starts from 1)
+ * @param device    Device ID (starts from 1)
  * @return Address of the device's base register
  */
 static uint32_t UARTdi_GetDevice(uint8_t device)
 {
-	ASSERT_NOT(device == 0 || device > UARTD_INTERFACES);
-	return uartdi_regs[device - 1];
+    ASSERT_NOT(device == 0 || device > UARTD_INTERFACES);
+    return uartdi_regs[device - 1];
 }
 
 /**
  * Get UART device rcc register
  *
- * @param device	Device ID (starts from 1)
+ * @param device    Device ID (starts from 1)
  * @return Address of the device's rcc register
  */
 static enum rcc_periph_clken UARTdi_GetRcc(uint8_t device)
 {
-	ASSERT_NOT(device == 0 || device > UARTD_INTERFACES);
-	return uartdi_rcc[device - 1];
+    ASSERT_NOT(device == 0 || device > UARTD_INTERFACES);
+    return uartdi_rcc[device - 1];
 }
 
 static uint8_t UARTdi_GetIRQ(uint8_t device)
 {
-	ASSERT_NOT(device == 0 || device > UARTD_INTERFACES);
-	return uartdi_irq[device - 1];
+    ASSERT_NOT(device == 0 || device > UARTD_INTERFACES);
+    return uartdi_irq[device - 1];
 }
 
 void UARTd_Write(uint8_t device, const uint8_t *buf, size_t len)
 {
-	uint32_t uart = UARTdi_GetDevice(device);
+    uint32_t uart = UARTdi_GetDevice(device);
 
-	while (len-- != 0) {
-		usart_send_blocking(uart, *buf++);
-	}
+    while (len-- != 0) {
+        usart_send_blocking(uart, *buf++);
+    }
 }
 
 void UARTd_Puts(uint8_t device, const char *msg)
 {
-	uint32_t uart = UARTdi_GetDevice(device);
+    uint32_t uart = UARTdi_GetDevice(device);
 
-	while (*msg != '\0') {
-		usart_send_blocking(uart, *msg++);
-	}
+    while (*msg != '\0') {
+        usart_send_blocking(uart, *msg++);
+    }
 }
 
 void UARTd_Putc(uint8_t device, char c)
 {
-	uint32_t uart = UARTdi_GetDevice(device);
+    uint32_t uart = UARTdi_GetDevice(device);
     usart_send_blocking(uart, c);
 }
 
 void UARTd_SetRxCallback(uint8_t device, uartd_callback_t callback)
 {
-	ASSERT_NOT(device == 0 || device > UARTD_INTERFACES);
-	uartdi_rx_cb[device - 1] = callback;
+    ASSERT_NOT(device == 0 || device > UARTD_INTERFACES);
+    uartdi_rx_cb[device - 1] = callback;
+}
+
+void UARTd_SetBaudrate(uint8_t device, uint32_t baudrate)
+{
+    uint32_t uart = UARTdi_GetDevice(device);
+    usart_disable(uart);
+    usart_set_baudrate(uart, baudrate);
+    usart_enable(uart);
 }
 
 void UARTd_Init(uint8_t device, uint32_t baudrate)
 {
-	enum rcc_periph_clken rcc = UARTdi_GetRcc(device);
-	uint32_t uart = UARTdi_GetDevice(device);
-	uint8_t irq = UARTdi_GetIRQ(device);
+    enum rcc_periph_clken rcc = UARTdi_GetRcc(device);
+    uint32_t uart = UARTdi_GetDevice(device);
+    uint8_t irq = UARTdi_GetIRQ(device);
 
     rcc_periph_clock_enable(rcc);
 
