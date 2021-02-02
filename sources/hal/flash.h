@@ -60,7 +60,7 @@ extern void Flashd_ErasePage(uint32_t addr);
 /**
  * Write data to the internal flash
  *
- * @param addr  Start address
+ * @param addr  Start address (must be 2 bytes aligned)
  * @param buf   Data buffer
  * @param len   Amount of bytes to be written
  */

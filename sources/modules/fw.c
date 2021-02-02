@@ -39,16 +39,14 @@
 #include "hal/flash.h"
 #include "modules/fw.h"
 
-/** Total amount of fw images */
-#define FW_IMG_COUNT                2
 /** Start of RAM memory */
-#define FW_RAM_START                0x20000000
-/** Area reserved for bootloader */
-#define FW_BL_RESERVED              0x800
+#define FW_RAM_START                0x20000000U
+/** Area reserved for bootloader, must be multiple of page size */
+#define FW_BL_RESERVED              0x800U
 /** Image Header size */
-#define FW_HDR_SIZE                 0x80 /* align at 7 bits for VTOR settings */
-/** Size of the image area including fw header */
-#define FW_IMG_SIZE                 ((Flashd_GetFlashSize() - FW_BL_RESERVED)/FW_IMG_COUNT)
+#define FW_HDR_SIZE                 0x80U /* align at 7 bits for VTOR settings */
+/** Size of the image area including fw header, aligned to page boundary */
+#define FW_IMG_SIZE                 ((((Flashd_GetFlashSize() - FW_BL_RESERVED)/2)/Flashd_GetPageSize())*Flashd_GetPageSize())
 /** Max size of the image itself */
 #define FW_IMG_DATA_SIZE            (FW_IMG_SIZE - FW_HDR_SIZE)
 /** Address of the image header */
@@ -66,9 +64,10 @@ typedef struct {
 } fw_hdr_t;
 
 typedef struct {
-    fw_hdr_t hdr;
-    uint32_t written;
-    uint8_t img;
+    uint16_t crc;
+    uint32_t len;
+    uint32_t last_erased;
+    uint32_t last_written;
     bool running;
 } fw_update_t;
 
@@ -178,21 +177,18 @@ static bool Fwi_CheckImgValid(uint8_t img)
 }
 
 /**
- * Copy the selected image into runnable area
- *
- * @param img       Image number
+ * Copy the update image into runnable area
  */
-static void Fwi_CopyImage(uint8_t img)
+static void Fwi_CopyImage(void)
 {
     fw_hdr_t hdr;
     uint32_t end;
     uint32_t page_size;
     uint32_t addr = FW_IMG_HDR_ADDR(0);
-    uint8_t *p = (uint8_t *) FW_IMG_HDR_ADDR(img);
-    ASSERT_NOT(img == 0);
+    uint8_t *p = (uint8_t *) FW_IMG_HDR_ADDR(1);
 
     Fwi_GetImgHeader(1, &hdr);
-    end = FW_IMG_DATA_ADDR(img) + hdr.len;
+    end = FW_IMG_DATA_ADDR(1) + hdr.len;
 
     page_size = Flashd_GetPageSize();
     Flashd_WriteEnable();
@@ -216,9 +212,9 @@ void Fw_Run(void)
     img_valid = Fwi_CheckImgValid(1);
 
     if ((hdr_run.crc != hdr_img.crc) && img_valid) {
-        Fwi_CopyImage(1);
+        Fwi_CopyImage();
     } else if (!Fwi_CheckImgValid(0) && img_valid) {
-        Fwi_CopyImage(1);
+        Fwi_CopyImage();
     }
 
     Fwi_JumpToApp(FW_IMG_DATA_ADDR(0));
@@ -234,43 +230,43 @@ void Fw_Reboot(void)
 
 bool Fw_UpdateInit(uint16_t crc, uint32_t len)
 {
-    uint32_t addr = 0;
-    uint32_t page_size;
-    uint8_t img = 1;
+    uint32_t addr = FW_IMG_HDR_ADDR(1);
 
     if (len > FW_IMG_DATA_SIZE) {
         return false;
     }
 
-    fwi_update.hdr.crc = crc;
-    fwi_update.hdr.len = len;
-    fwi_update.hdr.magic = FW_MAGIC;
-    fwi_update.written = 0;
-    fwi_update.img = img;
+    fwi_update.crc = crc;
+    fwi_update.last_erased = addr + Flashd_GetPageSize();
+    fwi_update.last_written = 0;
+    fwi_update.len = len;
     fwi_update.running = true;
 
     Flashd_WriteEnable();
-    page_size = Flashd_GetPageSize();
-    /* Erase image */
-    Flashd_ErasePage(FW_IMG_HDR_ADDR(img));
-    while (addr < len) {
-        Flashd_ErasePage(FW_IMG_HDR_ADDR(img) + addr);
-        addr += page_size;
-    }
+    /* Erase image header */
+    Flashd_ErasePage(addr);
     return true;
 }
 
 bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len)
 {
-    if (addr + len > FW_IMG_DATA_SIZE) {
-        return false;
-    }
+    uint32_t erase_end = FW_IMG_DATA_ADDR(1) + addr + len;
+
     if (!fwi_update.running) {
         return false;
     }
+    if (addr != fwi_update.last_written || addr + len > fwi_update.len) {
+        Fw_UpdateAbort();
+        return false;
+    }
 
-    Flashd_Write(addr + FW_IMG_DATA_ADDR(fwi_update.img), buf, len);
-    fwi_update.written += len;
+    while (fwi_update.last_erased < erase_end) {
+        Flashd_ErasePage(fwi_update.last_erased);
+        fwi_update.last_erased += Flashd_GetPageSize();
+    }
+
+    Flashd_Write(addr + FW_IMG_DATA_ADDR(1), buf, len);
+    fwi_update.last_written += len;
     return true;
 }
 
@@ -278,33 +274,35 @@ void Fw_UpdateAbort(void)
 {
     if (fwi_update.running) {
         fwi_update.running = false;
+        Flashd_WriteDisable();
     }
 }
 
 bool Fw_UpdateFinish(void)
 {
     uint16_t crc;
+    fw_hdr_t hdr;
 
     if (!fwi_update.running) {
         return false;
     }
+    if (fwi_update.last_written != fwi_update.len) {
+        Fw_UpdateAbort();
+        return false;
+    }
+
+    crc = CRC16((uint8_t *) FW_IMG_DATA_ADDR(1), fwi_update.len);
+    if (fwi_update.crc != crc) {
+        Fw_UpdateAbort();
+        return false;
+    }
+
     fwi_update.running = false;
+    hdr.crc = fwi_update.crc;
+    hdr.len = fwi_update.len;
+    hdr.magic = FW_MAGIC;
 
-    if (fwi_update.written != fwi_update.hdr.len) {
-        Flashd_WriteDisable();
-        return false;
-    }
-
-    crc = CRC16((uint8_t *) FW_IMG_DATA_ADDR(fwi_update.img),
-            fwi_update.hdr.len);
-
-    if (fwi_update.hdr.crc != crc) {
-        Flashd_WriteDisable();
-        return false;
-    }
-
-    Flashd_Write(FW_IMG_HDR_ADDR(fwi_update.img), (uint8_t *)&fwi_update.hdr,
-            sizeof(fwi_update));
+    Flashd_Write(FW_IMG_HDR_ADDR(1), (uint8_t *)&hdr, sizeof(hdr));
     Flashd_WriteDisable();
     return true;
 }

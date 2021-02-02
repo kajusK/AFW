@@ -26,6 +26,7 @@
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/stm32/desig.h>
 #include "hal/flash.h"
+#include "utils/assert.h"
 
 uint32_t Flashd_GetFlashSize(void)
 {
@@ -58,6 +59,8 @@ void Flashd_ErasePage(uint32_t addr)
 
 void Flashd_Write(uint32_t addr, const uint8_t *buf, uint32_t len)
 {
+    ASSERT_NOT(addr & 0x1);
+
     while (len >= 2) {
         flash_program_half_word(addr, *((uint16_t *) buf));
         addr += 2;

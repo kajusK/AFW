@@ -56,6 +56,8 @@ extern bool Fw_UpdateInit(uint16_t crc, uint32_t len);
  * @param addr      Address in the image area to write data to
  * @param buf       Data to be written
  * @param len       Length of the data
+ *
+ * @return True if succeeded, False otherwise (update aborted due to error)
  */
 extern bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len);
 
