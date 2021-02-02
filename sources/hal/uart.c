@@ -84,6 +84,8 @@ static void UARTdi_IRQHandler(uint8_t device, uint32_t uart)
     uint8_t data;
 
     if ((USART_ISR(uart) & USART_FLAG_RXNE) == 0) {
+        /* RX interrupt also catches the overflow, clear the flag */
+        USART_ICR(uart) |= USART_ICR_ORECF;
         return;
     }
 
@@ -91,12 +93,6 @@ static void UARTdi_IRQHandler(uint8_t device, uint32_t uart)
     if (uartdi_rx_cb[device-1] != NULL) {
         uartdi_rx_cb[device-1](data);
     }
-
-    /*
-     * There seems to be a buf, event if the flag is cleared by
-     * reading the data, interrupt retriggers for some reason...
-     */
-    USART_ICR(uart) = (uint32_t) -1;
 }
 
 void usart1_isr(void)
