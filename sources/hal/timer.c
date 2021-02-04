@@ -239,8 +239,9 @@ void Timerd_SetPrescaler(uint8_t device, uint32_t prescaler)
 uint32_t Timerd_GetFrequency(uint8_t device)
 {
     uint32_t timer_clk;
+
     /* If APB prescaler is not 1, the timers clock is multiplied by 2 first */
-    if ((RCC_CFGR & ~RCC_CFGR_PPRE) == RCC_CFGR_PPRE_NODIV) {
+    if ((RCC_CFGR & RCC_CFGR_PPRE) == RCC_CFGR_PPRE_NODIV) {
         timer_clk = rcc_apb1_frequency;
     } else {
         timer_clk = rcc_apb1_frequency*2;
@@ -253,7 +254,7 @@ void Timerd_SetClockFreq(uint8_t device, uint32_t freq_hz)
 {
     uint32_t timer_clk;
     /* If APB prescaler is not 1, the timers clock is multiplied by 2 first */
-    if ((RCC_CFGR & ~RCC_CFGR_PPRE) == RCC_CFGR_PPRE_NODIV) {
+    if ((RCC_CFGR & RCC_CFGR_PPRE) == RCC_CFGR_PPRE_NODIV) {
         timer_clk = rcc_apb1_frequency;
     } else {
         timer_clk = rcc_apb1_frequency*2;
