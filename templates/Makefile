@@ -1,12 +1,8 @@
-###############################################################################
-# Jakub Kaderka 2020
-###############################################################################
-
 #######################
 # Project configuration
 #######################
 # resulting binary name
-PROJECT = example
+PROJECT = template
 
 FAMILY=STM32F0
 # check libopencm3/ld/devices.data for proper values
@@ -23,10 +19,10 @@ FPU = -msoft-float
 # sources directory
 SRCDIR = src
 # path to AFW library
-AFW = external/AFW
+AFW = ../external/AFW
 
 # linker script (generics in libopencm3/lib/stm32)
-LDSCRIPT = stm32f030c8.ld
+LDSCRIPT = $(PROJECT).ld
 # STM32CubeMX project to generate board_gpio.h file
 MX_PROJECT = $(PROJECT).ioc
 
@@ -34,16 +30,16 @@ MX_PROJECT = $(PROJECT).ioc
 SOURCES = $(wildcard $(SRCDIR)/*.c)
 
 AFW_SOURCES = $(wildcard $(AFW)/sources/hal/*.c) \
-	      $(AFW)/sources/modules/nmea.c \
-	      $(AFW)/sources/modules/lora.c \
 	      $(AFW)/sources/modules/log.c \
+	      $(AFW)/sources/modules/config.c \
+	      $(AFW)/sources/modules/fw.c \
+	      $(AFW)/sources/utils/crc.c \
 	      $(AFW)/sources/utils/time.c \
-	      $(AFW)/sources/utils/aes.c \
+	      $(AFW)/sources/utils/string.c \
 	      $(AFW)/sources/utils/ringbuf.c \
 	      $(AFW)/sources/drivers/ms5607.c \
-	      $(AFW)/sources/drivers/rfm.c \
-	      $(AFW)/sources/drivers/gps.c \
-	      $(AFW)/sources/drivers/si7020.c
+	      $(AFW)/sources/drivers/rn4871.c \
+	      $(AFW)/sources/drivers/temperature.c
 
 INCLUDES = $(SRCDIR) \
 	   $(AFW)/sources
@@ -51,6 +47,7 @@ INCLUDES = $(SRCDIR) \
 #######################
 # Directories and stuff
 #######################
+BOOTLOADER = ../$(PROJECT)-bl/$(PROJECT)-bl.bin
 BUILD_DIR = bin
 MX2BOARD = python $(AFW)/tools/mx2board.py
 MX_PATH = /opt/stm32cubemx
@@ -106,10 +103,14 @@ SIZE	:= $(PREFIX)size
 #######################
 # Build rules
 #######################
-all: codecheck $(OPENCM3_LIB_PATH) $(PROJECT).elf size
+all: codecheck $(OPENCM3_LIB_PATH) $(PROJECT).elf fwu debug image size
 
 size: $(PROJECT).elf
 	$(SIZE) $<
+	
+debug: $(PROJECT)_debug.elf
+image: $(PROJECT)_image.bin
+fwu: $(PROJECT)_fwu.bin
 
 $(OPENCM3_LIB_PATH):
 	$(MAKE) -C $(AFW)/sources/external/libopencm3
@@ -127,20 +128,36 @@ $(BUILD_DIR)/%.o: $(AFW)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -MD -o $@ -c $<
 
-$(PROJECT).elf: $(BOARD_GPIO_FILE) $(OBJS)
+$(PROJECT).elf: $(BOARD_GPIO_FILE) $(OBJS) $(LDSCRIPT)
 	$(LD) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@
 
 $(PROJECT).bin: $(PROJECT).elf
 	$(OBJCOPY) -O binary $(PROJECT).elf $(PROJECT).bin
 
+# Debug elf with bootloader included
+$(PROJECT)_debug.elf: $(PROJECT).elf $(PROJECT).bin $(BOOTLOADER)
+	$(AFW)/tools/fw.py --hdr $(PROJECT).bin $(PROJECT)_hdr.bin
+	cp $< $@
+	$(OBJCOPY) --add-section .header=$(PROJECT)_hdr.bin --set-section-flags .header=alloc,load,data --change-section-address .header=0x08000800 $@ 2> /dev/null
+	$(OBJCOPY) --add-section .header2=$(PROJECT)_hdr.bin --set-section-flags .header2=alloc,load,data --change-section-address .header2=0x8008000 $@ 2> /dev/null
+	$(OBJCOPY) --add-section .bootloader=$(BOOTLOADER) --set-section-flags .bootloader=alloc,load,data --change-section-address .bootloader=0x08000000 $@ 2> /dev/null
+
+# flashable firmware with bootloader
+$(PROJECT)_image.bin: $(PROJECT).bin $(BOOTLOADER)
+	$(AFW)/tools/fw.py $< $@ --bl $(BOOTLOADER)
+
+# image for firmware update
+$(PROJECT)_fwu.bin: $(PROJECT).bin
+	$(AFW)/tools/fw.py $< $@ --raw
+
 flash: $(PROJECT).bin
 	st-flash write $< 0x8000000
 
 clean:
-	@rm -rf $(BUILD_DIR) $(PROJECT).elf $(PROJECT).map
+	@rm -rf $(BUILD_DIR) *.elf *.bin *.map
 
 codecheck:
 	@$(CODECHECK) $(CODECHECK_FLAGS) $(CODECHECK_FILES)
 
-.PHONY: all clean flash codecheck
+.PHONY: all clean flash fwu image debug codecheck
 -include $(OBJS:.o=.d)
