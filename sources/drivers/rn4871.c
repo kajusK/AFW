@@ -40,6 +40,9 @@
 /** Timeout to wait for prompt after command */
 #define PROMPT_TIMEOUT_MS 300
 
+/** Timeout between bytes in % % message */
+#define INTER_BYTE_TIMEOUT_MS 20
+
 /** Timeout for device reboot */
 #define REBOOT_TIMEOUT_MS  5000
 
@@ -114,9 +117,7 @@ static rn4871_desc_t *rn4871i_desc;
 static void RN4871i_ProcessStatus(rn4871_desc_t *desc, const char *msg)
 {
     rn4871_evt_t evt;
-    rn4871_evt_data_t data;
     size_t len = strlen(msg);
-    char c;
 
     if (len == 11 && strcmp("ADV_TIMEOUT", msg) == 0) {
         evt = BLE_EVT_ADV_TIMEOUT;
@@ -130,41 +131,44 @@ static void RN4871i_ProcessStatus(rn4871_desc_t *desc, const char *msg)
     } else if (len > 7 && strncmp("CONNECT", msg, 7) == 0) {
         evt = BLE_EVT_CONNECTED;
         desc->connected = true;
-    } else if (len > 8 && strncmp("WV", msg, 2) == 0) {
-        evt = BLE_EVT_WRITE;
-        data.handle = 0;
-        msg += 3;
-        /* read handle */
-        while (*msg != ',' && *msg != '\0') {
-            data.handle *= 16;
-            c = *msg++;
-            if (c >= '0' && c <= '9') {
-                data.handle += c - '0';
-            } else if (c >= 'a' && c <= 'f') {
-                data.handle += c - 'a' + 10;
-            } else if (c >= 'A' && c <= 'F') {
-                data.handle += c - 'A' + 10;
-            } else {
-                return;
-            }
-        }
-        /* Read data */
-        msg++;
-        data.len = 0;
-        while (*msg != '\0' && *(msg+1) != '\0' && data.len < 20) {
-            if (!isxdigit((int)*msg) || !isxdigit((int)*(msg + 1))) {
-                return;
-            }
-            data.data[data.len] = hex2dec(*msg)*16 + hex2dec(*(msg+1));
-            data.len++;
-            msg += 2;
-        }
     } else {
         return;
     }
 
     if (desc->cb) {
-        desc->cb(evt, &data);
+        desc->cb(evt, NULL);
+    }
+}
+
+/**
+ * Store received character for char write command into event data structure
+ *
+ * The command format is WV,ABCD,01234...
+ * The WV, is filtered by parent function, we start at position 3 (starts at 0)
+ *
+ * @param [out] data    Data structure to modify
+ * @param       pos     Position in the message
+ * @param       byte    Byte received
+ */
+static void RN4871i_ProcessWriteByte(rn4871_evt_data_t *data, uint16_t pos,
+        uint8_t byte)
+{
+    ASSERT_NOT(data == NULL);
+
+    if (pos <= 3) {
+        data->len = 0;
+        data->handle = 0;
+    }
+
+    if (pos <= 6) {
+        data->handle |= ((uint16_t) hex2dec(byte)) << (4*(6-pos));
+    } else if (pos >= 8 && data->len < sizeof(data->data)) {
+        if (pos & 0x1) {
+            data->data[data->len] |= hex2dec(byte);
+            data->len++;
+        } else {
+            data->data[data->len] = hex2dec(byte) << 4;
+        }
     }
 }
 
@@ -178,16 +182,18 @@ static void RN4871i_ProcessStatus(rn4871_desc_t *desc, const char *msg)
  */
 static void RN4871i_UartCb(uint8_t byte)
 {
-    static char buf[64];
-    static uint8_t pos;
     static bool in_event = false;
+    static bool in_write = false;
+    static char buf[32];
+    static uint16_t pos;
     static uint32_t last_ts;
+    static rn4871_evt_data_t data;
 
     if (rn4871i_desc == NULL) {
         return;
     }
 
-    if (millis() - last_ts > 10) {
+    if (millis() - last_ts > INTER_BYTE_TIMEOUT_MS) {
         in_event = false;
     }
     last_ts = millis();
@@ -195,19 +201,31 @@ static void RN4871i_UartCb(uint8_t byte)
     if (byte == '%') {
         if (!in_event) {
             in_event = true;
+            in_write = false;
             pos = 0;
         } else {
             in_event = false;
-            buf[pos] = '\0';
-            RN4871i_ProcessStatus(rn4871i_desc, buf);
+            if (!in_write) {
+                buf[pos] = '\0';
+                RN4871i_ProcessStatus(rn4871i_desc, buf);
+            } else if (rn4871i_desc->cb != NULL){
+                rn4871i_desc->cb(BLE_EVT_WRITE, &data);
+            }
         }
         return;
     }
 
     if (in_event) {
-        if (pos < sizeof(buf) - 1) {
-            buf[pos++] = byte;
+        if (!in_write && pos == 3 && strncmp("WV,", buf, 3) == 0) {
+            in_write = true;
         }
+
+        if (in_write) {
+            RN4871i_ProcessWriteByte(&data, pos, byte);
+        } else if (pos < (sizeof(buf) - 1)) {
+            buf[pos] = byte;
+        }
+        pos++;
         return;
     }
 

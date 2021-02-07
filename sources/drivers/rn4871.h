@@ -29,7 +29,11 @@
 #include <types.h>
 #include <utils/ringbuf.h>
 
+/** Default baudrate of the module, should be used as initial uart baudrate */
 #define RN4871_DEF_BAUDRATE 115200
+
+/** Max amount of bytes that can be transferred by characteristic */
+#define RN4871_MAX_BYTES 155
 
 /** Properties of the characteristic */
 #define BLE_PROP_INDICATE 0x20
@@ -49,9 +53,9 @@ typedef enum {
 
 /** BLE event data */
 typedef struct {
-    uint16_t handle;            /** Characteristic handle */
-    uint8_t data[20];           /** Data buffer */
-    uint8_t len;                /** Lenght of the data received */
+    uint16_t handle;                /** Characteristic handle */
+    uint8_t data[RN4871_MAX_BYTES]; /** Data buffer */
+    uint8_t len;                    /** Length of the data received */
 } rn4871_evt_data_t;
 
 /** BLE module baudrates */
