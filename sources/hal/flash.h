@@ -60,7 +60,10 @@ extern void Flashd_ErasePage(uint32_t addr);
 /**
  * Write data to the internal flash
  *
- * @param addr  Start address (must be 2 bytes aligned)
+ * Unfortunately the stm32 limits writes to even addresses in 2 byte chunks,
+ * once the data on the address is not 0xffff, it cannot be updated again.
+ *
+ * @param addr  Start address (must be an even address)
  * @param buf   Data buffer
  * @param len   Amount of bytes to be written
  */
