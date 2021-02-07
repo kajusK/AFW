@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Jakub Kaderka
+ * Copyright (C) 2021 Jakub Kaderka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,39 +16,29 @@
  */
 
 /**
- * @file    main.h
- * @brief   Main file for unit tests
+ * @file    utils/physics.c
+ * @brief   Physics calculations
  *
- * @addtogroup tests
+ * @addtogroup utils
  * @{
  */
 
-#include "main.h"
+#ifndef __UTILS_PHYSICS_H
+#define __UTILS_PHYSICS_H
 
-uint8_t assert_should_fail = false;
+#include <types.h>
 
-static void RunAll(void)
-{
-    Time_RunTests();
-    String_RunTests();
-    Crc_RunTests();
-    Button_RunTests();
-    Math_RunTests();
-    Nav_RunTests();
-    Ramdisk_RunTests();
-    Nmea_RunTests();
-    Ringbuf_RunTests();
-    Log_RunTests();
-    AES_RunTests();
-    Lora_RunTests();
-    UF2_RunTests();
-    Temperature_RunTests();
-    Physics_RunTests();
-}
+/** International standard atmosphere pressure at sea level */
+#define ISA_SEA_PRESSURE_PA 101325
 
-int main(int argc, const char *argv[])
-{
-    UnityMain(argc, argv, RunAll);
-}
+/**
+ * Calculate altitude from athospheric pressure
+ *
+ * @param presure_pa    Current pressure
+ * @param
+ */
+extern int32_t pressureToAltM(uint32_t pressure_pa, uint32_t sea_level_pa);
+
+#endif
 
 /** @} */

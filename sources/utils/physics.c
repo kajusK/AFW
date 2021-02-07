@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Jakub Kaderka
+ * Copyright (C) 2021 Jakub Kaderka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,39 +16,24 @@
  */
 
 /**
- * @file    main.h
- * @brief   Main file for unit tests
+ * @file    utils/physics.c
+ * @brief   Physics calculations
  *
- * @addtogroup tests
+ * @addtogroup utils
  * @{
  */
 
-#include "main.h"
+#include <math.h>
+#include "physics.h"
 
-uint8_t assert_should_fail = false;
-
-static void RunAll(void)
+int32_t pressureToAltM(uint32_t pressure_pa, uint32_t sea_level_pa)
 {
-    Time_RunTests();
-    String_RunTests();
-    Crc_RunTests();
-    Button_RunTests();
-    Math_RunTests();
-    Nav_RunTests();
-    Ramdisk_RunTests();
-    Nmea_RunTests();
-    Ringbuf_RunTests();
-    Log_RunTests();
-    AES_RunTests();
-    Lora_RunTests();
-    UF2_RunTests();
-    Temperature_RunTests();
-    Physics_RunTests();
-}
-
-int main(int argc, const char *argv[])
-{
-    UnityMain(argc, argv, RunAll);
+    /*
+     * Based on hypsometric formula, assuming 15 degrees at MSL
+     *
+     * TODO rewrite with lookup table? Takes 10k of flash because of math.h
+     */
+    return 44330.0 * (1.0 - pow((float)pressure_pa / sea_level_pa, 0.1902949571836346));
 }
 
 /** @} */
