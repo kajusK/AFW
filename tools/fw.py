@@ -14,6 +14,23 @@ binary.
 import argparse
 import crcmod
 
+IMG_INFO_OFFSET = 0x100
+
+
+class ImageInfo:
+    major = 0
+    minor = 0
+    magic = 0
+
+    def __init__(self, source):
+        """
+        Parse given image and extract the fw version, magic number,...
+        """
+        self.major = int(source[IMG_INFO_OFFSET])
+        self.minor = int(source[IMG_INFO_OFFSET+1])
+        magic = source[IMG_INFO_OFFSET+2:IMG_INFO_OFFSET+6]
+        self.magic = int.from_bytes(magic, byteorder='little', signed=False)
+
 
 def gen_header(source):
     """
@@ -24,10 +41,11 @@ def gen_header(source):
     """
     crcfunc = crcmod.mkCrcFun(0x11021, rev=False, initCrc=0xffff, xorOut=0)
     crc = crcfunc(source)
+    info = ImageInfo(source)
 
     hdr = bytearray(b'\xFF') * 10
     # magic
-    hdr[0:4] = bytearray.fromhex('DEADBEEF')[::-1]
+    hdr[0:4] = bytearray.fromhex('%08x' % info.magic)[::-1]
     # len
     hdr[4:8] = bytearray.fromhex('%08x' % len(source))[::-1]
     # CRC
@@ -44,15 +62,21 @@ def gen_image(source, bootloader, hdr_start, app_start):
     image[app_start:app_start+len(source)] = source
     return image
 
+
 def gen_raw_update(source):
     crcfunc = crcmod.mkCrcFun(0x11021, rev=False, initCrc=0xffff, xorOut=0)
     crc = crcfunc(source)
+    info = ImageInfo(source)
 
     image = bytearray()
+    image += bytearray.fromhex('%02x' % info.major)[::-1]
+    image += bytearray.fromhex('%02x' % info.minor)[::-1]
+    image += bytearray.fromhex('%08x' % info.magic)[::-1]
     image += bytearray.fromhex('%08x' % len(source))[::-1]
     image += bytearray.fromhex('%04x' % crc)[::-1]
     image += source
     return image
+
 
 if __name__ == "__main__":
     desc = "Firmware images generator"

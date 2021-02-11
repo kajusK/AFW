@@ -38,11 +38,12 @@
 #include "utils/crc.h"
 #include "hal/flash.h"
 #include "modules/fw.h"
+#include "app.h"
 
 /* These symbols are to be defined in a linker file */
-extern const char fw_img_addr;
-extern const char fw_img2_addr;
-extern const char fw_img_size;
+extern const char *fw_img_addr;
+extern const char *fw_img2_addr;
+extern const char *fw_img_size;
 
 /** Start of RAM memory */
 #define FW_RAM_START                0x20000000U
@@ -56,8 +57,6 @@ extern const char fw_img_size;
 #define FW_IMG_HDR_ADDR(img)        ((uint32_t)(img == 0 ? &fw_img_addr : &fw_img2_addr))
 /** Address of the image itself */
 #define FW_IMG_DATA_ADDR(img)       (FW_IMG_HDR_ADDR(img) + FW_HDR_SIZE)
-/** Magic number for the image header signature */
-#define FW_MAGIC 0xDEADBEEF
 
 /** Header describing stored firmware image */
 typedef struct {
@@ -66,6 +65,13 @@ typedef struct {
     uint16_t crc;
 } fw_hdr_t;
 
+/** Firmware version information structure */
+typedef struct {
+    uint8_t major;
+    uint8_t minor;
+    uint32_t magic;
+} __attribute__((packed)) fw_version_t ;
+
 typedef struct {
     uint16_t crc;
     uint32_t len;
@@ -73,6 +79,14 @@ typedef struct {
     uint32_t last_written;
     bool running;
 } fw_update_t;
+
+/** Firmware version encoded in image binary */
+__attribute__((section(".fw_version")))
+const fw_version_t fw_version = {
+    FW_MAJOR,
+    FW_MINOR,
+    FW_MAGIC
+};
 
 /** Pointer to application to jump to */
 typedef void (*app_t)(void);
