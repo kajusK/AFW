@@ -100,6 +100,7 @@ typedef struct {
     uint8_t rx_ind_pad;         /**< Pad the UART_RX_IND is connected to */
     bool low_power;             /**< True if initialized in low power mode */
     uint8_t uart_device;        /**< Uart device to use for communication */
+    const char *last_service;   /**< UUID of the last service added */
     char rbuf_data[32];         /**< Ringbuf data storage */
     ring_t rbuf;                /**< Ring buffer for incoming data */
     rn4871_evt_cb_t cb;         /**< Event callback */
@@ -123,6 +124,8 @@ extern uint16_t RN4871_AddChar(rn4871_desc_t *desc, const char *uuid,
 
 /**
  * Add a new BLE service
+ *
+ * The UUID pointer has to be valid until all service characteristics are added
  *
  * @param desc      Device descriptor
  * @param uuid      UUID string of the service (no dashes)

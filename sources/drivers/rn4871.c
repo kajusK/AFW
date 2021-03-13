@@ -443,7 +443,8 @@ static uint16_t RN4871i_Str2Handle(const char *buf)
  * @param uuid      UUID string (without dashes)
  * @return 0 if failed or characteristic handle
  */
-static uint16_t RN4871i_GetHandle(rn4871_desc_t *desc, const char *uuid)
+static uint16_t RN4871i_GetHandle(rn4871_desc_t *desc, const char *service_uuid,
+        const char *uuid)
 {
     const char *end = "END";
     uint8_t pos_end = 0;
@@ -454,7 +455,9 @@ static uint16_t RN4871i_GetHandle(rn4871_desc_t *desc, const char *uuid)
     char buf[5];
 
     Ring_Clear(&desc->rbuf);
-    UARTd_Puts(desc->uart_device, "LS\r");
+    UARTd_Puts(desc->uart_device, "LS,");
+    UARTd_Puts(desc->uart_device, service_uuid);
+    UARTd_Puts(desc->uart_device, "\n");
     while (millis() - start < COMMAND_TIMEOUT_MS) {
         if (Ring_Empty(&desc->rbuf)) {
             continue;
@@ -512,12 +515,13 @@ uint16_t RN4871_AddChar(rn4871_desc_t *desc, const char *uuid, uint16_t props,
     if (!RN4871i_Cmd(desc, CMD_ADD_CHAR, buf)) {
         return 0;
     }
-    return RN4871i_GetHandle(desc, uuid);
+    return RN4871i_GetHandle(desc, desc->last_service, uuid);
 }
 
 bool RN4871_AddService(rn4871_desc_t *desc, const char *uuid)
 {
     ASSERT_NOT(desc == NULL || uuid == NULL);
+    desc->last_service = uuid;
     return RN4871i_Cmd(desc, CMD_ADD_SERVICE, uuid);
 }
 
