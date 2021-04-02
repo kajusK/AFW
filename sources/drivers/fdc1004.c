@@ -166,7 +166,7 @@ bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc,
     uint16_t conf;
     uint8_t offset;
 
-    ASSERT(positive <= FDC_CIN4 && positive < negative && positive != negative);
+    ASSERT(positive <= FDC_CIN4 && positive < negative);
 
     offset = (offset_pf * 1000) / 3125;
     if (offset > 0x1f) {
@@ -219,11 +219,19 @@ bool FDC1004_RunRepeated(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
 bool FDC1004_Init(fdc1004_desc_t *desc, uint8_t i2c_device)
 {
     uint16_t data = 1 << 15;
+    uint16_t manufacturer;
+    bool ret;
     ASSERT_NOT(desc == NULL);
     desc->i2c_device = i2c_device;
 
     /* Factory reset the device */
-    return FDC1004i_WriteReg(desc, FDC_CONF, data);
+    FDC1004i_WriteReg(desc, FDC_CONF, data);
+
+    ret = FDC1004i_ReadReg(desc, FDC_MANUFACTURER_ID, &manufacturer);
+    if (!ret || manufacturer != 0x5449) {
+        return false;
+    }
+    return true;
 }
 
 /** @} */
