@@ -144,7 +144,8 @@ static void Timerdi_IRQHandler(uint8_t device)
         flag = TIM_SR_CC3IF;
         channel = TIMER_CH_4;
     } else {
-        ASSERT(false);
+        /* Interrupt was triggered, but was disable before switching to IRQ */
+        return;
     }
 
     if (cc_mode != 0) {
