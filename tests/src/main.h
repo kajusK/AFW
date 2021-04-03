@@ -44,6 +44,7 @@ extern void Lora_RunTests(void);
 extern void UF2_RunTests(void);
 extern void Temperature_RunTests(void);
 extern void Physics_RunTests(void);
+extern void Filter_RunTests(void);
 
 extern uint8_t assert_should_fail;
 

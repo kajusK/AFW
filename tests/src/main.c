@@ -44,6 +44,7 @@ static void RunAll(void)
     UF2_RunTests();
     Temperature_RunTests();
     Physics_RunTests();
+    Filter_RunTests();
 }
 
 int main(int argc, const char *argv[])
