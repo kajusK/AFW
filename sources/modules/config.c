@@ -23,6 +23,11 @@
  * each partition has a CRC at the beginning. Two copies are for fault tolerance
  * when the writing is aborted during the process.
  *
+ * The first partition is written and read first, second is the fallback one.
+ * The linker must define _config_part1 and 2, both in different flash pages.
+ * Both flash pages gets erased. The config_t should fit within one page.
+ *
+ *
  * @addtogroup modules
  * @{
  */
@@ -33,8 +38,9 @@
 #include "utils/assert.h"
 #include "config.h"
 
+/** Structure of the configuration stored in flash memory */
 typedef struct {
-    uint16_t crc;
+    uint16_t crc;       /** Checksum of the config data */
     config_t config;
 } config_internal_t;
 
@@ -69,25 +75,21 @@ void Config_Write(const config_t *config)
     ASSERT_NOT(config == NULL);
     config_internal_t loc_config;
 
-    /*
-     * Avoid issues when config points directly to flash memory that will be
-     * overwritten
-     */
     memcpy(&loc_config.config, config, sizeof(config_t));
     loc_config.crc = CRC16((uint8_t *)config, sizeof(config_t));
 
     Flashd_WriteEnable();
 
+    if (_config_part1.crc != loc_config.crc) {
+        Flashd_ErasePage((uint32_t)&_config_part1);
+        Flashd_Write((uint32_t)&_config_part1, (uint8_t *)&loc_config, sizeof(config_internal_t));
+    }
 #if CONFIG_USE_TWO_PARTITIONS
     if (_config_part2.crc != loc_config.crc) {
         Flashd_ErasePage((uint32_t)&_config_part2);
         Flashd_Write((uint32_t)&_config_part2, (uint8_t *)&loc_config, sizeof(config_internal_t));
     }
 #endif
-    if (_config_part1.crc != loc_config.crc) {
-        Flashd_ErasePage((uint32_t)&_config_part1);
-        Flashd_Write((uint32_t)&_config_part1, (uint8_t *)&loc_config, sizeof(config_internal_t));
-    }
     Flashd_WriteDisable();
 
     conf_valid = &_config_part1.config;
