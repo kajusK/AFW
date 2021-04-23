@@ -33,6 +33,9 @@
 #define cs_set() IOd_SetLine(desc->cs_port, desc->cs_pad, 0)
 #define cs_unset() IOd_SetLine(desc->cs_port, desc->cs_pad, 1)
 
+/** Transmit timeout (if no TxDone interrupt is set) */
+#define RFM_TX_TIMEOUT_MS 1000
+
 /* Amount of usable frequency channels */
 #define RFM_CHANNELS 8
 
@@ -51,6 +54,7 @@
 #define RFM_REG_FIFO_PTR 0x0d
 #define RFM_REG_FIFO_TX_BASE 0x0e
 #define RFM_REG_FIFO_RX_BASE 0x0f
+#define RFM_REG_IRQ_FLAGS 0x12
 #define RFM_REG_MODEM_CONF1 0x1d
 #define RFM_REG_MODEM_CONF2 0x1e
 #define RFM_REG_SYMB_TIMEOUT 0x1f
@@ -248,11 +252,12 @@ void RFM_SetLoraRegion(rfm_desc_t *desc, rfm_lora_region_t region)
 void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data, size_t len)
 {
     uint8_t channel;
+    uint32_t start_ts = millis();
 
     RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_STDBY);
     delay_ms(10);
     /* DIO pin at tx done event */
-    RFMi_WriteReg(desc, RFM_REG_DIO_MAP, 0x40);
+    RFMi_WriteReg(desc, RFM_REG_DIO_MAP, 0x01 << 6);
 
     /* Random chanel, selection based on last byte of data (last byte of MIC) */
     channel = data[len - 1] % RFM_CHANNELS;
@@ -265,14 +270,15 @@ void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data, size_t len)
     RFMi_WriteFifo(desc, RFM_REG_FIFO, data, len);
     RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_TX);
 
-    /* Wait for data to be transmitted */
-    while (IOd_GetLine(desc->io0_port, desc->io0_pad) != 0) {
+    /* Wait for data to be transmitted, optionally, the IRQ reg can be polled */
+    while (IOd_GetLine(desc->io0_port, desc->io0_pad) == 0 &&
+            millis() - start_ts < RFM_TX_TIMEOUT_MS) {
         ;
     }
-    //hotfix TODO
-    delay_ms(550);
 
     RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_SLEEP);
+    /* Clear interrupts */
+    RFMi_WriteReg(desc, RFM_REG_IRQ_FLAGS, 0xff);
 }
 
 bool RFM_LoraInit(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
@@ -286,7 +292,7 @@ bool RFM_LoraInit(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
     desc->reset_port = reset_port;
     desc->reset_pad = reset_pad;
     desc->io0_port = io0_port;
-    desc->io0_port = io0_pad;
+    desc->io0_pad = io0_pad;
 
     /* Reset the device */
     IOd_SetLine(desc->reset_port, desc->reset_pad, 0);
