@@ -61,4 +61,23 @@ void num2hex(uint32_t value, uint8_t places, char *buf)
     buf[places] = '\0';
 }
 
+void num2str(uint32_t value, char *buf, size_t len)
+{
+    uint32_t mult = 1;
+    while (mult < value/10) {
+        mult *= 10;
+    }
+
+    while (mult != 0 && len > 1) {
+        *buf++ = value / mult + '0';
+        value %= mult;
+        mult /= 10;
+        len--;
+    }
+    if (len) {
+        *buf = '\0';
+        buf--;
+    }
+}
+
 /** @} */

@@ -56,6 +56,15 @@ extern char dec2hex(uint8_t num);
  */
 extern void num2hex(uint32_t value, uint8_t places, char *buf);
 
+/**
+ * Convert number to terminated string
+ *
+ * @param value     Number to be converted
+ * @param buf       Buffer to store data to
+ * @param len       Length of the buffer, buf won't be terminated if len is 0
+ */
+extern void num2str(uint32_t value, char *buf, size_t len);
+
 #endif
 
 /** @} */

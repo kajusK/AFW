@@ -99,11 +99,29 @@ TEST(STRING, num2hex)
     TEST_ASSERT_EQUAL_STRING("", buf);
 }
 
+TEST(STRING, num2str)
+{
+    char buf[17];
+
+    num2str(123, buf, 1);
+    TEST_ASSERT_EQUAL_STRING("", buf);
+    num2str(123, buf, 4);
+    TEST_ASSERT_EQUAL_STRING("123", buf);
+    num2str(123, buf, 2);
+    TEST_ASSERT_EQUAL_STRING("1", buf);
+    num2str(123, buf, 10);
+    TEST_ASSERT_EQUAL_STRING("123", buf);
+
+    num2str(123456789, buf, sizeof(buf));
+    TEST_ASSERT_EQUAL_STRING("123456789", buf);
+}
+
 TEST_GROUP_RUNNER(STRING)
 {
     RUN_TEST_CASE(STRING, hex2dec);
     RUN_TEST_CASE(STRING, dec2hex);
     RUN_TEST_CASE(STRING, num2hex);
+    RUN_TEST_CASE(STRING, num2str);
 }
 
 void String_RunTests(void)
