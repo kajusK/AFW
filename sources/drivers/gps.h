@@ -61,14 +61,21 @@ typedef struct {
 } gps_desc_t;
 
 /**
- * Put GPS device into low power mode (invalidates currently stored gps info)
+ * Put GPS device into standby mode (UART still active, GPS down)
  *
  * @param desc        Device descriptor
  */
-extern void Gps_Sleep(gps_desc_t *desc);
+extern void Gps_Standby(gps_desc_t *desc);
 
 /**
- * Wake up GPS device from sleep mode
+ * Put GPS device into backup mode (needs restart or FORCE_UP signal to wake up)
+ *
+ * @param desc        Device descriptor
+ */
+extern void Gps_Backup(gps_desc_t *desc);
+
+/**
+ * Wake up GPS device from standby
  *
  * @param desc        Device descriptor
  */

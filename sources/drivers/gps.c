@@ -19,6 +19,9 @@
  * @file    drivers/gps.h
  * @brief   Driver for gps receiver (sleep/wake up implemented for SIM28)
  *
+ * For PMTK commands, see
+ * https://www.rhydolabz.com/documents/25/PMTK_A11.pdf
+ *
  * @addtogroup drivers
  * @{
  */
@@ -157,16 +160,22 @@ static void Gpsi_ProcessGsv(const char *msg, gps_sat_t *info)
     }
 }
 
-void Gps_Sleep(gps_desc_t *desc)
+void Gps_Standby(gps_desc_t *desc)
 {
     desc->data_valid = 0;
     UARTd_Puts(desc->uart_device, "$PMTK161,0*28\r\n");
 }
 
+void Gps_Backup(gps_desc_t *desc)
+{
+    desc->data_valid = 0;
+    UARTd_Puts(desc->uart_device, "$PMTK225,4*2F\r\n");
+}
+
 void Gps_WakeUp(const gps_desc_t *desc)
 {
-    /* just random command to wake device up (acking nonexisting message) */
-    UARTd_Puts(desc->uart_device, "$PMTK001,604,3*32\r\n");
+    /* Any data will wake the device up from standby mode */
+    UARTd_Puts(desc->uart_device, "$PMTK000*32\r\n");
 }
 
 const gps_info_t *Gps_Get(gps_desc_t *desc)
