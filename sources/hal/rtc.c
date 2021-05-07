@@ -160,7 +160,8 @@ void RTCd_SetWakeup(uint32_t time_s, bool persist)
     rtc_lock();
 
     /* Enable EXTI event to wake up the core from stop mode */
-    EXTId_Enable(EXTID_LINE_RTC_WAKEUP, EXTID_RISING);
+    EXTId_SetEdge(EXTID_LINE_RTC_WAKEUP, EXTID_RISING);
+    EXTId_EnableEvent(EXTID_LINE_RTC_WAKEUP);
 }
 
 void RTCd_SetAlarm(const struct tm *tm, rtcd_alarm_cb_t cb)
@@ -185,7 +186,8 @@ void RTCd_SetAlarm(const struct tm *tm, rtcd_alarm_cb_t cb)
     RTC_ALRMAR = alrmar;
     RTC_CR |= RTC_CR_ALRAIE | RTC_CR_ALRAE;
     rtc_lock();
-    EXTId_Enable(EXTID_LINE_RTC_ALARM, EXTID_RISING);
+    EXTId_SetEdge(EXTID_LINE_RTC_ALARM, EXTID_RISING);
+    EXTId_EnableEvent(EXTID_LINE_RTC_ALARM);
 }
 
 bool RTCd_Init(bool lse)

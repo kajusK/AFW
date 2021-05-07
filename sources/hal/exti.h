@@ -56,27 +56,37 @@ typedef enum {
 extern void EXTId_SetCallback(extid_callback_t cb);
 
 /**
- * Set input multiplexer to connect a GPIO pin to a given EXTI line
+ * Set input multiplexer to connect a GPIO pin to a EXTI line
  *
- * Only EXTI 0-15 can be configured
- *
- * @param exti_num  Number of the gpio pin and EXTI line to set mux for
- * @param gpio_port Port address to be assigned to given EXTI line (GPIOA,...)
+ * @param port      GPIO port the pin is member of (GPIOA,...)
+ * @param pad       GPIO pad to connect to EXTI line
  */
-extern void EXTId_SetMux(uint8_t exti_num, uint32_t port);
+extern void EXTId_SetMux(uint32_t port, uint8_t pad);
+
+/**
+ * Set edge to trigger event/interrupt on
+ *
+ * @param exti_num  EXTI id to set edge for
+ * @param edge      Edge polarity
+ */
+extern void EXTId_SetEdge(uint8_t exti_num, extid_edge_t edge);
+
+/**
+ * Enable EXTI event
+ *
+ * @param exti_num  EXTI id to enable event for
+ */
+extern void EXTId_EnableEvent(uint8_t exti_num);
 
 /**
  * Enable EXTI interrupt
  *
- * Only EXTI 0-15 will trigger interrupt callback!
- *
  * @param exti_num  EXTI id to enable interrupt for
- * @param edge  Edge type to trigger the interrupt
  */
-extern void EXTId_Enable(uint8_t exti_num, extid_edge_t edge);
+extern void EXTId_EnableInt(uint8_t exti_num);
 
 /**
- * Disable EXTI interrupt
+ * Disable EXTI interrupt/event
  *
  * @param exti_num  EXTI id to disable interrupt for
  */

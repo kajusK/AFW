@@ -81,24 +81,21 @@ void EXTId_SetCallback(extid_callback_t cb)
     extidi_cb = cb;
 }
 
-void EXTId_SetMux(uint8_t exti_num, uint32_t port)
+void EXTId_SetMux(uint32_t port, uint8_t pad)
 {
-    ASSERT_NOT(exti_num > 15);
+    ASSERT_NOT(pad > 15);
 #ifdef RCC_AFIO
     /* AFIO clock required for muxing */
     rcc_periph_clock_enable(RCC_AFIO);
 #endif
-    exti_select_source(1 << exti_num, port);
+    exti_select_source(1 << pad, port);
 }
 
-void EXTId_Enable(uint8_t exti_num, extid_edge_t edge)
+void EXTId_SetEdge(uint8_t exti_num, extid_edge_t edge)
 {
-    uint8_t irqn;
     uint32_t val = 1 << exti_num;
-
     ASSERT_NOT(exti_num > 31);
 
-    exti_disable_request(val);
     switch (edge) {
        case EXTID_RISING:
            EXTI_RTSR |= val;
@@ -115,7 +112,24 @@ void EXTId_Enable(uint8_t exti_num, extid_edge_t edge)
        default:
            break;
    }
+}
 
+void EXTId_EnableEvent(uint8_t exti_num)
+{
+    uint32_t val = 1 << exti_num;
+    ASSERT_NOT(exti_num > 31);
+
+    exti_reset_request(val);
+	EXTI_EMR |= val;
+}
+
+void EXTId_EnableInt(uint8_t exti_num)
+{
+    uint8_t irqn;
+    uint32_t val = 1 << exti_num;
+    ASSERT_NOT(exti_num > 31);
+
+    exti_disable_request(val);
     switch (exti_num) {
         case 0:
         case 1:
@@ -131,14 +145,14 @@ void EXTId_Enable(uint8_t exti_num, extid_edge_t edge)
     }
 
     exti_reset_request(val);
-    exti_enable_request(val);
+	EXTI_IMR |= val;
     nvic_enable_irq(irqn);
 }
 
 void EXTId_Disable(uint8_t exti_num)
 {
     ASSERT_NOT(exti_num > 31);
-    EXTI_IMR &= ~(1 << exti_num);
+    exti_disable_request(1 << exti_num);
 }
 
 /** @} */
