@@ -101,6 +101,22 @@ extern void Powerd_Off(void);
 extern void Powerd_Reboot(void);
 
 /**
+ * Configure programmable voltage detector
+ *
+ * Check datasheet for corresponding voltage levels. E.g. for stm32f051:
+ *   0 ~ 2,1 V
+ *   1 ~ 2,2 V
+ *   ...
+ *   7 ~ 2,8 V
+ *
+ *   EXTI can be used to trigger interrupt, falling edge = voltage dropped
+ *   below level, rising = voltage went back
+ *
+ * @param threshold     Threshold to trigger PVD on, 0-7.
+ */
+extern void Powerd_SetPVDThreshold(uint8_t threshold);
+
+/**
  * Check if the MCU was in standby mode before powering on (clears the flag)
  */
 extern bool Powerd_BootedFromStandby(void);

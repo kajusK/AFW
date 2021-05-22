@@ -30,6 +30,7 @@
 #include <libopencm3/stm32/dbgmcu.h>
 #include <libopencm3/stm32/rtc.h>
 
+#include "utils/assert.h"
 #include "hal/rtc.h"
 #include "hal/power.h"
 
@@ -125,6 +126,12 @@ void Powerd_Reboot(void)
     while (1) {
         ;
     }
+}
+
+void Powerd_SetPVDThreshold(uint8_t threshold)
+{
+    ASSERT_NOT(threshold > 0x07);
+    pwr_enable_power_voltage_detect((uint8_t)threshold);
 }
 
 bool Powerd_BootedFromStandby(void)

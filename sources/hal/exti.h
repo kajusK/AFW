@@ -42,6 +42,7 @@ typedef enum {
     EXTID_BOTH,
 } extid_edge_t;
 
+#define EXTID_LINE_PVD 16
 #define EXTID_LINE_RTC_ALARM 17
 #define EXTID_LINE_USB 18
 #define EXTID_LINE_TAMPER 19
