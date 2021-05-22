@@ -57,16 +57,11 @@ static inline __attribute__((always_inline)) void __DSB(void)
     __asm volatile("dsb");
 }
 
-void Powerd_EnableDebugging(void)
+static void Powerdi_Sleep(void (*instruction)(void))
 {
-    DBGMCU_CR |= DBGMCU_CR_SLEEP | DBGMCU_CR_STOP | DBGMCU_CR_STANDBY;
-}
-
-void Powerd_Sleep(void)
-{
-    SCB_SCR &= ~SCB_SCR_SLEEPDEEP;
-    /* Sleep */
-    __WFI();
+    SCB_SCR &= ~(SCB_SCR_SLEEPDEEP | SCB_SCR_SEVONPEND | SCB_SCR_SLEEPONEXIT);
+    PWR_CR |= PWR_CR_CWUF;
+    instruction();
 
     /* RTC should be resynchronized if needed */
     if (RCC_BDCR & RCC_BDCR_RTCEN) {
@@ -74,14 +69,14 @@ void Powerd_Sleep(void)
     }
 }
 
-void Powerd_Stop(void)
+static void Powerdi_Stop(void (*instruction)(void))
 {
     SCB_SCR |= SCB_SCR_SLEEPDEEP;
     /* Set stop mode, disable power regulator */
     PWR_CR &= ~PWR_CR_PDDS;
-    PWR_CR |= PWR_CR_LPDS;
+    PWR_CR |= PWR_CR_LPDS | PWR_CR_CWUF;
     /* sleep */
-    __WFI();
+    instruction();
 
     // TODO runs from HSI after wake up, return to previously used oscillator
     /* RTC should be resynchronized if needed */
@@ -90,9 +85,34 @@ void Powerd_Stop(void)
     }
 }
 
+void Powerd_EnableDebugging(void)
+{
+    DBGMCU_CR |= DBGMCU_CR_SLEEP | DBGMCU_CR_STOP | DBGMCU_CR_STANDBY;
+}
+
+void Powerd_SleepEvent(void)
+{
+    Powerdi_Sleep(__WFE);
+}
+
+void Powerd_Sleep(void)
+{
+    Powerdi_Sleep(__WFI);
+}
+
+void Powerd_StopEvent(void)
+{
+    Powerdi_Stop(__WFE);
+}
+
+void Powerd_Stop(void)
+{
+    Powerdi_Stop(__WFI);
+}
+
 void Powerd_Off(void)
 {
-    SCB_SCR |= SCB_SCR_SLEEPONEXIT | SCB_SCR_SLEEPDEEP;
+    SCB_SCR |= SCB_SCR_SLEEPDEEP;
     /* Set standby mode */
     PWR_CR |= PWR_CR_PDDS | PWR_CR_LPDS | PWR_CR_CWUF;
     __WFI();
