@@ -31,6 +31,7 @@
 
 #include "hal/exti.h"
 #include "hal/rtc.h"
+#include "utils/assert.h"
 
 /** Callback for rtc alarm event */
 static rtcd_alarm_cb_t rtcdi_alarm_cb;
@@ -188,6 +189,25 @@ void RTCd_SetAlarm(const struct tm *tm, rtcd_alarm_cb_t cb)
     rtc_lock();
     EXTId_SetEdge(EXTID_LINE_RTC_ALARM, EXTID_RISING);
     EXTId_EnableEvent(EXTID_LINE_RTC_ALARM);
+}
+
+void RTCd_SetAlarmInSeconds(uint32_t seconds, rtcd_alarm_cb_t cb)
+{
+    struct tm tm;
+    uint32_t tm_sec;
+    uint32_t tm_min;
+
+    ASSERT_NOT(seconds == 0 || seconds >= 86400);
+
+    RTCd_GetTime(&tm);
+    /* Add required seconds to given time, only hour, min and sec matter */
+    tm_sec = tm.tm_sec + seconds;
+    tm.tm_sec = tm_sec % 60;
+    tm_min = tm.tm_min + tm_sec / 60;
+    tm.tm_min = tm_min % 60;
+    tm.tm_hour = (tm.tm_hour + tm_min / 60) % 24;
+
+    RTCd_SetAlarm(&tm, cb);
 }
 
 bool RTCd_Init(bool lse)

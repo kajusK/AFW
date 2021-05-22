@@ -69,6 +69,14 @@ extern void RTCd_SetWakeup(uint32_t time_s, bool persist);
 extern void RTCd_SetAlarm(const struct tm *tm, rtcd_alarm_cb_t cb);
 
 /**
+ * Set RTC alarm after given time - emulates WakeUp feature not present on all MCUs
+ *
+ * @param seconds Amount of seconds since now to raise alarm, up to 24 hours
+ * @param cb    Callback for alarm event (interrupt) or NULL if not needed
+ */
+extern void RTCd_SetAlarmInSeconds(uint32_t seconds, rtcd_alarm_cb_t cb);
+
+/**
  * Initialize RTC peripheral
  *
  * @param lse   Enable external 32768 Hz oscillator, use LSI if false
