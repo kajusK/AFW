@@ -63,6 +63,11 @@ void exti4_15_isr(void)
     }
 }
 
+void pvd_isr(void)
+{
+    EXTIdi_Int(EXTID_LINE_PVD);
+}
+
 /**
  * Process interrupt request
  *
@@ -138,6 +143,9 @@ void EXTId_EnableInt(uint8_t exti_num)
         case 2:
         case 3:
             irqn = NVIC_EXTI2_3_IRQ;
+            break;
+        case EXTID_LINE_PVD:
+            irqn = NVIC_PVD_IRQ;
             break;
         default:
             irqn = NVIC_EXTI4_15_IRQ;
