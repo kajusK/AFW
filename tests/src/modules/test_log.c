@@ -95,13 +95,48 @@ TEST(LOG, Uitoa)
     uart_output[0] = '\0';
     uart_pos = 0;
 
+    Logi_Uitoa(10, 10);
+    TEST_ASSERT_EQUAL_STRING("10", uart_output);
+    uart_output[0] = '\0';
+    uart_pos = 0;
+
+    Logi_Uitoa(109, 10);
+    TEST_ASSERT_EQUAL_STRING("109", uart_output);
+    uart_output[0] = '\0';
+    uart_pos = 0;
+
     Logi_Uitoa(123456789, 10);
     TEST_ASSERT_EQUAL_STRING("123456789", uart_output);
     uart_output[0] = '\0';
     uart_pos = 0;
 
+    Logi_Uitoa((uint32_t)-1, 10);
+    TEST_ASSERT_EQUAL_STRING("4294967295", uart_output);
+    uart_output[0] = '\0';
+    uart_pos = 0;
+
+    Logi_Uitoa(0xa, 16);
+    TEST_ASSERT_EQUAL_STRING("A", uart_output);
+    uart_output[0] = '\0';
+    uart_pos = 0;
+
+    Logi_Uitoa(0xf, 16);
+    TEST_ASSERT_EQUAL_STRING("F", uart_output);
+    uart_output[0] = '\0';
+    uart_pos = 0;
+
+    Logi_Uitoa(0x10, 16);
+    TEST_ASSERT_EQUAL_STRING("10", uart_output);
+    uart_output[0] = '\0';
+    uart_pos = 0;
+
     Logi_Uitoa(0xabcdef12, 16);
     TEST_ASSERT_EQUAL_STRING("ABCDEF12", uart_output);
+    uart_output[0] = '\0';
+    uart_pos = 0;
+
+    Logi_Uitoa((uint32_t)-1, 16);
+    TEST_ASSERT_EQUAL_STRING("FFFFFFFF", uart_output);
     uart_output[0] = '\0';
     uart_pos = 0;
 }

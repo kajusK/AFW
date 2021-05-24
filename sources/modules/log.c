@@ -51,26 +51,30 @@ static uint8_t logi_uart = 0xff;
  */
 static void Logi_Uitoa(uint32_t num, uint8_t base)
 {
-    char buf[20];
+    char buf[11];
+    char *start = buf;
     char *pos = buf;
-    uint32_t mult = 1;
+    char tmp;
 
-    while (mult < num/base) {
-        mult *= base;
-    }
-
-    while (mult != 0 && pos < (buf + sizeof(buf) - 1)) {
-        *pos = num / mult;
-        num = num % mult;
+    do {
+        *pos = num % base;
         if (*pos >= 10) {
             *pos += 'A' - 10;
         } else {
             *pos += '0';
         }
+        num /= base;
         pos++;
-        mult /= base;
-    }
+    } while (num != 0 && pos < (buf + sizeof(buf) - 1));
     *pos = '\0';
+    pos--;
+
+    /** Reverse string */
+    while (start < pos) {
+        tmp = *start;
+        *start++ = *pos;
+        *pos-- = tmp;
+    }
 
     UARTd_Puts(logi_uart, buf);
 }
