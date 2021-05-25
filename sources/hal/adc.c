@@ -34,10 +34,18 @@
 /* Resolution of adc is 12 bits by default - 2^12 */
 #define ADC_MAX 4096
 
-/** average temperature sensor slope in 3,3 V/°C multiplied by 1000 */
-#define TEMP_SLOPE 5336
-/** Calibration value for internal temperature sensor at 30 deg C */
-#define TEMP30_CAL (*((uint16_t*) ((uint32_t) 0x1FFFF7B8)))
+#ifdef STM32F051
+    /** temp sensor value at 110 degrees with 3.3V supply */
+    #define TEMP110_CAL (*((uint16_t*) ((uint32_t) 0x1FFFF7C2)))
+    /** temp sensor value at 30 degrees with 3.3V supply */
+    #define TEMP30_CAL (*((uint16_t*) ((uint32_t) 0x1FFFF7B8)))
+/* Defaults for STM32F030 like MCUs */
+#else
+    /** average temperature sensor slope in 3,3 V/°C multiplied by 1000 */
+    #define TEMP_SLOPE 5336
+    /** Calibration value for internal temperature sensor at 30 deg C */
+    #define TEMP30_CAL (*((uint16_t*) ((uint32_t) 0x1FFFF7B8)))
+#endif
 /** Calibration value for internal reference */
 #define VREFINT_CAL (*((uint16_t *) ((uint32_t) 0x1FFFF7BA)))
 
@@ -62,7 +70,7 @@ uint16_t Adcd_RawToMv(uint16_t raw)
 
 uint16_t Adcd_RawToVcc(uint16_t raw)
 {
-    return 3300U * VREFINT_CAL/raw;
+    return (3300U * (uint32_t)VREFINT_CAL)/raw;
 }
 
 int8_t Adcd_RawToTemp(uint16_t raw)
@@ -70,8 +78,15 @@ int8_t Adcd_RawToTemp(uint16_t raw)
     uint16_t ref_mv = adcdi_vdda_mv;
     int32_t temp;
 
-    temp = ((uint32_t) TEMP30_CAL - ((uint32_t) raw * ref_mv / 3300))*1000;
+#ifdef STM32F051
+    temp = (((uint32_t)raw * ref_mv) / 3300) - (int32_t)TEMP30_CAL;
+    temp = (temp*(110 - 30)) / (int32_t)(TEMP110_CAL - TEMP30_CAL);
+    temp += 30;
+/* stm32f030 like */
+#else
+    temp = ((uint32_t) TEMP30_CAL - ((uint32_t)raw * ref_mv / 3300))*1000;
     temp = (temp / TEMP_SLOPE) + 30;
+#endif
     return temp;
 }
 

@@ -92,7 +92,7 @@ extern void Adcd_UpdateVddaRaw(uint16_t raw);
  *
  * @return Vdda voltage in mv
  */
-#define Adcd_ReadVccMv() Adcd_RawToVcc(Adcdi_ReadRaw(ADC_INT_REF_CHANNEL))
+#define Adcd_ReadVccMv() Adcd_RawToVcc(Adcd_ReadRaw(ADC_INT_REF_CHANNEL))
 
 /**
  * Read core temeperature
