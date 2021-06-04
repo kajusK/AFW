@@ -222,13 +222,17 @@ void Lora_GetCounters(uint32_t *frame_rx, uint32_t *frame_tx)
     }
 }
 
-void Lora_InitAbp(lora_send_cb_t send, const uint8_t *DevAddr,
-        const uint8_t *NwkSkey, const uint8_t *AppSkey)
+void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey,
+        const uint8_t *AppSkey)
 {
-    lorai_send_cb = send;
     lorai_NwkSkey = NwkSkey;
     lorai_AppSkey = AppSkey;
     lorai_DevAddr = DevAddr;
+}
+
+void Lora_InitAbp(lora_send_cb_t send)
+{
+    lorai_send_cb = send;
     Lora_ResetFrameCounters();
 }
 

@@ -77,19 +77,24 @@ extern void Lora_SetCounters(uint32_t frame_rx, uint32_t frame_tx);
 extern void Lora_GetCounters(uint32_t *frame_rx, uint32_t *frame_tx);
 
 /**
- * Initialize LoRaWan module in Activation by Personalization (ABP)
+ * Set keys for Activation by Personalization (ABP)
  *
  * CAUTION - all memory addresses (device key,...) supplied to the function must
  * remain accessible during the runtime, the library stores only pointer to
  * these values!
  *
- * @param send      Callback used to send assembled lora packet
  * @param DevAddr   4 bytes of the Device Address
  * @param NwkSkey   16 bytes of the Network Session Key
  * @param AppSkey   16 bytes of the Application Session Key
  */
-extern void Lora_InitAbp(lora_send_cb_t send, const uint8_t *DevAddr,
-        const uint8_t *NwkSkey, const uint8_t *AppSkey);
+void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey,
+        const uint8_t *AppSkey);
+/**
+ * Initialize LoRaWan module in Activation by Personalization (ABP)
+ *
+ * @param send      Callback used to send assembled lora packet
+ */
+extern void Lora_InitAbp(lora_send_cb_t send);
 
 #endif
 
