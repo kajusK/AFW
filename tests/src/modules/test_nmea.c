@@ -214,6 +214,11 @@ TEST(NMEA, ParseRmc)
     TEST_ASSERT_EQUAL(20, rmc.date.year);
     TEST_ASSERT_EQUAL(0, rmc.mag_variation.num);
     TEST_ASSERT_EQUAL(1, rmc.mag_variation.scale);
+
+    /* Used on L96 and similar */
+    TEST_ASSERT_TRUE(Nmea_ParseRmc(
+            "$GNRMC,181320.000,A,4238.4047,N,01141.4529,E,0.00,356.03,040621,,,A,V",
+            &rmc));
 }
 
 TEST(NMEA, ParseGga)

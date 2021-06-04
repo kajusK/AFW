@@ -378,7 +378,7 @@ bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc)
         return false;
     }
     /* $GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68 */
-    ret = Nmeai_Scan(msg, "stcpDpDffdfD_",
+    ret = Nmeai_Scan(msg, "stcpDpDffdfD__",
             type, &rmc->fix_time, &c, &rmc->lat, &dir_lat, &rmc->lon, &dir_lon,
             &rmc->speed_kmh, &rmc->course, &rmc->date,
             &rmc->mag_variation, &dir_var);
