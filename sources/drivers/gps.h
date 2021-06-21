@@ -63,12 +63,16 @@ typedef struct {
 /**
  * Put GPS device into standby mode (UART still active, GPS down)
  *
+ * Should be called after the GPS is booted, else it won't work
+ *
  * @param desc        Device descriptor
  */
 extern void Gps_Standby(gps_desc_t *desc);
 
 /**
  * Put GPS device into backup mode (needs restart or FORCE_UP signal to wake up)
+ *
+ * Should be called after the GPS is booted, else it won't work
  *
  * @param desc        Device descriptor
  */
