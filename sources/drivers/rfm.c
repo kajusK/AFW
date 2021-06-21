@@ -273,6 +273,7 @@ void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data, size_t len)
     /* Wait for data to be transmitted, optionally, the IRQ reg can be polled */
     while (IOd_GetLine(desc->io0_port, desc->io0_pad) == 0 &&
             millis() - start_ts < RFM_TX_TIMEOUT_MS) {
+        //TODO sleep mcu here?
         ;
     }
 
@@ -281,33 +282,17 @@ void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data, size_t len)
     RFMi_WriteReg(desc, RFM_REG_IRQ_FLAGS, 0xff);
 }
 
-bool RFM_LoraInit(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
-        uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
-        uint32_t io0_port, uint8_t io0_pad)
+void RFM_PowerOff(rfm_desc_t *desc)
 {
-    ASSERT_NOT(desc == NULL);
-    desc->spi_device = spi_device;
-    desc->cs_port = cs_port;
-    desc->cs_pad = cs_pad;
-    desc->reset_port = reset_port;
-    desc->reset_pad = reset_pad;
-    desc->io0_port = io0_port;
-    desc->io0_pad = io0_pad;
+    /* When LORA mode is selected, the device still draws current for some reason */
+    RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_SLEEP);
+}
 
-    /* Reset the device */
-    IOd_SetLine(desc->reset_port, desc->reset_pad, 0);
-    delay_ms(1);
-    IOd_SetLine(desc->reset_port, desc->reset_pad, 1);
-    delay_ms(5);
-
-    /* Verify device signature */
-    if (RFMi_ReadReg(desc, RFM_REG_VER) != RFM_VER_ID) {
-        return false;
-    }
-
+void RFM_LoraInit(rfm_desc_t *desc)
+{
     /* Mode can be changed only in sleep */
     RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_SLEEP);
-    RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA);
+    RFMi_WriteReg(desc, RFM_REG_MODE, RFM_MODE_LORA | RFM_MODE_SLEEP);
 
     /* Set over current protection to 240 mA */
     RFMi_WriteReg(desc, RFM_REG_OCP, 0x1f);
@@ -332,7 +317,33 @@ bool RFM_LoraInit(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
     RFM_SetLoraParams(desc, RFM_BW_125k, RFM_SF_7);
     RFM_SetPowerDBm(desc, 17);
     RFM_SetLoraRegion(desc, RFM_REGION_EU863);
+}
 
+bool RFM_Init(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
+        uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
+        uint32_t io0_port, uint8_t io0_pad)
+{
+    ASSERT_NOT(desc == NULL);
+    desc->spi_device = spi_device;
+    desc->cs_port = cs_port;
+    desc->cs_pad = cs_pad;
+    desc->reset_port = reset_port;
+    desc->reset_pad = reset_pad;
+    desc->io0_port = io0_port;
+    desc->io0_pad = io0_pad;
+
+    /* Reset the device */
+    IOd_SetLine(desc->reset_port, desc->reset_pad, 0);
+    delay_ms(1);
+    IOd_SetLine(desc->reset_port, desc->reset_pad, 1);
+    delay_ms(5);
+
+    /* Verify device signature */
+    if (RFMi_ReadReg(desc, RFM_REG_VER) != RFM_VER_ID) {
+        return false;
+    }
+
+    RFM_PowerOff(desc);
     return true;
 }
 

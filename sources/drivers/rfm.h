@@ -117,9 +117,28 @@ extern void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data,
         size_t len);
 
 /**
- * Initialize RFM module in lora mode
+ * Power off the device
  *
- * @param [out] desc    The RFM device descriptor
+ * Call RFM_LoraInit to power it on again
+ *
+ * @param desc          The RFM device descriptor
+ */
+extern void RFM_PowerOff(rfm_desc_t *desc);
+
+/**
+ * Power on and initialize the RFM in LoRa mode
+ *
+ * @param desc          The RFM device descriptor
+ */
+extern void RFM_LoraInit(rfm_desc_t *desc);
+
+/**
+ * Initialize RFM module
+ *
+ * The module is in power off state after initialization, call LoraInit to
+ * power on.
+ *
+ * @param desc          The RFM device descriptor
  * @param spi_device    The SPI device to use
  * @param cs_port       Port of the CS pin
  * @param cs_pad        Pin of the CS pin
@@ -127,9 +146,10 @@ extern void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data,
  * @param reset_pad     Pin of the RESET pin
  * @param io0_port      Port of the IO0 pin
  * @param io0_pad       Pin of the IO0 pin
- * @return True if module is initialized, false if not responding
+ *
+ * @return True if module is present, false if not responding
  */
-extern bool RFM_LoraInit(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
+extern bool RFM_Init(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
         uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
         uint32_t io0_port, uint8_t io0_pad);
 
