@@ -16,42 +16,42 @@
  */
 
 /**
- * @file    drivers/rfm.h
- * @brief   Driver for Hope RF RFM95 and similar RF modules
+ * @file    drivers/rfm95.h
+ * @brief   Driver for Hope RF RFM95 and similar LORA RF modules
  *
  * @addtogroup drivers
  * @{
  */
 
-#ifndef __DRIVERS_RFM_H
-#define __DRIVERS_RFM_H
+#ifndef __DRIVERS_RFM95_H
+#define __DRIVERS_RFM95_H
 
 #include <types.h>
 
 /* Signal bandwidth */
 typedef enum {
-    RFM_BW_125k,
-    RFM_BW_250k,
-    RFM_BW_500k,
-} rfm_bw_t;
+    RFM95_BW_125k,
+    RFM95_BW_250k,
+    RFM95_BW_500k,
+} rfm95_bw_t;
 
 /** Spreading factor */
 typedef enum {
-    RFM_SF_7 = 7,
-    RFM_SF_8 = 8,
-    RFM_SF_9 = 9,
-    RFM_SF_10 = 10,
-    RFM_SF_11 = 11,
-    RFM_SF_12 = 12,
-} rfm_sf_t;
+    RFM95_SF_7 = 7,
+    RFM95_SF_8 = 8,
+    RFM95_SF_9 = 9,
+    RFM95_SF_10 = 10,
+    RFM95_SF_11 = 11,
+    RFM95_SF_12 = 12,
+} rfm95_sf_t;
 
 /** Lora regions (frequency to use) */
 typedef enum {
-    RFM_REGION_AU915,
-    RFM_REGION_EU863,
-    RFM_REGION_US902,
-    RFM_REGION_AS920
-} rfm_lora_region_t;
+    RFM95_REGION_AU915,
+    RFM95_REGION_EU863,
+    RFM95_REGION_US902,
+    RFM95_REGION_AS920
+} rfm95_lora_region_t;
 
 /** The RFM device descriptor */
 typedef struct {
@@ -63,7 +63,7 @@ typedef struct {
     uint32_t io0_port;      /**< MCU port the IO0 signal is connected to */
     uint32_t io0_pad;       /**< MCU pin the IO0 signal is connected to */
     const uint8_t (*region)[3];
-} rfm_desc_t;
+} rfm95_desc_t;
 
 /**
  * Set transmit power
@@ -78,7 +78,7 @@ typedef struct {
  * @param desc      The RFM device descriptor
  * @param power     Required power from 2 to 20 dBm
  */
-extern void RFM_SetPowerDBm(const rfm_desc_t *desc, int8_t power);
+extern void RFM95_SetPowerDBm(const rfm95_desc_t *desc, int8_t power);
 
 /**
  * Set Lora transmission bandwidth and spreading factor
@@ -95,8 +95,8 @@ extern void RFM_SetPowerDBm(const rfm_desc_t *desc, int8_t power);
  * @param bandwidth     Bandwidth selection
  * @param sf            Spreading factor
  */
-extern void RFM_SetLoraParams(const rfm_desc_t *desc, rfm_bw_t bandwidth,
-        rfm_sf_t sf);
+extern void RFM95_SetLoraParams(const rfm95_desc_t *desc, rfm95_bw_t bandwidth,
+        rfm95_sf_t sf);
 
 /**
  * Configure region we are in (sets frequency range)
@@ -104,7 +104,7 @@ extern void RFM_SetLoraParams(const rfm_desc_t *desc, rfm_bw_t bandwidth,
  * @param desc      The RFM device descriptor
  * @param region        Region settings to be used
  */
-extern void RFM_SetLoraRegion(rfm_desc_t *desc, rfm_lora_region_t region);
+extern void RFM95_SetLoraRegion(rfm95_desc_t *desc, rfm95_lora_region_t region);
 
 /**
  * Send raw Lora modulated data
@@ -113,24 +113,24 @@ extern void RFM_SetLoraRegion(rfm_desc_t *desc, rfm_lora_region_t region);
  * @param data      Data to be sent
  * @param len       Length of the data buffer
  */
-extern void RFM_LoraSend(const rfm_desc_t *desc, const uint8_t *data,
+extern void RFM95_LoraSend(const rfm95_desc_t *desc, const uint8_t *data,
         size_t len);
 
 /**
  * Power off the device
  *
- * Call RFM_LoraInit to power it on again
+ * Call RFM95_LoraInit to power it on again
  *
  * @param desc          The RFM device descriptor
  */
-extern void RFM_PowerOff(rfm_desc_t *desc);
+extern void RFM95_PowerOff(rfm95_desc_t *desc);
 
 /**
  * Power on and initialize the RFM in LoRa mode
  *
  * @param desc          The RFM device descriptor
  */
-extern void RFM_LoraInit(rfm_desc_t *desc);
+extern void RFM95_LoraInit(rfm95_desc_t *desc);
 
 /**
  * Initialize RFM module
@@ -149,7 +149,7 @@ extern void RFM_LoraInit(rfm_desc_t *desc);
  *
  * @return True if module is present, false if not responding
  */
-extern bool RFM_Init(rfm_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
+extern bool RFM95_Init(rfm95_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
         uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
         uint32_t io0_port, uint8_t io0_pad);
 
