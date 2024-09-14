@@ -104,7 +104,7 @@ extern void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip);
  * @param fbuf          The frame buffer to use with this device
  * @param i2c_device    The I2C device the display is connected to
  * @param address       The I2C address of the device
- * @param reset_port    The MCU port connected to reset pin
+ * @param reset_port    The MCU port connected to reset pin, of 0xff if not available
  * @param reset_pad     The MCU pin connected to reset pin
  *
  * @return      True if display is responding to commands

@@ -190,10 +190,12 @@ bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf, uint8_t i2c_device,
         desc->fbuf[pos] = SSD1306_START_LINE;
     }
 
-    IOd_SetLine(reset_port, reset_pad, 0);
-    delay_ms(20);
-    IOd_SetLine(reset_port, reset_pad, 1);
-    delay_ms(20);
+    if (reset_port != 0xff) {
+        IOd_SetLine(reset_port, reset_pad, 0);
+        delay_ms(20);
+        IOd_SetLine(reset_port, reset_pad, 1);
+        delay_ms(20);
+    }
 
     if (!SSD1306i_Cmd(desc, SSD1306_DISP_OFF)) {
         return false;
