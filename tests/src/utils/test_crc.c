@@ -49,13 +49,27 @@ TEST(CRC, CRC16_Add)
 TEST(CRC, CRC16)
 {
     uint8_t buf[] = {0xab, 0xcd, 0xef, 0x12};
-    TEST_ASSERT_EQUAL_HEX16(0x26f0, CRC16(buf, 4));
+    TEST_ASSERT_EQUAL_HEX16(0x26f0, CRC16(buf, sizeof(buf)));
+}
+
+TEST(CRC, CRC8_Add)
+{
+    TEST_ASSERT_EQUAL_HEX8(0x0c, CRC8_Add(0xbe, CRC16_INITIAL_VALUE));
+    TEST_ASSERT_EQUAL_HEX8(0x92, CRC8_Add(0xef, 0x0c));
+}
+
+TEST(CRC, CRC8)
+{
+    uint8_t buf[] = {0xbe, 0xef};
+    TEST_ASSERT_EQUAL_HEX8(0x92, CRC8(buf, sizeof(buf)));
 }
 
 TEST_GROUP_RUNNER(CRC)
 {
     RUN_TEST_CASE(CRC, CRC16_Add);
     RUN_TEST_CASE(CRC, CRC16);
+    RUN_TEST_CASE(CRC, CRC8_Add);
+    RUN_TEST_CASE(CRC, CRC8);
 }
 
 void Crc_RunTests(void)
