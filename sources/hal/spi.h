@@ -75,6 +75,21 @@ extern void SPId_Send(uint8_t device, const uint8_t *buf, size_t len);
 extern void SPId_Receive(uint8_t device, uint8_t *buf, size_t len);
 
 /**
+ * Get currently set clock prescaler
+ *
+ * @param device	Device ID (1 to 6)
+ */
+spid_prescaler_t SPId_GetPrescaler(uint8_t device);
+
+/**
+ * Set clock prescaler
+ *
+ * @param device	Device ID (1 to 6)
+ * @param prescaler Clock prescaler
+ */
+void SPId_SetPrescaler(uint8_t device, spid_prescaler_t prescaler);
+
+/**
  * Initialize SPI device
  *
  * GPIO pins are not initialized and must be initialize separately

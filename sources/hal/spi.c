@@ -115,6 +115,18 @@ void SPId_Receive(uint8_t device, uint8_t *buf, size_t len)
 	}
 }
 
+spid_prescaler_t SPId_GetPrescaler(uint8_t device)
+{
+	uint32_t spi = SPIdi_GetDevice(device);
+	return (SPI_CR1(spi) >> 3) & 0x07;
+}
+
+void SPId_SetPrescaler(uint8_t device, spid_prescaler_t prescaler)
+{
+	uint32_t spi = SPIdi_GetDevice(device);
+	spi_set_baudrate_prescaler(spi, prescaler);
+}
+
 void SPId_Init(uint8_t device, spid_prescaler_t prescaler, spid_mode_t mode)
 {
 	enum rcc_periph_clken rcc = SPIdi_GetRcc(device);
