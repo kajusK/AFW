@@ -1,28 +1,9 @@
-/*
- * Copyright (C) 2019 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    hal/power.c
  * @brief   System power control
- *
- * @addtogroup hal
- * @{
  */
 
+#include <types.h>
 #include <libopencm3/cm3/scb.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/pwr.h>
@@ -30,7 +11,6 @@
 #include <libopencm3/stm32/dbgmcu.h>
 #include <libopencm3/stm32/rtc.h>
 
-#include "utils/assert.h"
 #include "hal/rtc.h"
 #include "hal/power.h"
 
@@ -162,4 +142,3 @@ powerd_rst_t Powerd_GetResetSource(void)
     RCC_CSR |= RCC_CSR_RMVF;
     return rst;
 }
-

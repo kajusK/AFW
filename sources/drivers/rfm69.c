@@ -1,28 +1,8 @@
-/*
- * Copyright (C) 2024 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/rfm69.c
  * @brief   HopeRF RFM69 wireless transceiver driver, same as SX1231
  *
  * https://cdn.sparkfun.com/datasheets/Wireless/General/RFM69HCW-V1.1.pdf
- *
- * @addtogroup drivers
- * @{
  */
 
 #include "hal/io.h"
@@ -316,7 +296,7 @@ void RFM69_SetPowerDBm(rfm69_desc_t *desc, int8_t dBm)
         setHighPower(desc, false);
         return;
     }
-    
+
     /* the antenna is connected to PA_BOOST pin, PA1 and/or PA2 must be used */
     if (dBm < -2) {
         dBm = -2;
@@ -354,7 +334,7 @@ void RFM69_SetFrameFormat(rfm69_desc_t *desc, const rfm69_frame_t *format)
         (format->crc << 4) |
         (format->filter.enable << 2));
     writeReg(desc, REG_PACKETCONFIG2, 0x02 | format->aes.enable);
-    
+
     // (maximum) payload length
     writeReg(desc, REG_PAYLOADLENGTH, format->payload_len);
     desc->payload_len = format->payload_len ? 0 : format->payload_len;
@@ -463,11 +443,6 @@ void RFM69_StartReceiver(const rfm69_desc_t *desc)
     setMode(desc, MODE_RX, false);
 }
 
-/**
- * Initialize the RFM69 module
- *
- * @note SPI clock must be 10 MHz or lower
- */
 bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
         uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
         bool is_hxx)
@@ -504,11 +479,9 @@ bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
     /*
      * DIO0=01, DIO4=01, ClkOut=off
      * Rx: DIO0 = PayloadReady, DIO4 = Rssi
-     * Tx: DIO0 = TxReady, DIO4 = TxReady 
+     * Tx: DIO0 = TxReady, DIO4 = TxReady
      */
-    writeReg16(desc, REG_DIOMAPPING1, (0x01 << 14) | (0x01 << 6) | 0x07); 
-    
+    writeReg16(desc, REG_DIOMAPPING1, (0x01 << 14) | (0x01 << 6) | 0x07);
+
     return true;
 }
-
-/** @} */

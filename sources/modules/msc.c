@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2020 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    modules/msc.h
  * @brief   USB Mass storage class implementation
@@ -24,9 +7,6 @@
  * Specifications:
  * https://www.usb.org/sites/default/files/usbmassbulk_10.pdf
  * https://www.seagate.com/files/staticfiles/support/docs/manual/Interface%20manuals/100293068j.pdf
- *
- * @addtogroup modules
- * @{
  */
 
 #include <stdlib.h>
@@ -688,5 +668,3 @@ void Msc_Init(usbd_device *usbd_dev, uint8_t ep_in, uint8_t ep_in_size,
 
     usbd_register_set_config_callback(usbd_dev, msci_set_config);
 }
-
-/** @} */

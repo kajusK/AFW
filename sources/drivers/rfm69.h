@@ -1,28 +1,8 @@
-/*
- * Copyright (C) 2024 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/rfm69.c
  * @brief   HopeRF RFM69 wireless transceiver driver, same as SX1231
  *
  * https://cdn.sparkfun.com/datasheets/Wireless/General/RFM69HCW-V1.1.pdf
- *
- * @addtogroup drivers
- * @{
  */
 
 #ifndef __DRIVERS_RFM69_H
@@ -122,7 +102,7 @@ typedef struct {
     rfm69_rx_bandwidth_t rx_bw;     /**< Input filter bandwidth */
 } rfm69_config_t;
 
-/** 
+/**
  * Frame format definition
  *
  * Fixed length
@@ -133,7 +113,7 @@ typedef struct {
  * | ----------------------Header---------------------|-------------------------------Payload ---------------------------------| Suffix                  |
  * | Preamble bytes (0-65545) | Sync word (0-8 bytes) | Length bytes | Address byte (optional) | Message (0-255, AES optional) | CRC (optional, 2 bytes) |
  *
- * The FIFO is 66 bytes long, the payload length must be equal or lower 
+ * The FIFO is 66 bytes long, the payload length must be equal or lower
  */
 typedef struct {
     bool variable_len;      /**< True for variable length frames, false for fixed */
@@ -255,5 +235,3 @@ bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
         bool is_hxx);
 
 #endif
-
-/** @} */

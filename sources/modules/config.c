@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2021 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    modules/config.c
  * @brief   System configuration handling
@@ -26,16 +9,12 @@
  * The first partition is written and read first, second is the fallback one.
  * The linker must define _config_part1 and 2, both in different flash pages.
  * Both flash pages gets erased. The config_t should fit within one page.
- *
- *
- * @addtogroup modules
- * @{
  */
 
 #include <string.h>
+#include <types.h>
 #include "hal/flash.h"
 #include "utils/crc.h"
-#include "utils/assert.h"
 #include "config.h"
 
 /** Structure of the configuration stored in flash memory */
@@ -94,5 +73,3 @@ void Config_Write(const config_t *config)
 
     conf_valid = &_config_part1.config;
 }
-
-/** @} */

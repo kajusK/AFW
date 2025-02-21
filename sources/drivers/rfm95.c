@@ -1,31 +1,11 @@
-/*
- * Copyright (C) 2020 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/rfm95.c
  * @brief   Driver for Hope RF RFM95 and similar RF modules
- *
- * @addtogroup drivers
- * @{
  */
 
+#include <types.h>
 #include <hal/spi.h>
 #include <hal/io.h>
-#include <utils/assert.h>
 #include <utils/time.h>
 
 #include "drivers/rfm95.h"
@@ -346,5 +326,3 @@ bool RFM95_Init(rfm95_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
     RFM95_PowerOff(desc);
     return true;
 }
-
-/** @} */

@@ -1,28 +1,9 @@
-/*
- * Copyright (C) 2020 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/temperature.c
  * @brief   Various temperature sensors
- *
- * @addtogroup drivers
- * @{
  */
 
+#include <types.h>
 #include "temperature.h"
 
 static int32_t TCi_GetVoltage(const int32_t lookup[][2],
@@ -136,5 +117,3 @@ int32_t LMT87_ConvertmC(uint16_t voltage_mv)
     /* Simple linear line interpolation */
     return ((y1-y2)*(voltage_mv-x1)*1000)/(x1-x2) + y1*1000;
 }
-
-/** @} */

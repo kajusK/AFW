@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2020 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    utils/aes.c
  * @brief   AES encryption
@@ -26,9 +9,6 @@
  * tables are required. AES steps for each round can be joined together using
  * bigger (4k) lookup tables. S_Box tables can be computed on the fly
  * to reduce memory footprint, but increases compute time.
- *
- * @addtogroup utils
- * @{
  */
 
 #include <string.h>
@@ -466,5 +446,3 @@ void AES128_CMAC(const uint8_t *data, size_t len, const uint8_t *key,
     }
     AES128_Encrypt(tag, key);
 }
-
-/** @} */

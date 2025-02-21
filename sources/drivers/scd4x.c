@@ -1,37 +1,14 @@
-/*
- * Copyright (C) 2024 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/scd4x.c
  * @brief   Sensirion SCD4x CO2 sensor
  *
  * https://sensirion.com/media/documents/E0F04247/631EF271/CD_DS_SCD40_SCD41_Datasheet_D1.pdf
- *
- * @addtogroup drivers
- * @{
  */
 
 #include <types.h>
-
 #include "hal/i2c.h"
-#include "utils/assert.h"
 #include "utils/crc.h"
 #include "utils/time.h"
-
 #include "drivers/scd4x.h"
 
 #define SCD4x_ADDRESS 0x62
@@ -62,7 +39,7 @@ static bool read(const scd4x_desc_t *desc, uint16_t cmd, uint16_t *data, uint8_t
     bool res;
 
     ASSERT(len <= 3);
-    
+
     buf[0] = (cmd & 0xff00) >> 8;
     buf[1] = cmd & 0x00ff;
     res = I2Cd_Transceive(desc->i2c_device, SCD4x_ADDRESS, buf, 2, buf, len*3);
@@ -185,5 +162,3 @@ bool SCD4x_Init(scd4x_desc_t *desc, uint8_t i2c_device)
     }
     return false;
 }
-
-/** @} */

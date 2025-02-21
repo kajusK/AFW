@@ -1,33 +1,12 @@
-/*
- * Copyright (C) 2020 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    hal/timer.c
  * @brief   Timer driver
- *
- * @addtogroup hal
- * @{
  */
 
+#include <types.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/timer.h>
-
-#include "utils/assert.h"
 #include "hal/timer.h"
 
 static const enum tim_oc_id timerdi_oc_id[] = {TIM_OC1, TIM_OC2, TIM_OC3, TIM_OC4};
@@ -469,5 +448,3 @@ void Timerd_Init(uint8_t device)
     timer_set_prescaler(timer, 0);
     timer_set_period(timer, 0xffffffff);
 }
-
-/** @} */

@@ -1,26 +1,6 @@
-/*
- * Copyright (C) 2020 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    modules/lora.h
  * @brief   LoRaWan MAC layer implementation (for TTN and other networks)
- *
- * @addtogroup modules
- * @{
  */
 
 #ifndef __MODULES_LORA_H
@@ -89,6 +69,7 @@ extern void Lora_GetCounters(uint32_t *frame_rx, uint32_t *frame_tx);
  */
 void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey,
         const uint8_t *AppSkey);
+
 /**
  * Initialize LoRaWan module in Activation by Personalization (ABP)
  *
@@ -97,5 +78,3 @@ void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey,
 extern void Lora_InitAbp(lora_send_cb_t send);
 
 #endif
-
-/** @} */

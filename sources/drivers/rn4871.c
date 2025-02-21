@@ -1,30 +1,11 @@
-/*
- * Copyright (C) 2020 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/rn4871.c
  * @brief   Microchip RN4871 BLE
  *
  * http://ww1.microchip.com/downloads/en/DeviceDoc/RN4870-71-Bluetooth-Low-Energy-Module-User-Guide-DS50002466C.pdf
- *
- * @addtogroup drivers
- * @{
  */
 
+#include <types.h>
 #include <ctype.h>
 #include <string.h>
 #include <hal/uart.h>
@@ -32,7 +13,6 @@
 #include <utils/time.h>
 #include <utils/ringbuf.h>
 #include <utils/string.h>
-#include <utils/assert.h>
 #include "rn4871.h"
 
 /** Timeout in ms for waiting on command response */
@@ -758,5 +738,3 @@ bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device,
     }
     return RN4871i_EnterCmdMode(desc);
 }
-
-/** @} */

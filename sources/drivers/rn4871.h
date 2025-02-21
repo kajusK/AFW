@@ -1,26 +1,6 @@
-/*
- * Copyright (C) 2020 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/rn4871.h
  * @brief   Microchip RN4871 BLE
- *
- * @addtogroup drivers
- * @{
  */
 
 #ifndef __DRIVERS_RN4871_H
@@ -290,5 +270,3 @@ extern bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device,
         const rn4871_dis_t *dis);
 
 #endif
-
-/** @} */

@@ -1,28 +1,8 @@
-/*
- * Copyright (C) 2024 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/scd4x.h
  * @brief   Sensirion SCD4x CO2 sensor
  *
  * https://sensirion.com/media/documents/E0F04247/631EF271/CD_DS_SCD40_SCD41_Datasheet_D1.pdf
- *
- * @addtogroup drivers
- * @{
  */
 
 #ifndef __DRIVERS_SCD4X_H
@@ -108,7 +88,7 @@ extern bool SCD4x_PowerDown(const scd4x_desc_t *desc);
 /**
  * Wake Up the sensor from power off mode (20 ms duration)
  *
- * @param desc 
+ * @param desc
  * @return Operation result, false if failed
  */
 extern bool SCD4x_WakeUp(const scd4x_desc_t *desc);
@@ -125,5 +105,3 @@ extern bool SCD4x_WakeUp(const scd4x_desc_t *desc);
 extern bool SCD4x_Init(scd4x_desc_t *desc, uint8_t i2c_device);
 
 #endif
-
-/** @} */

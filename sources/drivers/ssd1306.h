@@ -1,26 +1,6 @@
-/*
- * Copyright (C) 2019 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/ssd1306.c
  * @brief   SSD1306 oled controller driver, 128x64
- *
- * @addtogroup drivers
- * @{
  */
 
 #ifndef __DRIVERS_SSD1306_H
@@ -114,5 +94,3 @@ extern bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf,
         uint32_t reset_port, uint8_t reset_pad);
 
 #endif
-
-/** @} */

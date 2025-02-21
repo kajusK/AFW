@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2024 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 /**
  * @file    drivers/sd_spi.c
  * @brief   SD card driver (over SPI) for FatFS library
@@ -24,9 +7,6 @@
  * https://www.sdcard.org/downloads/pls/
  *
  * Based on generic example from fatfs sources
- *
- * @addtogroup drivers
- * @{
  */
 
 #include <types.h>
@@ -173,10 +153,10 @@ static bool writeData(const sd_card_t *card, const BYTE *buff, BYTE token)
 		return false;
 	}
 
-	SPId_Transceive(card->device, token);	
+	SPId_Transceive(card->device, token);
 	// Data token
-	if (token != 0xFD) { 
-		SPId_Send(card->device, buff, 512);	
+	if (token != 0xFD) {
+		SPId_Send(card->device, buff, 512);
 		// dummy crc
 		SPId_Transceive(card->device, 0xff);
 		SPId_Transceive(card->device, 0xff);
@@ -222,7 +202,7 @@ static BYTE writeCmd(const sd_card_t *card, BYTE cmd, DWORD arg)
 	}
 
 	buf[0] = 0x40 | cmd;			// Start + Command index
-	buf[1] = (BYTE)(arg >> 24);		
+	buf[1] = (BYTE)(arg >> 24);
 	buf[2] = (BYTE)(arg >> 16);
 	buf[3] = (BYTE)(arg >> 8);
 	buf[4] = (BYTE)arg;
@@ -320,7 +300,7 @@ DSTATUS disk_initialize(BYTE drv)
 					;
 				}
 
-				// Check CCS bit in the OCR 
+				// Check CCS bit in the OCR
 				if (!timed_out(1000) && writeCmd(card, CMD58, 0) == 0) {
 					SPId_Receive(card->device, buf, 4);
 					// SDv2
@@ -410,7 +390,7 @@ DRESULT disk_write(BYTE drv, const BYTE *buff,	DWORD sector, UINT count)
 	if (disk_status(drv) & STA_NOINIT) {
 		return RES_NOTRDY;
 	}
-	
+
 	if (!(card->card_type & CT_BLOCK)) {
 		sector *= 512;	// Convert LBA to byte address if needed
 	}
@@ -460,7 +440,7 @@ DRESULT disk_ioctl(BYTE drv, BYTE ctrl, void *buff)
 	res = RES_ERROR;
 	switch (ctrl) {
 		// Make sure that no pending write process
-		case CTRL_SYNC:	
+		case CTRL_SYNC:
 			if (select(card)) {
 				res = RES_OK;
 			}
@@ -489,7 +469,7 @@ DRESULT disk_ioctl(BYTE drv, BYTE ctrl, void *buff)
 		}
 
 		// Get erase block size in unit of sector (DWORD)
-		case GET_BLOCK_SIZE:	
+		case GET_BLOCK_SIZE:
 			*(DWORD*)buff = 128;
 			res = RES_OK;
 			break;
