@@ -43,7 +43,7 @@ CFLAGS = -Wall -Wextra -Wstrict-prototypes -Wundef -Wshadow -Wredundant-decls \
 	-Wno-missing-field-initializers -Wno-unused-function \
 	-Wno-redundant-decls \
 	-Wimplicit-function-declaration  -fprofile-arcs -ftest-coverage \
-	-DUNITY_FLOAT_VERBOSE \
+	-DUNITY_FLOAT_VERBOSE -DUNIT_TEST \
 	$(CSTD) $(OPT) $(addprefix -I, $(INCLUDES)) \
 	-I $(OPENCM3_DIR)/include
 LDFLAGS = $(BUILD_FLAGS) -lm -fprofile-arcs --coverage

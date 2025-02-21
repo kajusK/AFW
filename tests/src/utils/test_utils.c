@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Jakub Kaderka
+ * Copyright (C) 2025 Jakub Kaderka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,41 +16,44 @@
  */
 
 /**
- * @file    main.h
- * @brief   Main file for unit tests
+ * @file    utils/test_utils.c
+ * @brief   Unit tests for utils.c
  *
  * @addtogroup tests
  * @{
  */
 
-#include "main.h"
+#include <main.h>
+#include "utils/utils.c"
 
-uint8_t assert_should_fail = false;
+/* *****************************************************************************
+ * Tests
+***************************************************************************** */
+TEST_GROUP(UTILS);
 
-static void RunAll(void)
+TEST_SETUP(UTILS)
 {
-    Time_RunTests();
-    String_RunTests();
-    Crc_RunTests();
-    Button_RunTests();
-    Math_RunTests();
-    Nav_RunTests();
-    Ramdisk_RunTests();
-    Nmea_RunTests();
-    Ringbuf_RunTests();
-    Log_RunTests();
-    AES_RunTests();
-    Lora_RunTests();
-    UF2_RunTests();
-    Temperature_RunTests();
-    Physics_RunTests();
-    Filter_RunTests();
-    Utils_RunTests();
 }
 
-int main(int argc, const char *argv[])
+TEST_TEAR_DOWN(UTILS)
 {
-    UnityMain(argc, argv, RunAll);
+
+}
+
+TEST(UTILS, count1s)
+{
+    TEST_ASSERT_EQUAL(0, count1s(0));
+    TEST_ASSERT_EQUAL(15, count1s(0xabcd1234));
+}
+
+TEST_GROUP_RUNNER(UTILS)
+{
+    RUN_TEST_CASE(UTILS, count1s);
+}
+
+void Utils_RunTests(void)
+{
+    RUN_TEST_GROUP(UTILS);
 }
 
 /** @} */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 Jakub Kaderka
+ * Copyright (C) 2025 Jakub Kaderka
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,41 +16,23 @@
  */
 
 /**
- * @file    main.h
- * @brief   Main file for unit tests
+ * @file    utils/utils.h
+ * @brief   Hard to place anywhere utilities
  *
- * @addtogroup tests
+ * @addtogroup utils
  * @{
  */
 
-#include "main.h"
+#ifndef __UTILS_UTILS_H
+#define __UTILS_UTILS_H
 
-uint8_t assert_should_fail = false;
+#include <types.h>
 
-static void RunAll(void)
-{
-    Time_RunTests();
-    String_RunTests();
-    Crc_RunTests();
-    Button_RunTests();
-    Math_RunTests();
-    Nav_RunTests();
-    Ramdisk_RunTests();
-    Nmea_RunTests();
-    Ringbuf_RunTests();
-    Log_RunTests();
-    AES_RunTests();
-    Lora_RunTests();
-    UF2_RunTests();
-    Temperature_RunTests();
-    Physics_RunTests();
-    Filter_RunTests();
-    Utils_RunTests();
-}
+/**
+ * Count amount of 1 bits in the number
+ */
+extern uint8_t count1s(uint32_t data);
 
-int main(int argc, const char *argv[])
-{
-    UnityMain(argc, argv, RunAll);
-}
+#endif
 
 /** @} */
