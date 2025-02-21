@@ -45,13 +45,14 @@ extern void UF2_RunTests(void);
 extern void Temperature_RunTests(void);
 extern void Physics_RunTests(void);
 extern void Filter_RunTests(void);
+extern void Utils_RunTests(void);
 
 extern uint8_t assert_should_fail;
 
 /** assert testing */
 #define ASSERT(exp) \
     _Pragma("GCC diagnostic push") \
-    _Pragma("GCC diagnostic ignored \"-Wreturn-type\"")  \
+    _Pragma("GCC diagnostic ignored \"-Wreturn-mismatch\"")  \
     if (assert_should_fail) { \
         TEST_ASSERT_FALSE(exp); \
         return; \
