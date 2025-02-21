@@ -38,7 +38,7 @@ typedef enum {
  * @param button        Button description
  * @return Button events
  */
-extern button_event_t Button(button_t *button);
+button_event_t Button(button_t *button);
 
 /**
  * Initialize button structure
@@ -47,7 +47,7 @@ extern button_event_t Button(button_t *button);
  * @param pad       MCU pin to which the button is connected
  * @param inverted  If true, the button is pressed when pin is zero
  */
-extern void Button_Init(button_t *button, uint32_t port, uint8_t pad,
+void Button_Init(button_t *button, uint32_t port, uint8_t pad,
         bool inverted);
 
 #endif

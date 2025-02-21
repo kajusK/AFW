@@ -33,12 +33,12 @@ typedef void (*lora_send_cb_t)(const uint8_t *data, size_t len);
  *
  * @TODO block until second receive window end (node should not transmit sooner)
  */
-extern bool Lora_Send(const uint8_t *data, uint8_t len);
+bool Lora_Send(const uint8_t *data, uint8_t len);
 
 /**
  * Reset LoRaWan frame counters back to 0
  */
-extern void Lora_ResetFrameCounters(void);
+void Lora_ResetFrameCounters(void);
 
 /**
  * Set internal frame counters (e.g. after reboot)
@@ -46,7 +46,7 @@ extern void Lora_ResetFrameCounters(void);
  * @param frame_rx  Received frames counter
  * @param frame_tx  Sent frame sounter
  */
-extern void Lora_SetCounters(uint32_t frame_rx, uint32_t frame_tx);
+void Lora_SetCounters(uint32_t frame_rx, uint32_t frame_tx);
 
 /**
  * Get internal frame counters (e.g. to save before reboot when in ABP mode)
@@ -54,7 +54,7 @@ extern void Lora_SetCounters(uint32_t frame_rx, uint32_t frame_tx);
  * @param frame_rx  Received frames counter (or NULL if not needed)
  * @param frame_tx  Sent frame sounter (or NULL if not needed)
  */
-extern void Lora_GetCounters(uint32_t *frame_rx, uint32_t *frame_tx);
+void Lora_GetCounters(uint32_t *frame_rx, uint32_t *frame_tx);
 
 /**
  * Set keys for Activation by Personalization (ABP)
@@ -75,6 +75,6 @@ void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey,
  *
  * @param send      Callback used to send assembled lora packet
  */
-extern void Lora_InitAbp(lora_send_cb_t send);
+void Lora_InitAbp(lora_send_cb_t send);
 
 #endif

@@ -43,7 +43,7 @@ typedef struct {
  * @param y     Vertical position
  * @param color Value for given pixel (0 = white, others = black)
  */
-extern void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x,
+void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x,
         uint16_t y, uint16_t color);
 
 /**
@@ -51,7 +51,7 @@ extern void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x,
  *
  * @param desc      The device descriptor
  */
-extern void SSD1306_Flush(const ssd1306_desc_t *desc);
+void SSD1306_Flush(const ssd1306_desc_t *desc);
 
 /**
  * Control display power
@@ -59,7 +59,7 @@ extern void SSD1306_Flush(const ssd1306_desc_t *desc);
  * @param desc      The device descriptor
  * @param on        If true, turn display on, if false, make it sleep
  */
-extern void SSD1306_DispEnable(const ssd1306_desc_t *desc, bool on);
+void SSD1306_DispEnable(const ssd1306_desc_t *desc, bool on);
 
 /**
  * Set display contrast
@@ -67,7 +67,7 @@ extern void SSD1306_DispEnable(const ssd1306_desc_t *desc, bool on);
  * @param desc      The device descriptor
  * @param pct       Contrast value in percent
  */
-extern void SSD1306_SetContrast(const ssd1306_desc_t *desc, uint8_t pct);
+void SSD1306_SetContrast(const ssd1306_desc_t *desc, uint8_t pct);
 
 /**
  * Set display orientation
@@ -75,7 +75,7 @@ extern void SSD1306_SetContrast(const ssd1306_desc_t *desc, uint8_t pct);
  * @param desc      The device descriptor
  * @param flip      Rotate display by 180 degrees if true
  */
-extern void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip);
+void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip);
 
 /**
  * Initialize the display
@@ -89,7 +89,7 @@ extern void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip);
  *
  * @return      True if display is responding to commands
  */
-extern bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf,
+bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf,
         uint8_t i2c_device, uint8_t address,
         uint32_t reset_port, uint8_t reset_pad);
 

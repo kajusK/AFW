@@ -47,7 +47,7 @@ typedef struct {
  *
  * @param desc        Device descriptor
  */
-extern void Gps_Standby(gps_desc_t *desc);
+void Gps_Standby(gps_desc_t *desc);
 
 /**
  * Put GPS device into backup mode (needs restart or FORCE_UP signal to wake up)
@@ -56,14 +56,14 @@ extern void Gps_Standby(gps_desc_t *desc);
  *
  * @param desc        Device descriptor
  */
-extern void Gps_Backup(gps_desc_t *desc);
+void Gps_Backup(gps_desc_t *desc);
 
 /**
  * Wake up GPS device from standby
  *
  * @param desc        Device descriptor
  */
-extern void Gps_WakeUp(const gps_desc_t *desc);
+void Gps_WakeUp(const gps_desc_t *desc);
 
 /**
  * Get GPS data
@@ -71,7 +71,7 @@ extern void Gps_WakeUp(const gps_desc_t *desc);
  * @param desc        Device descriptor
  * @return Data if any or NULL if no data received yet
  */
-extern const gps_info_t *Gps_Get(gps_desc_t *desc);
+const gps_info_t *Gps_Get(gps_desc_t *desc);
 
 /**
  * Get GPS satellite info
@@ -79,14 +79,14 @@ extern const gps_info_t *Gps_Get(gps_desc_t *desc);
  * @param desc        Device descriptor
  * @return Pointer to satellite data
  */
-extern const gps_sat_t *Gps_GetSat(gps_desc_t *desc);
+const gps_sat_t *Gps_GetSat(gps_desc_t *desc);
 
 /**
  * Reset GPS recorded data to wait for brand new in loop/get functions
  *
  * @param desc        Device descriptor
  */
-extern void Gps_InvalidateData(gps_desc_t *desc);
+void Gps_InvalidateData(gps_desc_t *desc);
 
 /**
  * Process received GPS data
@@ -96,7 +96,7 @@ extern void Gps_InvalidateData(gps_desc_t *desc);
  * @param desc        Device descriptor
  * @return data If have valid GPS data or NULL
  */
-extern const gps_info_t *Gps_Loop(gps_desc_t *desc);
+const gps_info_t *Gps_Loop(gps_desc_t *desc);
 
 /**
  * Initialize GPS module
@@ -107,6 +107,6 @@ extern const gps_info_t *Gps_Loop(gps_desc_t *desc);
  * @param [out] desc        Device descriptor
  * @param uart_device       UART device on which the GPS is connected
  */
-extern void Gps_Init(gps_desc_t *desc, uint8_t uart_device);
+void Gps_Init(gps_desc_t *desc, uint8_t uart_device);
 
 #endif

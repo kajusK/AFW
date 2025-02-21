@@ -20,7 +20,7 @@ typedef enum {
  *
  * @param level     Lowest log level to print
  */
-extern void Log_SetLevel(log_level_t level);
+void Log_SetLevel(log_level_t level);
 
 /**
  * Raw logging
@@ -33,7 +33,7 @@ extern void Log_SetLevel(log_level_t level);
  * @param format    Printf like format
  * @param ...       Printf like arguments
  */
-extern void Log_Raw(log_level_t level, const char *source,
+void Log_Raw(log_level_t level, const char *source,
         const char *format, ...);
 
 #define Log_Debug(source, format, ...) Log_Raw(LOG_DEBUG, source, format, ##__VA_ARGS__)
@@ -46,6 +46,6 @@ extern void Log_Raw(log_level_t level, const char *source,
  *
  * @param uart_device   Uart device to send logs to
  */
-extern void Log_Init(uint8_t uart_device);
+void Log_Init(uint8_t uart_device);
 
 #endif

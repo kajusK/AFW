@@ -39,7 +39,7 @@ typedef struct {
  * @param meas_uncertainty      Uncertainty of the measurement
  * @param variance              How fast is the state changing in 0.001 steps
  */
-extern void Filter_KalmanSimpleInit(filter_t *filter, int32_t state,
+void Filter_KalmanSimpleInit(filter_t *filter, int32_t state,
         int32_t meas_uncertainty, int32_t variance);
 
 /**
@@ -50,6 +50,6 @@ extern void Filter_KalmanSimpleInit(filter_t *filter, int32_t state,
  *
  * @return Filtered data
  */
-extern int32_t Filter(filter_t *filter, int32_t value);
+int32_t Filter(filter_t *filter, int32_t value);
 
 #endif

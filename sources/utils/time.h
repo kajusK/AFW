@@ -13,7 +13,7 @@
  *
  * @return time since initialization
  */
-extern uint32_t millis(void);
+uint32_t millis(void);
 
 /**
  * Wait for given amount of time (in ms)
@@ -22,11 +22,11 @@ extern uint32_t millis(void);
  *
  * @param ms    Amount of milliseconds to wait for
  */
-extern void delay_ms(uint32_t ms);
+void delay_ms(uint32_t ms);
 
 /**
  * Initialize timer module (start systick, etc)
  */
-extern void Time_Init(void);
+void Time_Init(void);
 
 #endif

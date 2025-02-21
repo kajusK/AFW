@@ -41,7 +41,7 @@ typedef void (* ramdisk_write_file_cb_t)(const uint8_t *buf, size_t size,
  *
  * @return 0
  */
-extern int Ramdisk_Read(uint32_t lba, uint8_t *buf);
+int Ramdisk_Read(uint32_t lba, uint8_t *buf);
 
 /**
  * Write data to ramdisk
@@ -51,7 +51,7 @@ extern int Ramdisk_Read(uint32_t lba, uint8_t *buf);
  *
  * @return 0
  */
-extern int Ramdisk_Write(uint32_t lba, const uint8_t *buf);
+int Ramdisk_Write(uint32_t lba, const uint8_t *buf);
 
 /**
  * Create a new file in ramdisk
@@ -63,7 +63,7 @@ extern int Ramdisk_Write(uint32_t lba, const uint8_t *buf);
  * @param read          Function to read data from file
  * @return  -1 or non negative file handle
  */
-extern int Ramdisk_AddFile(const char *filename, const char *extension,
+int Ramdisk_AddFile(const char *filename, const char *extension,
         time_t time, size_t size, ramdisk_read_t read);
 
 /**
@@ -75,7 +75,7 @@ extern int Ramdisk_AddFile(const char *filename, const char *extension,
  * @param text          Null terminated string as file content
  * @return  -1 or non negative file handle
  */
-extern int Ramdisk_AddTextFile(const char *filename, const char *extension,
+int Ramdisk_AddTextFile(const char *filename, const char *extension,
         time_t time, const char *text);
 
 /**
@@ -90,27 +90,27 @@ extern int Ramdisk_AddTextFile(const char *filename, const char *extension,
  * @param extension Up to 3 character extension
  * @return Successfulness of the operation
  */
-extern bool Ramdisk_RenameFile(int handle, const char *filename,
+bool Ramdisk_RenameFile(int handle, const char *filename,
         const char *extension);
 
 /**
  * Clear ramdisk content
  */
-extern void Ramdisk_Clear(void);
+void Ramdisk_Clear(void);
 
 /**
  * Get size of the ramdisk
  *
  * @return Amount of sectors in volume (512 bytes long)
  */
-extern uint32_t Ramdisk_GetSectors(void);
+uint32_t Ramdisk_GetSectors(void);
 
 /**
  * Register callback for writing to file
  *
  * @param cb    Callback
  */
-extern void Ramdisk_RegisterWriteCb(ramdisk_write_file_cb_t cb);
+void Ramdisk_RegisterWriteCb(ramdisk_write_file_cb_t cb);
 
 /**
  * Initialize ramdisk of given size
@@ -118,6 +118,6 @@ extern void Ramdisk_RegisterWriteCb(ramdisk_write_file_cb_t cb);
  * @param size  Ramdisk size in bytes or zero for default (may be increased for minimum fat16 size)
  * @param name  Volume name (up to 11 characters are used)
  */
-extern void Ramdisk_Init(size_t size, const char *name);
+void Ramdisk_Init(size_t size, const char *name);
 
 #endif

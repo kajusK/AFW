@@ -82,7 +82,7 @@ typedef enum {
  * @param msg   Message to be checked
  * @return      True if checksum is valid
  */
-extern bool Nmea_VerifyChecksum(const char *msg);
+bool Nmea_VerifyChecksum(const char *msg);
 
 /**
  * Verify the message contains valid NMEA structure
@@ -90,7 +90,7 @@ extern bool Nmea_VerifyChecksum(const char *msg);
  * @param msg   Message to be checked
  * @return      True if valid (and checksum matches if present)
  */
-extern bool Nmea_VerifyMessage(const char *msg);
+bool Nmea_VerifyMessage(const char *msg);
 
 /**
  * Parse NMEA RMC message into structure
@@ -99,7 +99,7 @@ extern bool Nmea_VerifyMessage(const char *msg);
  * @param rmc   Structure to parse data to
  * @return True if succeeded
  */
-extern bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc);
+bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc);
 
 /**
  * Parse NMEA GGA message into structure
@@ -108,7 +108,7 @@ extern bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc);
  * @param rmc   Structure to parse data to
  * @return True if succeeded
  */
-extern bool Nmea_ParseGga(const char *msg, nmea_gga_t *gga);
+bool Nmea_ParseGga(const char *msg, nmea_gga_t *gga);
 
 /**
  * Parse NMEA GSV message into structure
@@ -117,14 +117,14 @@ extern bool Nmea_ParseGga(const char *msg, nmea_gga_t *gga);
  * @param rmc   Structure to parse data to
  * @return True if succeeded
  */
-extern bool Nmea_ParseGsv(const char *msg, nmea_gsv_t *gsv);
+bool Nmea_ParseGsv(const char *msg, nmea_gsv_t *gsv);
 
 /**
  * Get type of the NMEA message
  * @param msg   Message
  * @return Message type
  */
-extern nmea_type_t Nmea_GetSentenceType(const char *msg);
+nmea_type_t Nmea_GetSentenceType(const char *msg);
 
 /**
  * Add character to internal buffer and detect complete NMEA message
@@ -132,6 +132,6 @@ extern nmea_type_t Nmea_GetSentenceType(const char *msg);
  * @param c     Character to add
  * @return  Pointer to string with NMEA message or NULL
  */
-extern const char *Nmea_AddChar(char c);
+const char *Nmea_AddChar(char c);
 
 #endif

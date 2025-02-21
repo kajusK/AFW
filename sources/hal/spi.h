@@ -34,7 +34,7 @@ typedef enum {
  * @param data		Byte to send
  * @return Byte received
  */
-extern uint8_t SPId_Transceive(uint8_t device, uint8_t data);
+uint8_t SPId_Transceive(uint8_t device, uint8_t data);
 
 /**
  * Send data over spi
@@ -43,7 +43,7 @@ extern uint8_t SPId_Transceive(uint8_t device, uint8_t data);
  * @param [in] buf	Pointer to data buffer with data to send
  * @param len		Amount of bytes to send
  */
-extern void SPId_Send(uint8_t device, const uint8_t *buf, size_t len);
+void SPId_Send(uint8_t device, const uint8_t *buf, size_t len);
 
 /**
  * Read data from spi
@@ -52,7 +52,7 @@ extern void SPId_Send(uint8_t device, const uint8_t *buf, size_t len);
  * @param [out] buf	Pointer to data buffer where data will be stored
  * @param len		Amount of bytes to receive
  */
-extern void SPId_Receive(uint8_t device, uint8_t *buf, size_t len);
+void SPId_Receive(uint8_t device, uint8_t *buf, size_t len);
 
 /**
  * Get currently set clock prescaler
@@ -79,7 +79,7 @@ void SPId_SetPrescaler(uint8_t device, spid_prescaler_t prescaler);
  * @param mode      SPI mode to use
  * @return True if init was successful
  */
-extern void SPId_Init(uint8_t device, spid_prescaler_t prescaler,
+void SPId_Init(uint8_t device, spid_prescaler_t prescaler,
 		spid_mode_t mode);
 
 #endif

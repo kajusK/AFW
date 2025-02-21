@@ -22,7 +22,7 @@ typedef struct {
  * @param date      Data byte to push
  * @return  True if succeeded (there was space in the buffer)
  */
-extern bool Ring_Push(ring_t *ring, char data);
+bool Ring_Push(ring_t *ring, char data);
 
 /**
  * Pop byte from ring buffer
@@ -30,7 +30,7 @@ extern bool Ring_Push(ring_t *ring, char data);
  * @param ring      Ring buffer to work with
  * @return  Byte from buffer, or -1 if buffer empty
  */
-extern char Ring_Pop(ring_t *ring);
+char Ring_Pop(ring_t *ring);
 
 /**
  * Check if buffer is full
@@ -38,7 +38,7 @@ extern char Ring_Pop(ring_t *ring);
  * @param ring  Ring buffer to work with
  * @return  True if full
  */
-extern bool Ring_Full(ring_t *ring);
+bool Ring_Full(ring_t *ring);
 
 /**
  * Check if buffer is empty
@@ -46,14 +46,14 @@ extern bool Ring_Full(ring_t *ring);
  * @param ring  Ring buffer to work with
  * @return  True if empty
  */
-extern bool Ring_Empty(const ring_t *ring);
+bool Ring_Empty(const ring_t *ring);
 
 /**
  * Clear the ring buffer content
  *
  * @param ring  Ring buffer to work with
  */
-extern void Ring_Clear(ring_t *ring);
+void Ring_Clear(ring_t *ring);
 
 /**
  * Initialize ring buffer structure
@@ -62,6 +62,6 @@ extern void Ring_Clear(ring_t *ring);
  * @param buffer    Buffer to be used with ring buffer
  * @param size      Length of the buffer
  */
-extern void Ring_Init(ring_t *ring, char *buffer, uint8_t size);
+void Ring_Init(ring_t *ring, char *buffer, uint8_t size);
 
 #endif

@@ -47,7 +47,7 @@ typedef void (*timerd_cb_t)(timerd_event_t event, timerd_ch_t channel);
  * @param event     Event that should be enabled
  * @param channel   Channel on which the event should be enabled (only for capture/compare)
  */
-extern void Timerd_EnableEvent(uint8_t device, timerd_event_t event,
+void Timerd_EnableEvent(uint8_t device, timerd_event_t event,
         timerd_ch_t channel);
 
 /**
@@ -57,7 +57,7 @@ extern void Timerd_EnableEvent(uint8_t device, timerd_event_t event,
  * @param event     Event that should be disable
  * @param channel   Channel on which the event should be disabled (only for capture/compare)
  */
-extern void Timerd_DisableEvent(uint8_t device, timerd_event_t event,
+void Timerd_DisableEvent(uint8_t device, timerd_event_t event,
         timerd_ch_t channel);
 
 /**
@@ -66,7 +66,7 @@ extern void Timerd_DisableEvent(uint8_t device, timerd_event_t event,
  * @param device    Device ID (starts from 1)
  * @param prescaler Prescaler value to set
  */
-extern void Timerd_SetPrescaler(uint8_t device, uint32_t prescaler);
+void Timerd_SetPrescaler(uint8_t device, uint32_t prescaler);
 
 /**
  * Get current timer frequency
@@ -83,7 +83,7 @@ uint32_t Timerd_GetFrequency(uint8_t device);
  * @param device    Device ID (starts from 1)
  * @param freq_hz   Base timer clock frequency to set
  */
-extern void Timerd_SetClockFreq(uint8_t device, uint32_t freq_hz);
+void Timerd_SetClockFreq(uint8_t device, uint32_t freq_hz);
 
 /**
  * Set timer period
@@ -93,7 +93,7 @@ extern void Timerd_SetClockFreq(uint8_t device, uint32_t freq_hz);
  * @param device    Device ID (starts from 1)
  * @param period    Timer period in ticks
  */
-extern void Timerd_SetPeriod(uint8_t device, uint32_t period);
+void Timerd_SetPeriod(uint8_t device, uint32_t period);
 
 /**
  * Set the compare value
@@ -102,7 +102,7 @@ extern void Timerd_SetPeriod(uint8_t device, uint32_t period);
  * @param channel   Channel to set the compare for
  * @param value     Value of the compare register
  */
-extern void Timerd_SetCompare(uint8_t device, timerd_ch_t channel,
+void Timerd_SetCompare(uint8_t device, timerd_ch_t channel,
         uint32_t value);
 
 /**
@@ -112,7 +112,7 @@ extern void Timerd_SetCompare(uint8_t device, timerd_ch_t channel,
  * @param channel   Channel to get the compare from
  * @return Captured timer value on given channel
  */
-extern uint32_t Timerd_GetCapture(uint8_t devide, timerd_ch_t channel);
+uint32_t Timerd_GetCapture(uint8_t devide, timerd_ch_t channel);
 
 /**
  * Set timer's counter value
@@ -120,7 +120,7 @@ extern uint32_t Timerd_GetCapture(uint8_t devide, timerd_ch_t channel);
  * @param device    Device ID (starts from 1)
  * @param value     Counter value to set
  */
-extern void Timerd_Set(uint8_t device, uint32_t value);
+void Timerd_Set(uint8_t device, uint32_t value);
 
 /**
  * Get timer counter value
@@ -128,21 +128,21 @@ extern void Timerd_Set(uint8_t device, uint32_t value);
  * @param device    Device ID (starts from 1)
  * @return Timer's counter value
  */
-extern uint32_t Timerd_Get(uint8_t device);
+uint32_t Timerd_Get(uint8_t device);
 
 /**
  * (Re)start the timer
  *
  * @param device    Device ID (starts from 1)
  */
-extern void Timerd_Start(uint8_t device);
+void Timerd_Start(uint8_t device);
 
 /**
  * Stop the timer
  *
  * @param device    Device ID (starts from 1)
  */
-extern void Timerd_Stop(uint8_t device);
+void Timerd_Stop(uint8_t device);
 
 /**
  * Set timer in one shot/continuous mode
@@ -150,7 +150,7 @@ extern void Timerd_Stop(uint8_t device);
  * @param device    Device ID (starts from 1)
  * @param value     True for one shot, false for continuous mode
  */
-extern void Timerd_SetOneShot(uint8_t device, bool value);
+void Timerd_SetOneShot(uint8_t device, bool value);
 
 /**
  * Disable the timer compare output
@@ -158,7 +158,7 @@ extern void Timerd_SetOneShot(uint8_t device, bool value);
  * @param device    Device ID (starts from 1)
  * @param channel   Channel to disable compare output for
  */
-extern void Timerd_DisableCompare(uint8_t device, timerd_ch_t channel);
+void Timerd_DisableCompare(uint8_t device, timerd_ch_t channel);
 
 /**
  * Enable the timer compare output (not required for compare interrupt)
@@ -167,7 +167,7 @@ extern void Timerd_DisableCompare(uint8_t device, timerd_ch_t channel);
  * @param channel   Channel to set compare for (for interrupts and output signal)
  * @param invert    Invert the compare output on the MCUs pin
  */
-extern void Timerd_EnableCompare(uint8_t device, timerd_ch_t channel,
+void Timerd_EnableCompare(uint8_t device, timerd_ch_t channel,
         bool invert);
 
 /**
@@ -176,7 +176,7 @@ extern void Timerd_EnableCompare(uint8_t device, timerd_ch_t channel,
  * @param device    Device ID (starts from 1)
  * @param channel   Channel disable capture on
  */
-extern void Timerd_DisableCapture(uint8_t device, timerd_ch_t channel);
+void Timerd_DisableCapture(uint8_t device, timerd_ch_t channel);
 
 /**
  * Enable the timers capture functionality
@@ -185,7 +185,7 @@ extern void Timerd_DisableCapture(uint8_t device, timerd_ch_t channel);
  * @param channel   Channel to capture on
  * @param edge      Edge to run the capture event for
  */
-extern void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel,
+void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel,
         timerd_edge_t edge);
 
 /**
@@ -207,7 +207,7 @@ extern void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel,
  * @param channel   Timer channel to output PWM on
  * @param invert    Invert PWM output signal
  */
-extern void Timerd_EnablePWM(uint8_t device, timerd_ch_t channel, bool invert);
+void Timerd_EnablePWM(uint8_t device, timerd_ch_t channel, bool invert);
 
 /**
  * Register callback for timer events
@@ -215,7 +215,7 @@ extern void Timerd_EnablePWM(uint8_t device, timerd_ch_t channel, bool invert);
  * @param device    Device ID (starts from 1)
  * @param cb        Callback to be called upon event
  */
-extern void Timerd_RegisterCb(uint8_t device, timerd_cb_t cb);
+void Timerd_RegisterCb(uint8_t device, timerd_cb_t cb);
 
 /**
  * Initialize timer in quadruple encoder mode
@@ -226,7 +226,7 @@ extern void Timerd_RegisterCb(uint8_t device, timerd_cb_t cb);
  * @param device    Device ID (starts from 1)
  * @param invert    Invert direction of the counting
  */
-extern void Timerd_InitEncoder(uint8_t device, bool invert);
+void Timerd_InitEncoder(uint8_t device, bool invert);
 
 /**
  * Initialize the timer
@@ -236,6 +236,6 @@ extern void Timerd_InitEncoder(uint8_t device, bool invert);
  *
  * @param device    Device ID (starts from 1)
  */
-extern void Timerd_Init(uint8_t device);
+void Timerd_Init(uint8_t device);
 
 #endif

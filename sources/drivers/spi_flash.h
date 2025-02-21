@@ -21,7 +21,7 @@ typedef struct {
  *
  * @param desc      The device descriptor
  */
-extern void SpiFlash_WriteUnlock(const spiflash_desc_t *desc);
+void SpiFlash_WriteUnlock(const spiflash_desc_t *desc);
 
 /**
  * Read memory content
@@ -31,7 +31,7 @@ extern void SpiFlash_WriteUnlock(const spiflash_desc_t *desc);
  * @param [out] buf Buffer to read data to
  * @param len       Amount of bytes to read
  */
-extern void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr,
+void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr,
         uint8_t *buf, size_t len);
 
 /**
@@ -42,7 +42,7 @@ extern void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr,
  * @param [out] buf Data to be written
  * @param len       Amount of bytes to write
  */
-extern void SpiFlash_Write(const spiflash_desc_t *desc, uint32_t addr,
+void SpiFlash_Write(const spiflash_desc_t *desc, uint32_t addr,
         const uint8_t *buf, size_t len);
 
 /**
@@ -50,14 +50,14 @@ extern void SpiFlash_Write(const spiflash_desc_t *desc, uint32_t addr,
  *
  * @param desc      The device descriptor
  */
-extern void SpiFlash_Erase(const spiflash_desc_t *desc);
+void SpiFlash_Erase(const spiflash_desc_t *desc);
 
 /**
  * Erase memory sector
  *
  * @param desc      The device descriptor
  */
-extern void SpiFlash_EraseSector(const spiflash_desc_t *desc, uint32_t addr);
+void SpiFlash_EraseSector(const spiflash_desc_t *desc, uint32_t addr);
 
 /**
  * Initialize the memory
@@ -67,7 +67,7 @@ extern void SpiFlash_EraseSector(const spiflash_desc_t *desc, uint32_t addr);
  * @param cs_port           MCU port with CS pin
  * @param cs_pad            MCU pin with CS signal
  */
-extern void SpiFlash_Init(spiflash_desc_t *desc, uint8_t spi_device,
+void SpiFlash_Init(spiflash_desc_t *desc, uint8_t spi_device,
         uint32_t cs_port, uint8_t cs_pad);
 
 #endif

@@ -30,7 +30,7 @@ typedef int (*msc_write_block_t)(uint32_t lba, const uint8_t *buf);
  * @param write_block   Function to call when host request write to a LBA block
  * @param block_count   Amount of 512B blocks available
  */
-extern void Msc_Init(usbd_device *usbd_dev, uint8_t ep_in, uint8_t ep_in_size,
+void Msc_Init(usbd_device *usbd_dev, uint8_t ep_in, uint8_t ep_in_size,
         uint8_t ep_out, uint8_t ep_out_size, const char *vendor_id,
         const char *product_id, const char *product_revision_level,
         msc_read_block_t read_block, msc_write_block_t write_block,

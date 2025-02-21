@@ -58,7 +58,7 @@ typedef struct {
  * @param desc      The RFM device descriptor
  * @param power     Required power from 2 to 20 dBm
  */
-extern void RFM95_SetPowerDBm(const rfm95_desc_t *desc, int8_t power);
+void RFM95_SetPowerDBm(const rfm95_desc_t *desc, int8_t power);
 
 /**
  * Set Lora transmission bandwidth and spreading factor
@@ -75,7 +75,7 @@ extern void RFM95_SetPowerDBm(const rfm95_desc_t *desc, int8_t power);
  * @param bandwidth     Bandwidth selection
  * @param sf            Spreading factor
  */
-extern void RFM95_SetLoraParams(const rfm95_desc_t *desc, rfm95_bw_t bandwidth,
+void RFM95_SetLoraParams(const rfm95_desc_t *desc, rfm95_bw_t bandwidth,
         rfm95_sf_t sf);
 
 /**
@@ -84,7 +84,7 @@ extern void RFM95_SetLoraParams(const rfm95_desc_t *desc, rfm95_bw_t bandwidth,
  * @param desc      The RFM device descriptor
  * @param region        Region settings to be used
  */
-extern void RFM95_SetLoraRegion(rfm95_desc_t *desc, rfm95_lora_region_t region);
+void RFM95_SetLoraRegion(rfm95_desc_t *desc, rfm95_lora_region_t region);
 
 /**
  * Send raw Lora modulated data
@@ -93,7 +93,7 @@ extern void RFM95_SetLoraRegion(rfm95_desc_t *desc, rfm95_lora_region_t region);
  * @param data      Data to be sent
  * @param len       Length of the data buffer
  */
-extern void RFM95_LoraSend(const rfm95_desc_t *desc, const uint8_t *data,
+void RFM95_LoraSend(const rfm95_desc_t *desc, const uint8_t *data,
         size_t len);
 
 /**
@@ -103,14 +103,14 @@ extern void RFM95_LoraSend(const rfm95_desc_t *desc, const uint8_t *data,
  *
  * @param desc          The RFM device descriptor
  */
-extern void RFM95_PowerOff(rfm95_desc_t *desc);
+void RFM95_PowerOff(rfm95_desc_t *desc);
 
 /**
  * Power on and initialize the RFM in LoRa mode
  *
  * @param desc          The RFM device descriptor
  */
-extern void RFM95_LoraInit(rfm95_desc_t *desc);
+void RFM95_LoraInit(rfm95_desc_t *desc);
 
 /**
  * Initialize RFM module
@@ -129,7 +129,7 @@ extern void RFM95_LoraInit(rfm95_desc_t *desc);
  *
  * @return True if module is present, false if not responding
  */
-extern bool RFM95_Init(rfm95_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
+bool RFM95_Init(rfm95_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
         uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
         uint32_t io0_port, uint8_t io0_pad);
 

@@ -49,14 +49,14 @@ typedef enum {
  *
  * @param channel   Comparator channel (0/1)
  */
-extern void Compd_Enable(uint8_t channel);
+void Compd_Enable(uint8_t channel);
 
 /**
  * Disable comparator
  *
  * @param channel   Comparator channel (0/1)
  */
-extern void Compd_Disable(uint8_t channel);
+void Compd_Disable(uint8_t channel);
 
 /**
  * Set comparator output connection
@@ -64,7 +64,7 @@ extern void Compd_Disable(uint8_t channel);
  * @param channel   Comparator channel (0/1)
  * @param output    Required comparator output connection
  */
-extern void Compd_SetOutput(uint8_t channel, comp_out_t output);
+void Compd_SetOutput(uint8_t channel, comp_out_t output);
 
 /**
  * Initialize comparator
@@ -76,7 +76,7 @@ extern void Compd_SetOutput(uint8_t channel, comp_out_t output);
  * @param output    Comparator output selection (exti trigger always connected)
  * @param invert    Invert comparator output
  */
-extern void Compd_Init(uint8_t channel, comp_speed_t speed, comp_hyst_t hyst,
+void Compd_Init(uint8_t channel, comp_speed_t speed, comp_hyst_t hyst,
         comp_in_neg_t input, comp_out_t output, bool invert);
 
 #endif

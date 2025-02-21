@@ -24,7 +24,7 @@ typedef struct {
  * @param low_power Reduce measurement period if true
  * @return Operation result, false if failed
  */
-extern bool SCD4x_StartPeriodic(const scd4x_desc_t *desc, bool low_power);
+bool SCD4x_StartPeriodic(const scd4x_desc_t *desc, bool low_power);
 
 /**
  * Run a single shot measurement (takes 5 seconds)
@@ -34,7 +34,7 @@ extern bool SCD4x_StartPeriodic(const scd4x_desc_t *desc, bool low_power);
  * @param desc
  * @return Operation result, false if failed
  */
-extern bool SCD4x_SingleShot(const scd4x_desc_t *desc);
+bool SCD4x_SingleShot(const scd4x_desc_t *desc);
 
 /**
  * Stop periodic measurement mode
@@ -42,7 +42,7 @@ extern bool SCD4x_SingleShot(const scd4x_desc_t *desc);
  * @param desc
  * @return Operation result, false if failed
  */
-extern bool SCD4x_StopPeriodic(const scd4x_desc_t *desc);
+bool SCD4x_StopPeriodic(const scd4x_desc_t *desc);
 
 /**
  * Read measured data
@@ -58,7 +58,7 @@ extern bool SCD4x_StopPeriodic(const scd4x_desc_t *desc);
  *
  * @return True if data read successfully, false if not ready or not responding
  */
-extern bool SCD4x_ReadData(const scd4x_desc_t *desc, uint16_t *ppm, int16_t *temp, uint8_t *rh);
+bool SCD4x_ReadData(const scd4x_desc_t *desc, uint16_t *ppm, int16_t *temp, uint8_t *rh);
 
 /**
  * Check if data are ready to be read
@@ -66,7 +66,7 @@ extern bool SCD4x_ReadData(const scd4x_desc_t *desc, uint16_t *ppm, int16_t *tem
  * @param desc
  * @return True if ready, false otherwise
  */
-extern bool SCD4x_IsMeasReady(const scd4x_desc_t *desc);
+bool SCD4x_IsMeasReady(const scd4x_desc_t *desc);
 
 /**
  * Set current ambient pressure to increase sensor accuracy
@@ -75,7 +75,7 @@ extern bool SCD4x_IsMeasReady(const scd4x_desc_t *desc);
  * @param pressure_pa   Current ambient pressure in Pa
  * @return Operation result, false if failed
  */
-extern bool SCD4x_SetPressure(const scd4x_desc_t *desc, uint32_t pressure_pa);
+bool SCD4x_SetPressure(const scd4x_desc_t *desc, uint32_t pressure_pa);
 
 /**
  * Power the sensor down
@@ -83,7 +83,7 @@ extern bool SCD4x_SetPressure(const scd4x_desc_t *desc, uint32_t pressure_pa);
  * @param desc
  * @return Operation result, false if failed
  */
-extern bool SCD4x_PowerDown(const scd4x_desc_t *desc);
+bool SCD4x_PowerDown(const scd4x_desc_t *desc);
 
 /**
  * Wake Up the sensor from power off mode (20 ms duration)
@@ -91,7 +91,7 @@ extern bool SCD4x_PowerDown(const scd4x_desc_t *desc);
  * @param desc
  * @return Operation result, false if failed
  */
-extern bool SCD4x_WakeUp(const scd4x_desc_t *desc);
+bool SCD4x_WakeUp(const scd4x_desc_t *desc);
 
 /**
  * Initialize the SCD4x device
@@ -102,6 +102,6 @@ extern bool SCD4x_WakeUp(const scd4x_desc_t *desc);
  * @param i2c_device    Number of i2c device to be used (only 100 kHz mode supported by sensor)
  * @return True if ready, False is not responding
  */
-extern bool SCD4x_Init(scd4x_desc_t *desc, uint8_t i2c_device);
+bool SCD4x_Init(scd4x_desc_t *desc, uint8_t i2c_device);
 
 #endif

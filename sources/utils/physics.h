@@ -17,6 +17,6 @@
  * @param presure_pa    Current pressure
  * @param
  */
-extern int32_t pressureToAltM(uint32_t pressure_pa, uint32_t sea_level_pa);
+int32_t pressureToAltM(uint32_t pressure_pa, uint32_t sea_level_pa);
 
 #endif

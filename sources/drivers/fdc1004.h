@@ -46,7 +46,7 @@ typedef struct {
  * @param raw       Raw reading of the sensor data
  * @return True if sensor acked the command
  */
-extern bool FDC1004_ReadResultRaw(const fdc1004_desc_t *desc,
+bool FDC1004_ReadResultRaw(const fdc1004_desc_t *desc,
         fdc1004_meas_t channel, uint32_t *raw);
 
 /**
@@ -56,7 +56,7 @@ extern bool FDC1004_ReadResultRaw(const fdc1004_desc_t *desc,
  * @param channel   Measurement channel to check
  * @return True if have valid data ready
  */
-extern bool FDC1004_IsMeasComplete(const fdc1004_desc_t *desc,
+bool FDC1004_IsMeasComplete(const fdc1004_desc_t *desc,
         fdc1004_meas_t channel);
 
 /**
@@ -70,7 +70,7 @@ extern bool FDC1004_IsMeasComplete(const fdc1004_desc_t *desc,
  * @param offset_pf Offset in pF to apply on the measurements
  * @return True if sensor acked the command
  */
-extern bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc,
+bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc,
         fdc1004_meas_t channel, fdc1004_ch_t positive, fdc1004_ch_t negative,
         uint32_t offset_pf);
 
@@ -82,7 +82,7 @@ extern bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc,
  * @param channel   Measurement channel to start conversion for
  * @param True if measurement started
  */
-extern bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
+bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
         fdc1004_meas_t channel);
 
 /**
@@ -93,7 +93,7 @@ extern bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
  * @param channels  List of channels to measure (e.g. FDC_MEAS_1 | FDC_MEAS_2)
  * @param True if measurement started
  */
-extern bool FDC1004_RunRepeated(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
+bool FDC1004_RunRepeated(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
         uint8_t channels);
 
 /**
@@ -104,6 +104,6 @@ extern bool FDC1004_RunRepeated(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
  *
  * @return True if sensor is responding
  */
-extern bool FDC1004_Init(fdc1004_desc_t *desc, uint8_t i2c_device);
+bool FDC1004_Init(fdc1004_desc_t *desc, uint8_t i2c_device);
 
 #endif

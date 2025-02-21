@@ -15,27 +15,27 @@
 /**
  * Get size of the flash memory in the MCU in bytes
  */
-extern uint32_t Flashd_GetFlashSize(void);
+uint32_t Flashd_GetFlashSize(void);
 
 /**
  * Get size of the memory page in the MCU in bytes
  */
-extern uint32_t Flashd_GetPageSize(void);
+uint32_t Flashd_GetPageSize(void);
 
 /**
  * Enable writing to the flash memory
  */
-extern void Flashd_WriteEnable(void);
+void Flashd_WriteEnable(void);
 
 /**
  * Disable writing to the flash memory
  */
-extern void Flashd_WriteDisable(void);
+void Flashd_WriteDisable(void);
 
 /**
  * Erase given flash page
  */
-extern void Flashd_ErasePage(uint32_t addr);
+void Flashd_ErasePage(uint32_t addr);
 
 /**
  * Write data to the internal flash
@@ -47,6 +47,6 @@ extern void Flashd_ErasePage(uint32_t addr);
  * @param buf   Data buffer
  * @param len   Amount of bytes to be written
  */
-extern void Flashd_Write(uint32_t addr, const uint8_t *buf, uint32_t len);
+void Flashd_Write(uint32_t addr, const uint8_t *buf, uint32_t len);
 
 #endif

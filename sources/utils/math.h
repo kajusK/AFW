@@ -23,7 +23,7 @@
  * @param mdeg  angle in thousands of a degree
  * @return sin value in thousands
  */
-extern int32_t msin(int32_t mdeg);
+int32_t msin(int32_t mdeg);
 
 /**
  * Calculate cos function
@@ -31,7 +31,7 @@ extern int32_t msin(int32_t mdeg);
  * @param mdeg  angle in thousands of a degree
  * @return cos value in thousands
  */
-extern int32_t mcos(int32_t mdeg);
+int32_t mcos(int32_t mdeg);
 
 /**
  * Calculate tan function
@@ -39,7 +39,7 @@ extern int32_t mcos(int32_t mdeg);
  * @param mdeg  angle in thousands of a degree
  * @return tan value in thousands
  */
-extern int32_t mtan(int32_t mdeg);
+int32_t mtan(int32_t mdeg);
 
 /**
  * Calculate square root with integer arithmetics only
@@ -47,6 +47,6 @@ extern int32_t mtan(int32_t mdeg);
  * @param x     Number to get square root of
  * @return  Square root of the number
  */
-extern uint32_t int_sqrt(uint64_t x);
+uint32_t int_sqrt(uint64_t x);
 
 #endif

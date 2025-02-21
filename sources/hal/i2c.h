@@ -23,7 +23,7 @@
  * @TODO add support for more than 255 bytes in both directions
  * @return True if data were acked, False for NACK
  */
-extern bool I2Cd_Transceive(uint8_t device, uint8_t address,
+bool I2Cd_Transceive(uint8_t device, uint8_t address,
 		const uint8_t *txbuf, uint8_t txlen, uint8_t *rxbuf, uint8_t rxlen);
 
 /**
@@ -32,6 +32,6 @@ extern bool I2Cd_Transceive(uint8_t device, uint8_t address,
  * @param device	Device ID (starting from 1)
  * @param fast		Set to true for 400 kHz, else 100 kHz
  */
-extern void I2Cd_Init(uint8_t device, bool fast);
+void I2Cd_Init(uint8_t device, bool fast);
 
 #endif

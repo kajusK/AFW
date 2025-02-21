@@ -33,7 +33,7 @@ typedef struct {
  * @param y     Vertical position
  * @param color Value for given pixel (0 = white, others = black)
  */
-extern void ST7565R_DrawPixel(const st7565r_desc_t *desc, uint16_t x, uint16_t y,
+void ST7565R_DrawPixel(const st7565r_desc_t *desc, uint16_t x, uint16_t y,
         uint16_t color);
 
 /**
@@ -41,7 +41,7 @@ extern void ST7565R_DrawPixel(const st7565r_desc_t *desc, uint16_t x, uint16_t y
  *
  * @param desc      The device descriptor
  */
-extern void ST7565R_Flush(const st7565r_desc_t *desc);
+void ST7565R_Flush(const st7565r_desc_t *desc);
 
 /**
  * Control display power
@@ -49,7 +49,7 @@ extern void ST7565R_Flush(const st7565r_desc_t *desc);
  * @param desc      The device descriptor
  * @param on        If true, turn display on, if false, make it sleep
  */
-extern void ST7565R_DispEnable(const st7565r_desc_t *desc, bool on);
+void ST7565R_DispEnable(const st7565r_desc_t *desc, bool on);
 
 /**
  * Set display contrast
@@ -57,7 +57,7 @@ extern void ST7565R_DispEnable(const st7565r_desc_t *desc, bool on);
  * @param desc      The device descriptor
  * @param pct       Contrast value in percent
  */
-extern void ST7565R_SetContrast(const st7565r_desc_t *desc, uint8_t pct);
+void ST7565R_SetContrast(const st7565r_desc_t *desc, uint8_t pct);
 
 /**
  * Set display orientation
@@ -65,7 +65,7 @@ extern void ST7565R_SetContrast(const st7565r_desc_t *desc, uint8_t pct);
  * @param desc      The device descriptor
  * @param flip      Rotate display by 180 degrees if true
  */
-extern void ST7565R_SetOrientation(st7565r_desc_t *desc, bool flip);
+void ST7565R_SetOrientation(st7565r_desc_t *desc, bool flip);
 
 /**
  * Initialize the display
@@ -82,7 +82,7 @@ extern void ST7565R_SetOrientation(st7565r_desc_t *desc, bool flip);
  *
  * @return      True if display is responding to commands
  */
-extern void ST7565R_Init(st7565r_desc_t *desc, uint8_t *fbuf,
+void ST7565R_Init(st7565r_desc_t *desc, uint8_t *fbuf,
         uint8_t spi_device, uint32_t cs_port, uint8_t cs_pad, uint32_t a0_port,
         uint8_t a0_pad, uint32_t reset_port, uint8_t reset_pad);
 

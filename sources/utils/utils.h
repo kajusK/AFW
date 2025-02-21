@@ -11,6 +11,6 @@
 /**
  * Count amount of 1 bits in the number
  */
-extern uint8_t count1s(uint32_t data);
+uint8_t count1s(uint32_t data);
 
 #endif

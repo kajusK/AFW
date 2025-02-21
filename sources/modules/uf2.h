@@ -14,7 +14,7 @@
  * @param block     UF2 block (512 bytes) to be written
  * @return Successfulness of the operation
  */
-extern bool UF2_Write(const uint8_t *data);
+bool UF2_Write(const uint8_t *data);
 
 /**
  * Read currently running firmware in UF2 data format
@@ -23,13 +23,13 @@ extern bool UF2_Write(const uint8_t *data);
  * @param offset        Offset to read in blocks from the first block
  * @return Successfulness of the operation
  */
-extern bool UF2_Read(uint8_t *data, uint32_t offset);
+bool UF2_Read(uint8_t *data, uint32_t offset);
 
 /**
  * Get firmware image size
  *
  * @return Size of the UF2 FW image in bytes
  */
-extern uint32_t UF2_GetImgSize(void);
+uint32_t UF2_GetImgSize(void);
 
 #endif

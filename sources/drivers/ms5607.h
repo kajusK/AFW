@@ -37,7 +37,7 @@ typedef struct {
  *
  * @return True if device responded and data are valid
  */
-extern bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
+bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
         uint32_t *pressure_Pa, int32_t *temp_mdeg);
 
 /**
@@ -48,7 +48,7 @@ extern bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
  * @param address           Address of the device on I2C bus;
  * @return True if successfull, false if not responding
  */
-extern bool MS5607_Init(ms5607_desc_t *desc, uint8_t i2c_device,
+bool MS5607_Init(ms5607_desc_t *desc, uint8_t i2c_device,
         uint8_t address);
 
 #endif

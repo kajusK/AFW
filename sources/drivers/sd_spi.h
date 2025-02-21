@@ -22,7 +22,7 @@
  *
  * @param present   True if SD card was just inserted, false if just removed
  */
-extern void SdCard_SetInsertion(bool present);
+void SdCard_SetInsertion(bool present);
 
 /**
  * Initialize the sd card driver for FatFs usage
@@ -31,6 +31,6 @@ extern void SdCard_SetInsertion(bool present);
  * @param cs_port	Port of CS pin
  * @param cs_pad	Number of CS pin
  */
-extern void SdCard_Init(uint8_t spi, uint32_t cs_port, uint8_t cs_pad);
+void SdCard_Init(uint8_t spi, uint32_t cs_port, uint8_t cs_pad);
 
 #endif

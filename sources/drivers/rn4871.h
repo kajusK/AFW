@@ -99,7 +99,7 @@ typedef struct {
  * @param size      Size of the characteristic
  * @return Characteristic handle or 0 if failed
  */
-extern uint16_t RN4871_AddChar(rn4871_desc_t *desc, const char *uuid,
+uint16_t RN4871_AddChar(rn4871_desc_t *desc, const char *uuid,
         uint16_t props, uint8_t size);
 
 /**
@@ -111,7 +111,7 @@ extern uint16_t RN4871_AddChar(rn4871_desc_t *desc, const char *uuid,
  * @param uuid      UUID string of the service (no dashes)
  * @return Successfulness of the operation
  */
-extern bool RN4871_AddService(rn4871_desc_t *desc, const char *uuid);
+bool RN4871_AddService(rn4871_desc_t *desc, const char *uuid);
 
 /**
  * Write data to characteristic
@@ -122,7 +122,7 @@ extern bool RN4871_AddService(rn4871_desc_t *desc, const char *uuid);
  * @param len       Length of the data to be writen
  * @return Successfulness of the operation
  */
-extern bool RN4871_WriteChar(rn4871_desc_t *desc, uint16_t handle,
+bool RN4871_WriteChar(rn4871_desc_t *desc, uint16_t handle,
         const uint8_t *data, uint8_t len);
 
 /**
@@ -134,7 +134,7 @@ extern bool RN4871_WriteChar(rn4871_desc_t *desc, uint16_t handle,
  * @param len       Length of the buffer
  * @return Amount of bytes received
  */
-extern uint8_t RN4871_ReadChar(rn4871_desc_t *desc, uint16_t handle,
+uint8_t RN4871_ReadChar(rn4871_desc_t *desc, uint16_t handle,
         uint8_t *data, uint8_t len);
 
 /**
@@ -143,7 +143,7 @@ extern uint8_t RN4871_ReadChar(rn4871_desc_t *desc, uint16_t handle,
  * @param desc      Device descriptor
  * @return True if connected, false otherwise
  */
-extern bool RN4871_IsConnected(rn4871_desc_t *desc);
+bool RN4871_IsConnected(rn4871_desc_t *desc);
 
 /**
  * Start advertisements
@@ -153,7 +153,7 @@ extern bool RN4871_IsConnected(rn4871_desc_t *desc);
  * @param timeout_ms    Advertising timeout, set to 0 for forever
  * @return Successfulness of the operation
  */
-extern bool RN4871_StartAdvertising(rn4871_desc_t *desc,
+bool RN4871_StartAdvertising(rn4871_desc_t *desc,
         uint16_t interval_ms, uint32_t timeout_ms);
 
 /**
@@ -163,7 +163,7 @@ extern bool RN4871_StartAdvertising(rn4871_desc_t *desc,
  * @param full      If true, erase everything including private chars and script
  * @return Successfulness of the operation
  */
-extern bool RN4871_Reboot(rn4871_desc_t *desc);
+bool RN4871_Reboot(rn4871_desc_t *desc);
 
 /**
  * Configure connection timing parameters
@@ -181,7 +181,7 @@ extern bool RN4871_Reboot(rn4871_desc_t *desc);
  * @param timeout_ms        Maximum time between raw communications before considering link lost
  * @return Successfulness of the operation
  */
-extern bool RN4871_SetConnParam(rn4871_desc_t *desc,
+bool RN4871_SetConnParam(rn4871_desc_t *desc,
         uint32_t min_interval_ms, uint32_t max_interval_ms, uint16_t latency,
         uint32_t timeout_ms);
 
@@ -195,7 +195,7 @@ extern bool RN4871_SetConnParam(rn4871_desc_t *desc,
  * @param beacon_ms     Beacon advertising interval
  * @return Successfulness of the operation
  */
-extern bool RN4871_SetAdvIntervals(rn4871_desc_t *desc, uint16_t fast_ms,
+bool RN4871_SetAdvIntervals(rn4871_desc_t *desc, uint16_t fast_ms,
         uint32_t timeout_s, uint16_t slow_ms, uint16_t beacon_ms);
 
 /**
@@ -206,7 +206,7 @@ extern bool RN4871_SetAdvIntervals(rn4871_desc_t *desc, uint16_t fast_ms,
  * @param con       Connected power (0-5, 0 is highest)
  * @return Successfulness of the operation
  */
-extern bool RN4871_SetPower(rn4871_desc_t *desc, uint8_t adv,
+bool RN4871_SetPower(rn4871_desc_t *desc, uint8_t adv,
         uint8_t con);
 
 /**
@@ -220,7 +220,7 @@ extern bool RN4871_SetPower(rn4871_desc_t *desc, uint8_t adv,
  * @param desc          Device descriptor
  * @param state         True to enter low power mode, false to exit it
  */
-extern void RN4871_SetLowPower(rn4871_desc_t *desc, bool state);
+void RN4871_SetLowPower(rn4871_desc_t *desc, bool state);
 
 /**
  * Enable Low Power Mode in the device
@@ -234,7 +234,7 @@ extern void RN4871_SetLowPower(rn4871_desc_t *desc, bool state);
  * @param rx_ind_pad    Pad to which the UART_RX_IND pin is connected
  * @return Successfulness of the operation
  */
-extern bool RN4871_EnableLowPowerSupport(rn4871_desc_t *desc,
+bool RN4871_EnableLowPowerSupport(rn4871_desc_t *desc,
         uint32_t rx_ind_port, uint8_t rx_ind_pad);
 
 /**
@@ -245,7 +245,7 @@ extern bool RN4871_EnableLowPowerSupport(rn4871_desc_t *desc,
  * @param desc          Device descriptor
  * @param cb            Callback to call upon event
  */
-extern void RN4871_RegisterEventCb(rn4871_desc_t *desc, rn4871_evt_cb_t cb);
+void RN4871_RegisterEventCb(rn4871_desc_t *desc, rn4871_evt_cb_t cb);
 
 /**
  * Initialize the RN4871 device and sets the characteristics
@@ -265,7 +265,7 @@ extern void RN4871_RegisterEventCb(rn4871_desc_t *desc, rn4871_evt_cb_t cb);
  * @param dis           Device Information Service content or NULL if not used
  * @return True if succeeded (device is responding)
  */
-extern bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device,
+bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device,
         rn4871_baudrate_t baudrate, const char *name, uint16_t appearance,
         const rn4871_dis_t *dis);
 

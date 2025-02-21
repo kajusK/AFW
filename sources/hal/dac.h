@@ -21,14 +21,14 @@ typedef enum {
  * @param channel       Channel to set voltage on
  * @param voltage_mv    Voltage to set on the channel
  */
-extern void Dacd_SetMv(dac_channel_t channel, uint16_t voltage_mv);
+void Dacd_SetMv(dac_channel_t channel, uint16_t voltage_mv);
 
 /**
  * Set Vdda voltage used for calculation of the correct output value
  *
  * @param vdda_mv       Voltage of the DAC power supply (Vdda)
  */
-extern void Dacd_UpdateVdda(uint16_t vdda_mv);
+void Dacd_UpdateVdda(uint16_t vdda_mv);
 
 /**
  * Enable the DAC channel
@@ -38,21 +38,21 @@ extern void Dacd_UpdateVdda(uint16_t vdda_mv);
  *
  * @param channel      DAC channel to enable
  */
-extern void Dacd_Enable(dac_channel_t channel);
+void Dacd_Enable(dac_channel_t channel);
 
 /**
  * Disable the DAC channel
  *
  * @param channel      DAC channel to disable
  */
-extern void Dacd_Disable(dac_channel_t channel);
+void Dacd_Disable(dac_channel_t channel);
 
 /**
  * Initialize the DAC peripheral
  *
  * @param vdda_mv       Vdda supply voltage level (to calculate output correctly)
  */
-extern void Dacd_Init(uint16_t vdda_mv);
+void Dacd_Init(uint16_t vdda_mv);
 
 #endif
 

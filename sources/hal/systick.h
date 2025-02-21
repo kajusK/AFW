@@ -17,13 +17,13 @@ typedef void (*systickd_cb_t)(void);
  *
  * @param cb        Callback to be called
  */
-extern void Systickd_SetCallback(systickd_cb_t cb);
+void Systickd_SetCallback(systickd_cb_t cb);
 
 /**
  * Initialize systick timer
  *
  * @param frequency Frequency of systick interrupt
  */
-extern void Systickd_Init(void);
+void Systickd_Init(void);
 
 #endif

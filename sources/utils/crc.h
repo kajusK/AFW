@@ -21,7 +21,7 @@
  *
  * @return CRC 16 (polynomial 0x1021 16)
  */
-extern uint16_t CRC16_Add(uint8_t buf, uint16_t crc);
+uint16_t CRC16_Add(uint8_t buf, uint16_t crc);
 
 /**
  * Calculate CRC for buffer
@@ -31,7 +31,7 @@ extern uint16_t CRC16_Add(uint8_t buf, uint16_t crc);
  *
  * @return CRC 16 (polynomial 0x1021 16)
  */
-extern uint16_t CRC16(const uint8_t *buf, uint32_t len);
+uint16_t CRC16(const uint8_t *buf, uint32_t len);
 
 /**
  * Calculate CRC from initial value and single byte
@@ -41,7 +41,7 @@ extern uint16_t CRC16(const uint8_t *buf, uint32_t len);
  *
  * @return CRC 8 (polynomial 0x31)
  */
-extern uint16_t CRC8_Add(uint8_t buf, uint8_t crc);
+uint16_t CRC8_Add(uint8_t buf, uint8_t crc);
 
 /**
  * Calculate CRC for buffer
@@ -51,6 +51,6 @@ extern uint16_t CRC8_Add(uint8_t buf, uint8_t crc);
  *
  * @return CRC 8 (polynomial 0x31)
  */
-extern uint8_t CRC8(const uint8_t *buf, uint32_t len);
+uint8_t CRC8(const uint8_t *buf, uint32_t len);
 
 #endif

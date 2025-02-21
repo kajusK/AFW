@@ -13,7 +13,7 @@
  *
  * @param period_ms     Watchdog timer period in millisecond
  */
-extern void Wdgd_Init(uint32_t period_ms);
+void Wdgd_Init(uint32_t period_ms);
 
 /**
  * Clear watchdog timer
@@ -21,6 +21,6 @@ extern void Wdgd_Init(uint32_t period_ms);
  * Once initialized, this function must be called periodically to avoid
  * WDG mcu reset
  */
-extern void Wdgd_Clear(void);
+void Wdgd_Clear(void);
 
 #endif

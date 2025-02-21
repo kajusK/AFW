@@ -29,7 +29,7 @@
  *
  * @return Pointer to config or null if no valid config found
  */
-extern const config_t *Config_Get(void);
+const config_t *Config_Get(void);
 
 /**
  * Read the stored configuration
@@ -37,13 +37,13 @@ extern const config_t *Config_Get(void);
  * @return True if succeeded, false if no valid config found (in this case,
  *          the caller should provide default values and write them to storage)
  */
-extern bool Config_Read(void);
+bool Config_Read(void);
 
 /**
  * Write the configuration to memory
  *
  * @param config        Config data to write
  */
-extern void Config_Write(const config_t *config);
+void Config_Write(const config_t *config);
 
 #endif
