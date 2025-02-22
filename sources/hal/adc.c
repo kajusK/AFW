@@ -15,19 +15,19 @@
 #define ADC_MAX 4096
 
 #ifdef STM32F051
-    /** temp sensor value at 110 degrees with 3.3V supply */
-    #define TEMP110_CAL (*((uint16_t*) ((uint32_t) 0x1FFFF7C2)))
-    /** temp sensor value at 30 degrees with 3.3V supply */
-    #define TEMP30_CAL (*((uint16_t*) ((uint32_t) 0x1FFFF7B8)))
+/** temp sensor value at 110 degrees with 3.3V supply */
+#define TEMP110_CAL (*((uint16_t *)((uint32_t)0x1FFFF7C2)))
+/** temp sensor value at 30 degrees with 3.3V supply */
+#define TEMP30_CAL  (*((uint16_t *)((uint32_t)0x1FFFF7B8)))
 /* Defaults for STM32F030 like MCUs */
 #else
-    /** average temperature sensor slope in 3,3 V/°C multiplied by 1000 */
-    #define TEMP_SLOPE 5336
-    /** Calibration value for internal temperature sensor at 30 deg C */
-    #define TEMP30_CAL (*((uint16_t*) ((uint32_t) 0x1FFFF7B8)))
+/** average temperature sensor slope in 3,3 V/°C multiplied by 1000 */
+#define TEMP_SLOPE 5336
+/** Calibration value for internal temperature sensor at 30 deg C */
+#define TEMP30_CAL (*((uint16_t *)((uint32_t)0x1FFFF7B8)))
 #endif
 /** Calibration value for internal reference */
-#define VREFINT_CAL (*((uint16_t *) ((uint32_t) 0x1FFFF7BA)))
+#define VREFINT_CAL (*((uint16_t *)((uint32_t)0x1FFFF7BA)))
 
 /** Current vdda voltage (can be measured by adc) */
 static uint16_t adcdi_vdda_mv = 3300;
@@ -45,12 +45,12 @@ uint16_t Adcd_ReadRaw(uint8_t channel)
 
 uint16_t Adcd_RawToMv(uint16_t raw)
 {
-    return (uint32_t) adcdi_vdda_mv * raw / ADC_MAX;
+    return (uint32_t)adcdi_vdda_mv * raw / ADC_MAX;
 }
 
 uint16_t Adcd_RawToVcc(uint16_t raw)
 {
-    return (3300U * (uint32_t)VREFINT_CAL)/raw;
+    return (3300U * (uint32_t)VREFINT_CAL) / raw;
 }
 
 int8_t Adcd_RawToTemp(uint16_t raw)
@@ -60,11 +60,11 @@ int8_t Adcd_RawToTemp(uint16_t raw)
 
 #ifdef STM32F051
     temp = (((uint32_t)raw * ref_mv) / 3300) - (int32_t)TEMP30_CAL;
-    temp = (temp*(110 - 30)) / (int32_t)(TEMP110_CAL - TEMP30_CAL);
+    temp = (temp * (110 - 30)) / (int32_t)(TEMP110_CAL - TEMP30_CAL);
     temp += 30;
 /* stm32f030 like */
 #else
-    temp = ((uint32_t) TEMP30_CAL - ((uint32_t)raw * ref_mv / 3300))*1000;
+    temp = ((uint32_t)TEMP30_CAL - ((uint32_t)raw * ref_mv / 3300)) * 1000;
     temp = (temp / TEMP_SLOPE) + 30;
 #endif
     return temp;
@@ -103,7 +103,7 @@ void Adcd_InitDma(uint16_t *data, const uint8_t *channels, uint8_t length)
     Adcd_Init();
     adc_power_off(ADC1);
     adc_set_operation_mode(ADC1, ADC_MODE_SCAN_INFINITE);
-    adc_set_regular_sequence(ADC1, length, (uint8_t *) channels);
+    adc_set_regular_sequence(ADC1, length, (uint8_t *)channels);
 
     rcc_periph_clock_enable(RCC_DMA1);
     dma_channel_reset(DMA1, ADC1_DMA_CHANNEL);
@@ -115,7 +115,7 @@ void Adcd_InitDma(uint16_t *data, const uint8_t *channels, uint8_t length)
     dma_disable_peripheral_increment_mode(DMA1, ADC1_DMA_CHANNEL);
     dma_set_read_from_peripheral(DMA1, ADC1_DMA_CHANNEL);
 
-    dma_set_memory_address(DMA1, ADC1_DMA_CHANNEL, (uint32_t) data);
+    dma_set_memory_address(DMA1, ADC1_DMA_CHANNEL, (uint32_t)data);
     dma_set_memory_size(DMA1, ADC1_DMA_CHANNEL, DMA_CCR_MSIZE_16BIT);
     dma_enable_memory_increment_mode(DMA1, ADC1_DMA_CHANNEL);
 

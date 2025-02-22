@@ -9,11 +9,11 @@
 #include <types.h>
 
 /** Screen dimensions */
-#define SSD1306_WIDTH 128
+#define SSD1306_WIDTH  128
 #define SSD1306_HEIGHT 64
 
 /** Calculate required framebuffer size */
-#define SSD1306_FBUF_SIZE ((SSD1306_WIDTH+1)*SSD1306_HEIGHT/8)
+#define SSD1306_FBUF_SIZE ((SSD1306_WIDTH + 1) * SSD1306_HEIGHT / 8)
 
 /** Default contrast value */
 #define SSD1306_INITIAL_CONTRAST 0x7f
@@ -32,7 +32,7 @@ typedef struct {
      * set data transfer to display ram, followed by raw data, 1 byte equals
      * to 8 vertically arranged pixels
      */
-    uint8_t *fbuf;      /**< Framebuffer of size SSD1306_FBUF_SIZE */
+    uint8_t *fbuf; /**< Framebuffer of size SSD1306_FBUF_SIZE */
 } ssd1306_desc_t;
 
 /**
@@ -43,8 +43,7 @@ typedef struct {
  * @param y     Vertical position
  * @param color Value for given pixel (0 = white, others = black)
  */
-void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x,
-        uint16_t y, uint16_t color);
+void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x, uint16_t y, uint16_t color);
 
 /**
  * Flush data from internal frame buffer to display
@@ -89,8 +88,7 @@ void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip);
  *
  * @return      True if display is responding to commands
  */
-bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf,
-        uint8_t i2c_device, uint8_t address,
-        uint32_t reset_port, uint8_t reset_pad);
+bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf, uint8_t i2c_device, uint8_t address,
+    uint32_t reset_port, uint8_t reset_pad);
 
 #endif

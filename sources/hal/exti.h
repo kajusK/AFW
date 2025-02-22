@@ -22,14 +22,14 @@ typedef enum {
     EXTID_BOTH,
 } extid_edge_t;
 
-#define EXTID_LINE_PVD 16
-#define EXTID_LINE_RTC_ALARM 17
-#define EXTID_LINE_USB 18
-#define EXTID_LINE_TAMPER 19
-//TODO available only on stm32f0x0xC devices */
+#define EXTID_LINE_PVD        16
+#define EXTID_LINE_RTC_ALARM  17
+#define EXTID_LINE_USB        18
+#define EXTID_LINE_TAMPER     19
+// TODO available only on stm32f0x0xC devices */
 #define EXTID_LINE_RTC_WAKEUP 20
-#define EXTID_LINE_COMP1 21
-#define EXTID_LINE_COMP2 22
+#define EXTID_LINE_COMP1      21
+#define EXTID_LINE_COMP2      22
 
 /**
  * Set callback for the exti interrupts

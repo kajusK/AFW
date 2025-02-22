@@ -10,7 +10,7 @@
 #include <libopencm3/stm32/memorymap.h>
 
 /** Flash address memory map */
-#define FLASHD_START              FLASH_BASE
+#define FLASHD_START FLASH_BASE
 
 /**
  * Get size of the flash memory in the MCU in bytes

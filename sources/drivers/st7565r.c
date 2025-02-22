@@ -12,32 +12,32 @@
 #include "drivers/st7565r.h"
 
 typedef enum {
-    DISP_CMD_SET_LINE = 0x40, /**< Set line to write, lower 6 bits are line */
-    DISP_CMD_DISP_OFF = 0xae, /**< Turn the display off */
-    DISP_CMD_DISP_ON = 0xaf,  /**< Turn the display on */
-    DISP_CMD_SET_PAGE = 0xb0, /**< Set page address (lower nibble) */
+    DISP_CMD_SET_LINE = 0x40,       /**< Set line to write, lower 6 bits are line */
+    DISP_CMD_DISP_OFF = 0xae,       /**< Turn the display off */
+    DISP_CMD_DISP_ON = 0xaf,        /**< Turn the display on */
+    DISP_CMD_SET_PAGE = 0xb0,       /**< Set page address (lower nibble) */
     DISP_CMD_SET_COLUMN_MSB = 0x10, /**< Set column MSB (in lower nibble) */
     DISP_CMD_SET_COLUMN_LSB = 0x00, /**< Set column LSB (in lower nibble) */
     DISP_CMD_ADC_NORM = 0xa0,       /**< ADC in normal mode */
     DISP_CMD_ADC_REVERSE = 0xa1,    /**< ADC in reverse mode */
-    DISP_CMD_SET_NORMAL = 0xa6,   /**< Display normal mode */
-    DISP_CMD_SET_REVERSE = 0xa7,  /**< Display reverse mode */
-    DISP_CMD_ALL_ON = 0xa5,       /**< All pixels on */
-    DISP_CMD_ALL_ON_OFF = 0xa4,   /**< Normal display usage */
-    DISP_CMD_BIAS_1_9 = 0xa2,     /**< LCD voltage bias to 1/9 */
-    DISP_CMD_BIAS_1_7 = 0xa3,     /**< LCD voltage bias to 1/7 */
-    DISP_CMD_RESET = 0xe2,        /**< Internal reset */
-    DISP_CMD_COM_NORM = 0xc0,     /**< Normal COM scanning */
-    DISP_CMD_COM_REVERSE = 0xc8,  /**< Reversed COM scanning */
-    DISP_CMD_SET_POWER = 0x28,    /**< Power control mode (lower 3 bits) */
-    DISP_CMD_SET_REGULATOR = 0x20,/**< Voltage regulator divider (lower 3 bits) */
-    DISP_CMD_EL_VOLUME = 0x81,    /**< Output voltage volume register (second byte) */
-    DISP_CMD_INDICATOR_OFF = 0xac,/**< Turn off static indicator, second byte sets blinking */
-    DISP_CMD_INDICATOR_ON = 0xad, /**< Turn on static indicator, second byte sets blinking */
-    DISP_CMD_SET_BOOST = 0xf8,    /**< Set booster ratio in second byte */
+    DISP_CMD_SET_NORMAL = 0xa6,     /**< Display normal mode */
+    DISP_CMD_SET_REVERSE = 0xa7,    /**< Display reverse mode */
+    DISP_CMD_ALL_ON = 0xa5,         /**< All pixels on */
+    DISP_CMD_ALL_ON_OFF = 0xa4,     /**< Normal display usage */
+    DISP_CMD_BIAS_1_9 = 0xa2,       /**< LCD voltage bias to 1/9 */
+    DISP_CMD_BIAS_1_7 = 0xa3,       /**< LCD voltage bias to 1/7 */
+    DISP_CMD_RESET = 0xe2,          /**< Internal reset */
+    DISP_CMD_COM_NORM = 0xc0,       /**< Normal COM scanning */
+    DISP_CMD_COM_REVERSE = 0xc8,    /**< Reversed COM scanning */
+    DISP_CMD_SET_POWER = 0x28,      /**< Power control mode (lower 3 bits) */
+    DISP_CMD_SET_REGULATOR = 0x20,  /**< Voltage regulator divider (lower 3 bits) */
+    DISP_CMD_EL_VOLUME = 0x81,      /**< Output voltage volume register (second byte) */
+    DISP_CMD_INDICATOR_OFF = 0xac,  /**< Turn off static indicator, second byte sets blinking */
+    DISP_CMD_INDICATOR_ON = 0xad,   /**< Turn on static indicator, second byte sets blinking */
+    DISP_CMD_SET_BOOST = 0xf8,      /**< Set booster ratio in second byte */
 } st7565r_cmd_t;
 
-#define cs_set() IOd_SetLine(desc->cs_port, desc->cs_pad, false)
+#define cs_set()   IOd_SetLine(desc->cs_port, desc->cs_pad, false)
 #define cs_unset() IOd_SetLine(desc->cs_port, desc->cs_pad, true)
 
 static void ST7565R_WriteCmd(const st7565r_desc_t *desc, uint8_t cmd)
@@ -49,18 +49,16 @@ static void ST7565R_WriteCmd(const st7565r_desc_t *desc, uint8_t cmd)
     IOd_SetLine(desc->a0_port, desc->a0_pad, true);
 }
 
-static void ST7565R_WriteCmd2(const st7565r_desc_t *desc, uint8_t cmd,
-        uint8_t param)
+static void ST7565R_WriteCmd2(const st7565r_desc_t *desc, uint8_t cmd, uint8_t param)
 {
     ST7565R_WriteCmd(desc, cmd);
     ST7565R_WriteCmd(desc, param);
 }
 
-void ST7565R_DrawPixel(const st7565r_desc_t *desc, uint16_t x, uint16_t y,
-        uint16_t color)
+void ST7565R_DrawPixel(const st7565r_desc_t *desc, uint16_t x, uint16_t y, uint16_t color)
 {
     uint8_t bit = 1 << (y & 7);
-    uint16_t pos = x+y/8*ST7565R_WIDTH;
+    uint16_t pos = x + y / 8 * ST7565R_WIDTH;
     ASSERT_NOT(desc == NULL);
 
     /* Ignore drawing outside the buffer */
@@ -88,9 +86,9 @@ void ST7565R_Flush(const st7565r_desc_t *desc)
             ST7565R_WriteCmd(desc, DISP_CMD_SET_COLUMN_LSB);
         }
 
-        for (uint8_t i = 0; i <ST7565R_WIDTH; i++) {
+        for (uint8_t i = 0; i < ST7565R_WIDTH; i++) {
             cs_set();
-            SPId_Send(desc->spi_device, &desc->fbuf[ST7565R_WIDTH*page+i], 1);
+            SPId_Send(desc->spi_device, &desc->fbuf[ST7565R_WIDTH * page + i], 1);
             cs_unset();
         }
     }
@@ -113,7 +111,7 @@ void ST7565R_DispEnable(const st7565r_desc_t *desc, bool on)
 void ST7565R_SetContrast(const st7565r_desc_t *desc, uint8_t pct)
 {
     ASSERT_NOT(desc == NULL || pct > 100);
-    ST7565R_WriteCmd2(desc, DISP_CMD_EL_VOLUME, ((uint16_t)pct*63U/100) & 0x3f);
+    ST7565R_WriteCmd2(desc, DISP_CMD_EL_VOLUME, ((uint16_t)pct * 63U / 100) & 0x3f);
 }
 
 void ST7565R_SetOrientation(st7565r_desc_t *desc, bool flip)
@@ -132,9 +130,8 @@ void ST7565R_SetOrientation(st7565r_desc_t *desc, bool flip)
     ST7565R_Flush(desc);
 }
 
-void ST7565R_Init(st7565r_desc_t *desc, uint8_t *fbuf, uint8_t spi_device,
-        uint32_t cs_port, uint8_t cs_pad, uint32_t a0_port, uint8_t a0_pad,
-        uint32_t reset_port, uint8_t reset_pad)
+void ST7565R_Init(st7565r_desc_t *desc, uint8_t *fbuf, uint8_t spi_device, uint32_t cs_port,
+    uint8_t cs_pad, uint32_t a0_port, uint8_t a0_pad, uint32_t reset_port, uint8_t reset_pad)
 {
     ASSERT_NOT(desc == NULL);
     desc->fbuf = fbuf;

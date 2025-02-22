@@ -7,7 +7,7 @@
 #include "nav.h"
 
 uint32_t Nav_GetDistanceDm(const nmea_float_t *lat1, const nmea_float_t *lon1,
-        const nmea_float_t *lat2, const nmea_float_t *lon2)
+    const nmea_float_t *lat2, const nmea_float_t *lon2)
 {
     int32_t x, y, mdeg;
 
@@ -29,14 +29,14 @@ uint32_t Nav_GetDistanceDm(const nmea_float_t *lat1, const nmea_float_t *lon1,
     y = abs(lat1->num - lat2->num);
     /* Longitude second, cos(lat) times smaller than on equator */
     if (lat1->scale >= 1000) {
-        mdeg = lat1->num / (lat1->scale/1000);
+        mdeg = lat1->num / (lat1->scale / 1000);
     } else {
-        mdeg = lat1->num * 1000/lat1->scale;
+        mdeg = lat1->num * 1000 / lat1->scale;
     }
-    x = abs((lon1->num - lon2->num)*mcos(mdeg))/1000;
+    x = abs((lon1->num - lon2->num) * mcos(mdeg)) / 1000;
 
     /*
      * Simply find distance between two 2D points
      */
-    return deglen*int_sqrt((uint64_t)x*x + (uint64_t)y*y)/(lat1->scale/10);
+    return deglen * int_sqrt((uint64_t)x * x + (uint64_t)y * y) / (lat1->scale / 10);
 }

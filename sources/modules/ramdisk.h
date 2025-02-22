@@ -18,7 +18,7 @@
  * @param buf       Buffer to read data to
  * @param len       Amount of bytes to read
  */
-typedef void (* ramdisk_read_t)(uint32_t offset, uint8_t *buf, size_t len);
+typedef void (*ramdisk_read_t)(uint32_t offset, uint8_t *buf, size_t len);
 
 /**
  * Type for function to write a data to ramdisk virtual file
@@ -30,8 +30,7 @@ typedef void (* ramdisk_read_t)(uint32_t offset, uint8_t *buf, size_t len);
  * @param size      Size of the buf
  * @param offset    Offset from file start
  */
-typedef void (* ramdisk_write_file_cb_t)(const uint8_t *buf, size_t size,
-        uint32_t offset);
+typedef void (*ramdisk_write_file_cb_t)(const uint8_t *buf, size_t size, uint32_t offset);
 
 /**
  * Read data from ramdisk
@@ -63,8 +62,8 @@ int Ramdisk_Write(uint32_t lba, const uint8_t *buf);
  * @param read          Function to read data from file
  * @return  -1 or non negative file handle
  */
-int Ramdisk_AddFile(const char *filename, const char *extension,
-        time_t time, size_t size, ramdisk_read_t read);
+int Ramdisk_AddFile(const char *filename, const char *extension, time_t time, size_t size,
+    ramdisk_read_t read);
 
 /**
  * Add a simple text file with static content
@@ -75,8 +74,7 @@ int Ramdisk_AddFile(const char *filename, const char *extension,
  * @param text          Null terminated string as file content
  * @return  -1 or non negative file handle
  */
-int Ramdisk_AddTextFile(const char *filename, const char *extension,
-        time_t time, const char *text);
+int Ramdisk_AddTextFile(const char *filename, const char *extension, time_t time, const char *text);
 
 /**
  * Rename the existing file
@@ -90,8 +88,7 @@ int Ramdisk_AddTextFile(const char *filename, const char *extension,
  * @param extension Up to 3 character extension
  * @return Successfulness of the operation
  */
-bool Ramdisk_RenameFile(int handle, const char *filename,
-        const char *extension);
+bool Ramdisk_RenameFile(int handle, const char *filename, const char *extension);
 
 /**
  * Clear ramdisk content

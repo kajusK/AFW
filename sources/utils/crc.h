@@ -9,7 +9,7 @@
 #include <types.h>
 
 /** Initial value for CRC16 calculation */
-#define CRC16_INITIAL_VALUE  0xFFFFU
+#define CRC16_INITIAL_VALUE 0xFFFFU
 /** Initial value for CRC8 calculation */
 #define CRC8_INITIAL_VALUE  0xFFU
 

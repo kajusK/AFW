@@ -23,15 +23,16 @@ static int32_t Filteri_KalmanSimple(filter_t *filter, int32_t value)
     filter_kalman_simple_t *kalman = &filter->kalman_simple;
 
     /* Multiplied by 10000 to avoid using float, +5000 to round result correctly */
-    gain = (kalman->state_uncert*10000)/(kalman->state_uncert + kalman->meas_uncert);
-    new_state = kalman->state + (gain*(value - kalman->state)+5000)/10000;
-    kalman->state_uncert = ((10000 - gain)*kalman->state_uncert + 5000)/10000 + (abs(kalman->state - new_state)*kalman->variance + 500)/1000;
+    gain = (kalman->state_uncert * 10000) / (kalman->state_uncert + kalman->meas_uncert);
+    new_state = kalman->state + (gain * (value - kalman->state) + 5000) / 10000;
+    kalman->state_uncert = ((10000 - gain) * kalman->state_uncert + 5000) / 10000 +
+                           (abs(kalman->state - new_state) * kalman->variance + 500) / 1000;
     kalman->state = new_state;
     return new_state;
 }
 
-void Filter_KalmanSimpleInit(filter_t *filter, int32_t state,
-        int32_t meas_uncertainty, int32_t variance)
+void Filter_KalmanSimpleInit(filter_t *filter, int32_t state, int32_t meas_uncertainty,
+    int32_t variance)
 {
     ASSERT_NOT(filter == NULL);
     filter->type = FILTER_KALMAN_SIMPLE;

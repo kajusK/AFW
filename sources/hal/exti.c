@@ -81,21 +81,21 @@ void EXTId_SetEdge(uint8_t exti_num, extid_edge_t edge)
     ASSERT_NOT(exti_num > 31);
 
     switch (edge) {
-       case EXTID_RISING:
-           EXTI_RTSR |= val;
-           EXTI_FTSR &= ~val;
-           break;
-       case EXTID_FALLING:
-           EXTI_RTSR &= ~val;
-           EXTI_FTSR |= val;
-           break;
-       case EXTID_BOTH:
-           EXTI_RTSR |= val;
-           EXTI_FTSR |= val;
-           break;
-       default:
-           break;
-   }
+        case EXTID_RISING:
+            EXTI_RTSR |= val;
+            EXTI_FTSR &= ~val;
+            break;
+        case EXTID_FALLING:
+            EXTI_RTSR &= ~val;
+            EXTI_FTSR |= val;
+            break;
+        case EXTID_BOTH:
+            EXTI_RTSR |= val;
+            EXTI_FTSR |= val;
+            break;
+        default:
+            break;
+    }
 }
 
 void EXTId_EnableEvent(uint8_t exti_num)
@@ -104,7 +104,7 @@ void EXTId_EnableEvent(uint8_t exti_num)
     ASSERT_NOT(exti_num > 31);
 
     exti_reset_request(val);
-	EXTI_EMR |= val;
+    EXTI_EMR |= val;
 }
 
 void EXTId_EnableInt(uint8_t exti_num)
@@ -132,7 +132,7 @@ void EXTId_EnableInt(uint8_t exti_num)
     }
 
     exti_reset_request(val);
-	EXTI_IMR |= val;
+    EXTI_IMR |= val;
     nvic_enable_irq(irqn);
 }
 

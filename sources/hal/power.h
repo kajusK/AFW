@@ -10,11 +10,11 @@
 
 /** Reason of the system reset */
 typedef enum {
-    POWERD_RST_POR,         /**< Power on reset */
-    POWERD_RST_NRST,        /**< NRST pin reset */
-    POWERD_RST_WDG,         /**< Watchdog reset */
-    POWERD_RST_SW,          /**< Reset requested by software */
-    POWERD_RST_LOW_POWER,   /**< Low power management reset */
+    POWERD_RST_POR,       /**< Power on reset */
+    POWERD_RST_NRST,      /**< NRST pin reset */
+    POWERD_RST_WDG,       /**< Watchdog reset */
+    POWERD_RST_SW,        /**< Reset requested by software */
+    POWERD_RST_LOW_POWER, /**< Low power management reset */
 } powerd_rst_t;
 
 /**

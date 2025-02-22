@@ -9,7 +9,7 @@
 #include <types.h>
 
 /** byte received callback */
-typedef void (* uartd_callback_t)(uint8_t byte);
+typedef void (*uartd_callback_t)(uint8_t byte);
 
 /**
  * Send data over uart in blocking mode

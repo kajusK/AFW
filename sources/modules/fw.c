@@ -26,17 +26,17 @@ extern const char *fw_img2_addr;
 extern const char *fw_img_size;
 
 /** Start of RAM memory */
-#define FW_RAM_START                0x20000000U
+#define FW_RAM_START          0x20000000U
 /** Image Header size */
-#define FW_HDR_SIZE                 0x80U /* align at 7 bits for VTOR settings */
+#define FW_HDR_SIZE           0x80U /* align at 7 bits for VTOR settings */
 /** Size of the image area including fw header, aligned to page boundary */
-#define FW_IMG_SIZE                 ((uint32_t)&fw_img_size)
+#define FW_IMG_SIZE           ((uint32_t)&fw_img_size)
 /** Max size of the image itself */
-#define FW_IMG_DATA_SIZE            (FW_IMG_SIZE - FW_HDR_SIZE)
+#define FW_IMG_DATA_SIZE      (FW_IMG_SIZE - FW_HDR_SIZE)
 /** Address of the image header */
-#define FW_IMG_HDR_ADDR(img)        ((uint32_t)(img == 0 ? &fw_img_addr : &fw_img2_addr))
+#define FW_IMG_HDR_ADDR(img)  ((uint32_t)(img == 0 ? &fw_img_addr : &fw_img2_addr))
 /** Address of the image itself */
-#define FW_IMG_DATA_ADDR(img)       (FW_IMG_HDR_ADDR(img) + FW_HDR_SIZE)
+#define FW_IMG_DATA_ADDR(img) (FW_IMG_HDR_ADDR(img) + FW_HDR_SIZE)
 
 /** Header describing stored firmware image */
 typedef struct {
@@ -50,7 +50,7 @@ typedef struct {
     uint8_t major;
     uint8_t minor;
     uint32_t magic;
-} __attribute__((packed)) fw_version_t ;
+} __attribute__((packed)) fw_version_t;
 
 typedef struct {
     uint16_t crc;
@@ -62,11 +62,7 @@ typedef struct {
 
 /** Firmware version encoded in image binary */
 __attribute__((section(".fw_version")))
-const fw_version_t fw_version = {
-    FW_MAJOR,
-    FW_MINOR,
-    FW_MAGIC
-};
+const fw_version_t fw_version = { FW_MAJOR, FW_MINOR, FW_MAGIC };
 
 /** Pointer to application to jump to */
 typedef void (*app_t)(void);
@@ -82,9 +78,10 @@ static void Fwi_RelocateVectors(uint32_t addr)
 {
     uint32_t cpuid = SCB_CPUID;
     if (((cpuid & SCB_CPUID_IMPLEMENTER) >> SCB_CPUID_IMPLEMENTER_LSB) == 0x41 &&
-            ((cpuid & SCB_CPUID_VARIANT) >> SCB_CPUID_VARIANT_LSB) == 0x00 &&
-            ((cpuid & SCB_CPUID_CONSTANT) >> SCB_CPUID_CONSTANT_LSB) == 0xc &&
-            ((cpuid & SCB_CPUID_PARTNO) >> SCB_CPUID_PARTNO_LSB) == 0xc20) {
+        ((cpuid & SCB_CPUID_VARIANT) >> SCB_CPUID_VARIANT_LSB) == 0x00 &&
+        ((cpuid & SCB_CPUID_CONSTANT) >> SCB_CPUID_CONSTANT_LSB) == 0xc &&
+        ((cpuid & SCB_CPUID_PARTNO) >> SCB_CPUID_PARTNO_LSB) == 0xc20)
+    {
         /*
          * The Cortex-M0 doesn't have VTOR register, move vector table
          * to beggining of RAM and remap RAM to address 0x0
@@ -129,8 +126,8 @@ static void Fwi_JumpToApp(uint32_t addr)
     asm volatile("isb");
 
     Fwi_RelocateVectors(addr);
-    asm volatile("mov sp, %0" : : "r" (sp));
-    asm volatile("bx %0" : : "r" (app));
+    asm volatile("mov sp, %0" : : "r"(sp));
+    asm volatile("bx %0" : : "r"(app));
 }
 
 /**
@@ -141,7 +138,7 @@ static void Fwi_JumpToApp(uint32_t addr)
  */
 static void Fwi_GetImgHeader(uint8_t img, fw_hdr_t *hdr)
 {
-    uint8_t *src = (uint8_t *) FW_IMG_HDR_ADDR(img);
+    uint8_t *src = (uint8_t *)FW_IMG_HDR_ADDR(img);
     memcpy((uint8_t *)hdr, src, sizeof(fw_hdr_t));
 }
 
@@ -165,7 +162,7 @@ static bool Fwi_CheckImgValid(uint8_t img)
         return false;
     }
 
-    crc = CRC16((uint8_t *) FW_IMG_DATA_ADDR(img), hdr.len);
+    crc = CRC16((uint8_t *)FW_IMG_DATA_ADDR(img), hdr.len);
     if (crc != hdr.crc) {
         return false;
     }
@@ -182,7 +179,7 @@ static void Fwi_CopyImage(void)
     uint32_t end;
     uint32_t page_size;
     uint32_t addr = FW_IMG_HDR_ADDR(0);
-    uint8_t *p = (uint8_t *) FW_IMG_HDR_ADDR(1);
+    uint8_t *p = (uint8_t *)FW_IMG_HDR_ADDR(1);
 
     Fwi_GetImgHeader(1, &hdr);
     end = FW_IMG_DATA_ADDR(1) + hdr.len;
@@ -220,7 +217,7 @@ void Fw_Run(void)
 void Fw_Reboot(void)
 {
     scb_reset_system();
-    while(1) {
+    while (1) {
         ;
     }
 }
@@ -270,14 +267,14 @@ bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len)
     /* Flash has to be written in 2 byte chunks on even addresses */
     if (len && write_addr & 0x1) {
         uint16_t val = (*buf) << 8 | add_byte;
-        Flashd_Write(write_addr-1, (uint8_t *)&val, 2);
+        Flashd_Write(write_addr - 1, (uint8_t *)&val, 2);
         len--;
         buf++;
         write_addr++;
     }
     if (len & 0x1 && addr + len < fwi_update.len) {
         len--;
-        add_byte = *(buf+len);
+        add_byte = *(buf + len);
     }
     Flashd_Write(write_addr, buf, len);
     return true;
@@ -304,7 +301,7 @@ bool Fw_UpdateFinish(void)
         return false;
     }
 
-    crc = CRC16((uint8_t *) FW_IMG_DATA_ADDR(1), fwi_update.len);
+    crc = CRC16((uint8_t *)FW_IMG_DATA_ADDR(1), fwi_update.len);
     if (fwi_update.crc != crc) {
         Fw_UpdateAbort();
         return false;
@@ -336,5 +333,5 @@ uint8_t *Fw_GetCurrent(uint32_t *length, uint32_t *crc)
     if (crc != NULL) {
         *crc = hdr.crc;
     }
-    return (uint8_t *) FW_IMG_DATA_ADDR(0);
+    return (uint8_t *)FW_IMG_DATA_ADDR(0);
 }

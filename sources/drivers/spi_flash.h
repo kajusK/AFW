@@ -9,9 +9,9 @@
 #include <types.h>
 
 typedef struct {
-    uint8_t spi_device;         /**< SPI device the flash is connected to */
-    uint32_t cs_port;           /**< MCU port the CS is connected to */
-    uint8_t cs_pad;             /**< MCU pin the CS is connected to */
+    uint8_t spi_device; /**< SPI device the flash is connected to */
+    uint32_t cs_port;   /**< MCU port the CS is connected to */
+    uint8_t cs_pad;     /**< MCU pin the CS is connected to */
 } spiflash_desc_t;
 
 /**
@@ -31,8 +31,7 @@ void SpiFlash_WriteUnlock(const spiflash_desc_t *desc);
  * @param [out] buf Buffer to read data to
  * @param len       Amount of bytes to read
  */
-void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr,
-        uint8_t *buf, size_t len);
+void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr, uint8_t *buf, size_t len);
 
 /**
  * Write data to memory
@@ -42,8 +41,7 @@ void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr,
  * @param [out] buf Data to be written
  * @param len       Amount of bytes to write
  */
-void SpiFlash_Write(const spiflash_desc_t *desc, uint32_t addr,
-        const uint8_t *buf, size_t len);
+void SpiFlash_Write(const spiflash_desc_t *desc, uint32_t addr, const uint8_t *buf, size_t len);
 
 /**
  * Erase whole memory
@@ -67,7 +65,6 @@ void SpiFlash_EraseSector(const spiflash_desc_t *desc, uint32_t addr);
  * @param cs_port           MCU port with CS pin
  * @param cs_pad            MCU pin with CS signal
  */
-void SpiFlash_Init(spiflash_desc_t *desc, uint8_t spi_device,
-        uint32_t cs_port, uint8_t cs_pad);
+void SpiFlash_Init(spiflash_desc_t *desc, uint8_t spi_device, uint32_t cs_port, uint8_t cs_pad);
 
 #endif

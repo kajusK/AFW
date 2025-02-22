@@ -48,7 +48,7 @@ static const uint8_t uartdi_irq[] = {
 #endif
 };
 
-#define UARTD_INTERFACES (sizeof(uartdi_regs)/sizeof(uartdi_regs[0]))
+#define UARTD_INTERFACES (sizeof(uartdi_regs) / sizeof(uartdi_regs[0]))
 
 static uartd_callback_t uartdi_rx_cb[UARTD_INTERFACES];
 
@@ -69,8 +69,8 @@ static void UARTdi_IRQHandler(uint8_t device, uint32_t uart)
     }
 
     data = usart_recv(uart);
-    if (uartdi_rx_cb[device-1] != NULL) {
-        uartdi_rx_cb[device-1](data);
+    if (uartdi_rx_cb[device - 1] != NULL) {
+        uartdi_rx_cb[device - 1](data);
     }
 }
 

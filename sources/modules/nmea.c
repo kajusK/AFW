@@ -12,7 +12,7 @@
 #include "modules/nmea.h"
 
 #define NMEA_MAX_MSG_LEN 82
-#define Nmeai_IsEnd(c)  ((c) == ',' || (c) == '*' || (c) == '\0')
+#define Nmeai_IsEnd(c)   ((c) == ',' || (c) == '*' || (c) == '\0')
 
 /**
  * Convert one letter hex value to decimal number
@@ -65,9 +65,9 @@ static void Nmeai_Float2DecDeg(nmea_float_t *f)
 
     f->scale *= 100;
     deg = f->num / f->scale;
-    min = f->num - deg*f->scale;
+    min = f->num - deg * f->scale;
 
-    f->num = deg*f->scale + min*10/6;
+    f->num = deg * f->scale + min * 10 / 6;
 }
 
 /**
@@ -100,7 +100,7 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
             }
 
             *va_arg(*ap, char *) = value;
-            } break;
+        } break;
 
         /* direction N,S,E or W */
         case 'D': {
@@ -117,7 +117,7 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
                 msg++;
             }
             *va_arg(*ap, char *) = value;
-            } break;
+        } break;
 
         /* string */
         case 's': {
@@ -128,7 +128,7 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
                 *str++ = *msg++;
             }
             *str = '\0';
-            } break;
+        } break;
 
         /* positive integer 05, 1234,... */
         case 'i': {
@@ -137,7 +137,7 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
                 value = Nmeai_Str2Dec(&msg, 10);
             }
             *va_arg(*ap, int *) = value;
-            } break;
+        } break;
 
         /* float 123.456 */
         case 'p':
@@ -159,21 +159,21 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
                     msg++;
                     i = 0;
                     scale = 1;
-                    while (isdigit((unsigned char) *(msg + i))) {
+                    while (isdigit((unsigned char)*(msg + i))) {
                         i++;
                         scale *= 10;
                     }
-                    value = value*scale + Nmeai_Str2Dec(&msg, i);
+                    value = value * scale + Nmeai_Str2Dec(&msg, i);
                 }
             }
             nmea_float_t *f = va_arg(*ap, nmea_float_t *);
-            f->num = sign*value;
+            f->num = sign * value;
             f->scale = scale;
             /* convert coordinates to decimal degrees */
             if (format == 'p') {
                 Nmeai_Float2DecDeg(f);
             }
-            } break;
+        } break;
 
         /* date 110122 = 11th of January, 2022 */
         case 'd': {
@@ -193,7 +193,7 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
             date->day = d;
             date->month = m;
             date->year = y;
-            } break;
+        } break;
 
         /* time 112233 (11:22:33) or 112233.15 (11:22:33.15) */
         case 't': {
@@ -228,7 +228,7 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
             time->minute = min;
             time->second = sec;
             time->micros = micros;
-            } break;
+        } break;
 
         case '\0':
             break;
@@ -358,11 +358,10 @@ bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc)
         return false;
     }
     /* $GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68 */
-    ret = Nmeai_Scan(msg, "stcpDpDffdfD__",
-            type, &rmc->fix_time, &c, &rmc->lat, &dir_lat, &rmc->lon, &dir_lon,
-            &rmc->speed_kmh, &rmc->course, &rmc->date,
-            &rmc->mag_variation, &dir_var);
-    if (!ret || strncmp(type+2, "RMC", 3) != 0) {
+    ret =
+        Nmeai_Scan(msg, "stcpDpDffdfD__", type, &rmc->fix_time, &c, &rmc->lat, &dir_lat, &rmc->lon,
+            &dir_lon, &rmc->speed_kmh, &rmc->course, &rmc->date, &rmc->mag_variation, &dir_var);
+    if (!ret || strncmp(type + 2, "RMC", 3) != 0) {
         return false;
     }
 
@@ -373,16 +372,16 @@ bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc)
 
     /* convert from knots to kmh */
     if (rmc->speed_kmh.scale > 100) {
-        div = rmc->speed_kmh.scale/100;
+        div = rmc->speed_kmh.scale / 100;
         rmc->speed_kmh.scale /= div;
         rmc->speed_kmh.num /= div;
     } else {
-        div = 100/rmc->speed_kmh.scale;
+        div = 100 / rmc->speed_kmh.scale;
         rmc->speed_kmh.scale *= div;
         rmc->speed_kmh.num *= div;
     }
     rmc->speed_kmh.num *= 1852;
-    rmc->speed_kmh.num += 500; /* rounded, same as adding 0.5 */
+    rmc->speed_kmh.num += 500;  /* rounded, same as adding 0.5 */
     rmc->speed_kmh.num /= 1000; /* divided by 1000 to get to original range */
 
     return true;
@@ -400,11 +399,10 @@ bool Nmea_ParseGga(const char *msg, nmea_gga_t *gga)
         return false;
     }
     /* $GPGGA,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,*76 */
-    ret = Nmeai_Scan(msg, "stpDpDiiffcfc__",
-            type, &gga->fix_time, &gga->lat, &dir_lat, &gga->lon, &dir_lon,
-            &quality, &satellites, &gga->hdop, &gga->altitude_m, &alt_unit,
-            &gga->above_ellipsoid_m, &ellipsoid_unit);
-    if (!ret || strncmp(type+2, "GGA", 3) != 0) {
+    ret = Nmeai_Scan(msg, "stpDpDiiffcfc__", type, &gga->fix_time, &gga->lat, &dir_lat, &gga->lon,
+        &dir_lon, &quality, &satellites, &gga->hdop, &gga->altitude_m, &alt_unit,
+        &gga->above_ellipsoid_m, &ellipsoid_unit);
+    if (!ret || strncmp(type + 2, "GGA", 3) != 0) {
         return false;
     }
 
@@ -428,13 +426,10 @@ bool Nmea_ParseGsv(const char *msg, nmea_gsv_t *gsv)
         return false;
     }
     /* $GPGSV,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D */
-    ret = Nmeai_Scan(msg, "siiiiiiiiiiiiiiiiiii",
-            type, &messages, &msg_id, &visible,
-            &sv[0][0], &sv[0][1], &sv[0][2], &sv[0][3],
-            &sv[1][0], &sv[1][1], &sv[1][2], &sv[1][3],
-            &sv[2][0], &sv[2][1], &sv[2][2], &sv[2][3],
-            &sv[3][0], &sv[3][1], &sv[3][2], &sv[3][3]);
-    if (!ret || strncmp(type+2, "GSV", 3) != 0) {
+    ret = Nmeai_Scan(msg, "siiiiiiiiiiiiiiiiiii", type, &messages, &msg_id, &visible, &sv[0][0],
+        &sv[0][1], &sv[0][2], &sv[0][3], &sv[1][0], &sv[1][1], &sv[1][2], &sv[1][3], &sv[2][0],
+        &sv[2][1], &sv[2][2], &sv[2][3], &sv[3][0], &sv[3][1], &sv[3][2], &sv[3][3]);
+    if (!ret || strncmp(type + 2, "GSV", 3) != 0) {
         return false;
     }
 

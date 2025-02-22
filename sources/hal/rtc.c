@@ -77,25 +77,25 @@ void RTCd_GetTime(struct tm *tm)
     dr = RTC_DR;
 
     tm->tm_sec = (tr >> RTC_TR_ST_SHIFT) & RTC_TR_ST_MASK;
-    tm->tm_sec = tm->tm_sec*10 + ((tr >> RTC_TR_SU_SHIFT) & RTC_TR_SU_MASK);
+    tm->tm_sec = tm->tm_sec * 10 + ((tr >> RTC_TR_SU_SHIFT) & RTC_TR_SU_MASK);
     tm->tm_min = (tr >> RTC_TR_MNT_SHIFT) & RTC_TR_MNT_MASK;
-    tm->tm_min = tm->tm_min*10 + ((tr >> RTC_TR_MNU_SHIFT) & RTC_TR_MNU_MASK);
+    tm->tm_min = tm->tm_min * 10 + ((tr >> RTC_TR_MNU_SHIFT) & RTC_TR_MNU_MASK);
     tm->tm_hour = (tr >> RTC_TR_HT_SHIFT) & RTC_TR_HT_MASK;
-    tm->tm_hour = tm->tm_hour*10 + ((tr >> RTC_TR_HU_SHIFT) & RTC_TR_HU_MASK);
+    tm->tm_hour = tm->tm_hour * 10 + ((tr >> RTC_TR_HU_SHIFT) & RTC_TR_HU_MASK);
     if (tr & RTC_TR_PM) {
         tm->tm_hour += 12;
     }
 
     tm->tm_mday = (dr >> RTC_DR_DT_SHIFT) & RTC_DR_DT_MASK;
-    tm->tm_mday = tm->tm_mday*10 + ((dr >> RTC_DR_DU_SHIFT) & RTC_DR_DU_MASK);
+    tm->tm_mday = tm->tm_mday * 10 + ((dr >> RTC_DR_DU_SHIFT) & RTC_DR_DU_MASK);
     tm->tm_mon = (dr >> RTC_DR_MT_SHIFT) & RTC_DR_MT_MASK;
-    tm->tm_mon = tm->tm_mon*10 + ((dr >> RTC_DR_MU_SHIFT) & RTC_DR_MU_MASK);
+    tm->tm_mon = tm->tm_mon * 10 + ((dr >> RTC_DR_MU_SHIFT) & RTC_DR_MU_MASK);
     tm->tm_mon -= 1;
     tm->tm_year = (dr >> RTC_DR_YT_SHIFT) & RTC_DR_YT_MASK;
-    tm->tm_year = tm->tm_year*10 + ((dr >> RTC_DR_YU_SHIFT) & RTC_DR_YU_MASK);
+    tm->tm_year = tm->tm_year * 10 + ((dr >> RTC_DR_YU_SHIFT) & RTC_DR_YU_MASK);
     tm->tm_year += 100;
     tm->tm_wday = (dr >> RTC_DR_WDU_SHIFT) & RTC_DR_WDU_MASK;
-    tm->tm_wday =  (tm->tm_wday + 1) % 7;
+    tm->tm_wday = (tm->tm_wday + 1) % 7;
 }
 
 void RTCd_SetTime(const struct tm *tm)

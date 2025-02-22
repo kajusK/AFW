@@ -94,15 +94,15 @@
 #define REG_TEMP1         0x4E
 #define REG_TEMP2         0x4F
 #define REG_TESTLNA       0x58
-#define REG_TESTPA1       0x5A  // RFM69HW only
-#define REG_TESTPA2       0x5C  // RFM69HW only
+#define REG_TESTPA1       0x5A // RFM69HW only
+#define REG_TESTPA2       0x5C // RFM69HW only
 #define REG_TESTDAGC      0x6F
 
 typedef enum {
-    MODE_SLEEP = 0,     /**< Low power sleep mode */
-    MODE_STANDBY = 1,   /**< Standby mode, configuration happens here */
-    MODE_TX = 3,        /**< Transmit mode, starts transmission */
-    MODE_RX = 4,        /**< Reception mode - listens for data */
+    MODE_SLEEP = 0,   /**< Low power sleep mode */
+    MODE_STANDBY = 1, /**< Standby mode, configuration happens here */
+    MODE_TX = 3,      /**< Transmit mode, starts transmission */
+    MODE_RX = 4,      /**< Reception mode - listens for data */
 } rfm69_mode_t;
 
 typedef enum {
@@ -123,7 +123,7 @@ typedef enum {
     IRQ_CRC_OK = (1 << 1),
 } rfm69_int_t;
 
-#define cs_set() IOd_SetLine(desc->cs_port, desc->cs_pad, 0)
+#define cs_set()   IOd_SetLine(desc->cs_port, desc->cs_pad, 0)
 #define cs_unset() IOd_SetLine(desc->cs_port, desc->cs_pad, 1)
 
 /**
@@ -238,7 +238,8 @@ static inline void modifyReg(const rfm69_desc_t *desc, uint8_t addr, uint8_t mas
 static void waitForIRQ(const rfm69_desc_t *desc, uint16_t flags)
 {
     uint32_t start = millis();
-    while (((readReg16(desc, REG_IRQFLAGS1) & flags) == 0) && ((millis() - start) < CMD_TIMEOUT_MS)) {
+    while (((readReg16(desc, REG_IRQFLAGS1) & flags) == 0) && ((millis() - start) < CMD_TIMEOUT_MS))
+    {
         ;
     }
 }
@@ -329,10 +330,8 @@ void RFM69_SetFrameFormat(rfm69_desc_t *desc, const rfm69_frame_t *format)
 
     // generic packet config
     writeReg(desc, REG_PACKETCONFIG1,
-        (format->variable_len << 7) |
-        (format->encoding << 5) |
-        (format->crc << 4) |
-        (format->filter.enable << 2));
+        (format->variable_len << 7) | (format->encoding << 5) | (format->crc << 4) |
+            (format->filter.enable << 2));
     writeReg(desc, REG_PACKETCONFIG2, 0x02 | format->aes.enable);
 
     // (maximum) payload length
@@ -346,8 +345,8 @@ void RFM69_SetFrameFormat(rfm69_desc_t *desc, const rfm69_frame_t *format)
     if (format->sync.len == 0) {
         writeReg(desc, REG_SYNCCONFIG, 0);
     } else {
-        writeReg(desc, REG_SYNCCONFIG, (0x01 << 7) | (((format->sync.len - 1) & 0x07) << 3) |
-            (format->sync.tolerance & 0x07));
+        writeReg(desc, REG_SYNCCONFIG,
+            (0x01 << 7) | (((format->sync.len - 1) & 0x07) << 3) | (format->sync.tolerance & 0x07));
         write(desc, REG_SYNCVALUE1, format->sync.value, format->sync.len);
     }
 
@@ -365,7 +364,7 @@ void RFM69_SetFrameFormat(rfm69_desc_t *desc, const rfm69_frame_t *format)
 
 void RFM69_SetFrequencyHz(const rfm69_desc_t *desc, uint32_t freq_hz)
 {
-    uint32_t value = ((uint64_t)freq_hz * (1<<19))/FXOSC;
+    uint32_t value = ((uint64_t)freq_hz * (1 << 19)) / FXOSC;
     uint8_t data[3];
 
     data[0] = value >> 16;
@@ -380,7 +379,7 @@ void RFM69_SetRadioConfig(const rfm69_desc_t *desc, const rfm69_config_t *config
     setMode(desc, MODE_STANDBY, true);
     RFM69_SetFrequencyHz(desc, config->frequency_hz);
     writeReg(desc, REG_DATAMODUL, config->modulation); // packet mode
-    writeReg16(desc, REG_BITRATEMSB, FXOSC/config->bitrate_bps);
+    writeReg16(desc, REG_BITRATEMSB, FXOSC / config->bitrate_bps);
     writeReg16(desc, REG_FDEVMSB, ((uint64_t)config->freq_deviation_hz * (1 << 19)) / FXOSC);
     writeReg(desc, REG_RXBW, config->rx_bw | 0x40); // RX filter bandwidth, cutoff at 4%
 }
@@ -394,7 +393,7 @@ bool RFM69_IsChannelEmpty(const rfm69_desc_t *desc, int8_t threshold)
         while (((readReg(desc, REG_RSSICONFIG) & 0x02) == 0) && ((millis() - start) < 10)) {
             ;
         }
-        if (-readReg(desc, REG_RSSICONFIG)/2 >= threshold) {
+        if (-readReg(desc, REG_RSSICONFIG) / 2 >= threshold) {
             return false;
         }
     }
@@ -418,7 +417,7 @@ uint8_t RFM69_Receive(const rfm69_desc_t *desc, uint8_t *data, uint8_t max_len, 
     uint8_t len;
 
     if ((readReg16(desc, REG_IRQFLAGS1) & IRQ_PAYLOAD_READY) == 0) {
-        return 0;  // no data available
+        return 0; // no data available
     }
 
     if (rssi != NULL) {
@@ -443,9 +442,8 @@ void RFM69_StartReceiver(const rfm69_desc_t *desc)
     setMode(desc, MODE_RX, false);
 }
 
-bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
-        uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
-        bool is_hxx)
+bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port, uint8_t cs_pad,
+    uint32_t reset_port, uint8_t reset_pad, bool is_hxx)
 {
     desc->spi_device = spi_device;
     desc->cs_port = cs_port;
@@ -470,12 +468,13 @@ bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
     }
 
     writeReg(desc, REG_OPMODE, MODE_STANDBY); // sequencer on, listen off, standby
-    writeReg(desc, REG_AUTOMODES, 0x0);         // auto modes off
-    writeReg(desc, REG_FIFOTHRESH, (1 << 7) | 0x0f); // FifoNotEmpty as tx start condition, FIFO threshold to defaul
-    writeReg(desc, REG_LNA, 1 << 7);            // 50 ohm input impedance, auto LNA
-    writeReg(desc, REG_RSSITHRESH, 0xE4);       // RSSI threshold = -114dBm
-    writeReg(desc, REG_TESTLNA, 0x2D);          // higher LNA sensitivity
-    writeReg(desc, REG_AFCFEI, 0x00); // AfcAuto off
+    writeReg(desc, REG_AUTOMODES, 0x0);       // auto modes off
+    // FifoNotEmpty as tx start condition, FIFO threshold to default
+    writeReg(desc, REG_FIFOTHRESH, (1 << 7) | 0x0f);
+    writeReg(desc, REG_LNA, 1 << 7);      // 50 ohm input impedance, auto LNA
+    writeReg(desc, REG_RSSITHRESH, 0xE4); // RSSI threshold = -114dBm
+    writeReg(desc, REG_TESTLNA, 0x2D);    // higher LNA sensitivity
+    writeReg(desc, REG_AFCFEI, 0x00);     // AfcAuto off
     /*
      * DIO0=01, DIO4=01, ClkOut=off
      * Rx: DIO0 = PayloadReady, DIO4 = Rssi

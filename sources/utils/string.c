@@ -34,7 +34,7 @@ void num2hex(uint32_t value, uint8_t places, char *buf)
         *buf = '\0';
         return;
     }
-    for (int8_t i = places-1; i >= 0; i--) {
+    for (int8_t i = places - 1; i >= 0; i--) {
         buf[i] = dec2hex(value % 16);
         value /= 16;
     }
@@ -44,7 +44,7 @@ void num2hex(uint32_t value, uint8_t places, char *buf)
 void num2str(uint32_t value, char *buf, size_t len)
 {
     uint32_t mult = 1;
-    while (mult < value/10) {
+    while (mult < value / 10) {
         mult *= 10;
     }
 

@@ -10,7 +10,7 @@
 
 uint32_t Flashd_GetFlashSize(void)
 {
-    return desig_get_flash_size()*1024;
+    return desig_get_flash_size() * 1024;
 }
 
 uint32_t Flashd_GetPageSize(void)
@@ -43,7 +43,7 @@ void Flashd_Write(uint32_t addr, const uint8_t *buf, uint32_t len)
     ASSERT_NOT(addr & 0x1)
 
     while (len >= 2) {
-        flash_program_half_word(addr, (*(buf+1)) << 8 | *buf);
+        flash_program_half_word(addr, (*(buf + 1)) << 8 | *buf);
         addr += 2;
         buf += 2;
         len -= 2;

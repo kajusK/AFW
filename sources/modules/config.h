@@ -21,7 +21,7 @@
 #include "config_struct.h"
 
 #ifndef CONFIG_USE_TWO_PARTITIONS
-    #define CONFIG_USE_TWO_PARTITIONS 1
+#define CONFIG_USE_TWO_PARTITIONS 1
 #endif
 
 /**

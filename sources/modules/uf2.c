@@ -9,14 +9,14 @@
 #include <modules/fw.h>
 #include "uf2.h"
 
-#define UF2_MAGIC_1 0x0A324655
-#define UF2_MAGIC_2 0x9E5D5157
+#define UF2_MAGIC_1     0x0A324655
+#define UF2_MAGIC_2     0x9E5D5157
 #define UF2_MAGIC_FINAL 0x0AB16F30
 
-#define UF2_FLAG_NOT_MAIN_FLASH 0x00000001
-#define UF2_FLAG_FILE_CONTAINER 0x00001000
+#define UF2_FLAG_NOT_MAIN_FLASH    0x00000001
+#define UF2_FLAG_FILE_CONTAINER    0x00001000
 #define UF2_FLAG_FAMILY_ID_PRESENT 0x00002000
-#define UF2_FLAG_MD5_CHECKSUM 0x00004000
+#define UF2_FLAG_MD5_CHECKSUM      0x00004000
 
 #define UF2_CHUNK_SIZE 256
 
@@ -45,12 +45,14 @@ bool UF2_Write(const uint8_t *data)
     UF2_fw_header_t *header;
 
     if (block->magicStart0 != 0x0A324655 || block->magicStart1 != 0x9E5D5157 ||
-            block->magicEnd != 0x0AB16F30) {
+        block->magicEnd != 0x0AB16F30)
+    {
         return false;
     }
     /* First block should be 'not main flash' with 2 bytes crc and 4 bytes length */
-    if (block->flags & UF2_FLAG_NOT_MAIN_FLASH && !Fw_UpdateIsRunning() &&
-            block->blockNo == 0 && block->payloadSize == 6) {
+    if (block->flags & UF2_FLAG_NOT_MAIN_FLASH && !Fw_UpdateIsRunning() && block->blockNo == 0 &&
+        block->payloadSize == 6)
+    {
         header = (UF2_fw_header_t *)block->data;
         Fw_UpdateInit(header->crc, header->len);
         return true;
@@ -88,7 +90,7 @@ bool UF2_Read(uint8_t *data, uint32_t offset)
     block->magicEnd = 0x0AB16F30;
     block->fileSize = len;
     /* apply ceil, add 1 for non flash block with header */
-    block->numBlocks = (len + UF2_CHUNK_SIZE - 1)/UF2_CHUNK_SIZE + 1;
+    block->numBlocks = (len + UF2_CHUNK_SIZE - 1) / UF2_CHUNK_SIZE + 1;
     block->flags = 0;
     block->blockNo = offset;
 
@@ -101,7 +103,7 @@ bool UF2_Read(uint8_t *data, uint32_t offset)
         header->len = len;
     } else {
         block->targetAddr = addr;
-        block->payloadSize = len - (offset - 1)*UF2_CHUNK_SIZE;
+        block->payloadSize = len - (offset - 1) * UF2_CHUNK_SIZE;
         if (block->payloadSize > UF2_CHUNK_SIZE) {
             block->payloadSize = UF2_CHUNK_SIZE;
         }
@@ -113,6 +115,6 @@ bool UF2_Read(uint8_t *data, uint32_t offset)
 uint32_t UF2_GetImgSize(void)
 {
     uint32_t len;
-    (void) Fw_GetCurrent(&len, NULL);
-    return ((len + UF2_CHUNK_SIZE - 1)/UF2_CHUNK_SIZE + 1)*512;
+    (void)Fw_GetCurrent(&len, NULL);
+    return ((len + UF2_CHUNK_SIZE - 1) / UF2_CHUNK_SIZE + 1) * 512;
 }

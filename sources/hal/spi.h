@@ -10,21 +10,21 @@
 
 /** Possible prescaler values */
 typedef enum {
-	SPID_PRESC_2 = 0,
-	SPID_PRESC_4 = 1,
-	SPID_PRESC_8 = 2,
-	SPID_PRESC_16 = 3,
-	SPID_PRESC_32 = 4,
-	SPID_PRESC_64 = 5,
-	SPID_PRESC_128 = 6,
-	SPID_PRESC_256 = 7,
+    SPID_PRESC_2 = 0,
+    SPID_PRESC_4 = 1,
+    SPID_PRESC_8 = 2,
+    SPID_PRESC_16 = 3,
+    SPID_PRESC_32 = 4,
+    SPID_PRESC_64 = 5,
+    SPID_PRESC_128 = 6,
+    SPID_PRESC_256 = 7,
 } spid_prescaler_t;
 
 typedef enum {
-	SPI_MODE_0,
-	SPI_MODE_1,
-	SPI_MODE_2,
-	SPI_MODE_3
+    SPI_MODE_0,
+    SPI_MODE_1,
+    SPI_MODE_2,
+    SPI_MODE_3
 } spid_mode_t;
 
 /**
@@ -79,7 +79,6 @@ void SPId_SetPrescaler(uint8_t device, spid_prescaler_t prescaler);
  * @param mode      SPI mode to use
  * @return True if init was successful
  */
-void SPId_Init(uint8_t device, spid_prescaler_t prescaler,
-		spid_mode_t mode);
+void SPId_Init(uint8_t device, spid_prescaler_t prescaler, spid_mode_t mode);
 
 #endif

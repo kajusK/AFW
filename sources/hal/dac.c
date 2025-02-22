@@ -11,7 +11,7 @@ static uint16_t daci_vdda_mv = 3300;
 
 void Dacd_SetMv(dac_channel_t channel, uint16_t voltage_mv)
 {
-    uint16_t value = ((uint32_t)voltage_mv * 4096)/daci_vdda_mv;
+    uint16_t value = ((uint32_t)voltage_mv * 4096) / daci_vdda_mv;
     if (value > 0x0fff) {
         value = 0x0fff;
     }

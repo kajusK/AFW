@@ -35,13 +35,13 @@ typedef enum {
 
 /** The RFM device descriptor */
 typedef struct {
-    uint8_t spi_device;     /**< SPI device the RFM is connected to */
-    uint32_t cs_port;       /**< MCU port the CS signal is connected to */
-    uint8_t cs_pad;         /**< MCU pin the CS signal is connected to */
-    uint32_t reset_port;    /**< MCU port the reset signal is connected to */
-    uint8_t reset_pad;      /**< MCU pin the reset signal is connected to */
-    uint32_t io0_port;      /**< MCU port the IO0 signal is connected to */
-    uint32_t io0_pad;       /**< MCU pin the IO0 signal is connected to */
+    uint8_t spi_device;  /**< SPI device the RFM is connected to */
+    uint32_t cs_port;    /**< MCU port the CS signal is connected to */
+    uint8_t cs_pad;      /**< MCU pin the CS signal is connected to */
+    uint32_t reset_port; /**< MCU port the reset signal is connected to */
+    uint8_t reset_pad;   /**< MCU pin the reset signal is connected to */
+    uint32_t io0_port;   /**< MCU port the IO0 signal is connected to */
+    uint32_t io0_pad;    /**< MCU pin the IO0 signal is connected to */
     const uint8_t (*region)[3];
 } rfm95_desc_t;
 
@@ -75,8 +75,7 @@ void RFM95_SetPowerDBm(const rfm95_desc_t *desc, int8_t power);
  * @param bandwidth     Bandwidth selection
  * @param sf            Spreading factor
  */
-void RFM95_SetLoraParams(const rfm95_desc_t *desc, rfm95_bw_t bandwidth,
-        rfm95_sf_t sf);
+void RFM95_SetLoraParams(const rfm95_desc_t *desc, rfm95_bw_t bandwidth, rfm95_sf_t sf);
 
 /**
  * Configure region we are in (sets frequency range)
@@ -93,8 +92,7 @@ void RFM95_SetLoraRegion(rfm95_desc_t *desc, rfm95_lora_region_t region);
  * @param data      Data to be sent
  * @param len       Length of the data buffer
  */
-void RFM95_LoraSend(const rfm95_desc_t *desc, const uint8_t *data,
-        size_t len);
+void RFM95_LoraSend(const rfm95_desc_t *desc, const uint8_t *data, size_t len);
 
 /**
  * Power off the device
@@ -129,8 +127,7 @@ void RFM95_LoraInit(rfm95_desc_t *desc);
  *
  * @return True if module is present, false if not responding
  */
-bool RFM95_Init(rfm95_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
-        uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
-        uint32_t io0_port, uint8_t io0_pad);
+bool RFM95_Init(rfm95_desc_t *desc, uint8_t spi_device, uint32_t cs_port, uint8_t cs_pad,
+    uint32_t reset_port, uint8_t reset_pad, uint32_t io0_port, uint8_t io0_pad);
 
 #endif

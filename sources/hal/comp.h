@@ -76,7 +76,7 @@ void Compd_SetOutput(uint8_t channel, comp_out_t output);
  * @param output    Comparator output selection (exti trigger always connected)
  * @param invert    Invert comparator output
  */
-void Compd_Init(uint8_t channel, comp_speed_t speed, comp_hyst_t hyst,
-        comp_in_neg_t input, comp_out_t output, bool invert);
+void Compd_Init(uint8_t channel, comp_speed_t speed, comp_hyst_t hyst, comp_in_neg_t input,
+    comp_out_t output, bool invert);
 
 #endif

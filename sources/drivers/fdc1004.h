@@ -46,8 +46,7 @@ typedef struct {
  * @param raw       Raw reading of the sensor data
  * @return True if sensor acked the command
  */
-bool FDC1004_ReadResultRaw(const fdc1004_desc_t *desc,
-        fdc1004_meas_t channel, uint32_t *raw);
+bool FDC1004_ReadResultRaw(const fdc1004_desc_t *desc, fdc1004_meas_t channel, uint32_t *raw);
 
 /**
  * Check if the measurement is already finished (have valid data)
@@ -56,8 +55,7 @@ bool FDC1004_ReadResultRaw(const fdc1004_desc_t *desc,
  * @param channel   Measurement channel to check
  * @return True if have valid data ready
  */
-bool FDC1004_IsMeasComplete(const fdc1004_desc_t *desc,
-        fdc1004_meas_t channel);
+bool FDC1004_IsMeasComplete(const fdc1004_desc_t *desc, fdc1004_meas_t channel);
 
 /**
  * Configure measurement
@@ -70,9 +68,8 @@ bool FDC1004_IsMeasComplete(const fdc1004_desc_t *desc,
  * @param offset_pf Offset in pF to apply on the measurements
  * @return True if sensor acked the command
  */
-bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc,
-        fdc1004_meas_t channel, fdc1004_ch_t positive, fdc1004_ch_t negative,
-        uint32_t offset_pf);
+bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc, fdc1004_meas_t channel,
+    fdc1004_ch_t positive, fdc1004_ch_t negative, uint32_t offset_pf);
 
 /**
  * Run single measurement
@@ -82,8 +79,7 @@ bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc,
  * @param channel   Measurement channel to start conversion for
  * @param True if measurement started
  */
-bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
-        fdc1004_meas_t channel);
+bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate, fdc1004_meas_t channel);
 
 /**
  * Start repeated measurements
@@ -93,8 +89,7 @@ bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
  * @param channels  List of channels to measure (e.g. FDC_MEAS_1 | FDC_MEAS_2)
  * @param True if measurement started
  */
-bool FDC1004_RunRepeated(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
-        uint8_t channels);
+bool FDC1004_RunRepeated(const fdc1004_desc_t *desc, fdc1004_rate_t rate, uint8_t channels);
 
 /**
  * Initialize the device driver

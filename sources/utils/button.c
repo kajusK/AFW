@@ -45,8 +45,7 @@ button_event_t Button(button_t *button)
 
     /* No change */
     if (button->prev == current) {
-        if (current && button->start != 0 &&
-                (millis() - button->start) >= BTN_LONG_PRESS_MS) {
+        if (current && button->start != 0 && (millis() - button->start) >= BTN_LONG_PRESS_MS) {
             button->start = 0;
             return BTN_LONG_PRESS;
         }

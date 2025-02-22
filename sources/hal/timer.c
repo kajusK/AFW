@@ -9,10 +9,13 @@
 #include <libopencm3/stm32/timer.h>
 #include "hal/timer.h"
 
-static const enum tim_oc_id timerdi_oc_id[] = {TIM_OC1, TIM_OC2, TIM_OC3, TIM_OC4};
-#define Timerdi_GetOcId(channel) timerdi_oc_id[(channel-1)]
-static const enum tim_ic_id timerdi_ic_id[] = {TIM_IC1, TIM_IC2, TIM_IC3, TIM_IC4};
-#define Timerdi_GetIcId(channel) timerdi_ic_id[(channel-1)]
+static const enum tim_oc_id timerdi_oc_id[] = { TIM_OC1, TIM_OC2, TIM_OC3, TIM_OC4 };
+
+#define Timerdi_GetOcId(channel) timerdi_oc_id[(channel - 1)]
+
+static const enum tim_ic_id timerdi_ic_id[] = { TIM_IC1, TIM_IC2, TIM_IC3, TIM_IC4 };
+
+#define Timerdi_GetIcId(channel) timerdi_ic_id[(channel - 1)]
 
 static timerd_cb_t timerdi_cb[3];
 
@@ -101,7 +104,6 @@ static void Timerdi_IRQHandler(uint8_t device)
     timerd_event_t event = TIMER_EVENT_COMPARE;
     timerd_ch_t channel = TIMER_CH_1;
 
-
     /* Only one event per interrupt is processed */
     if ((TIM_DIER(timer) & TIM_DIER_UIE) && timer_get_flag(timer, TIM_SR_UIF)) {
         event = TIMER_EVENT_UPDATE;
@@ -131,7 +133,7 @@ static void Timerdi_IRQHandler(uint8_t device)
         event = TIMER_EVENT_CAPTURE;
     }
 
-    ASSERT(device > 0 && device - 1 < (int)(sizeof(timerdi_cb)/sizeof(timerdi_cb[0])));
+    ASSERT(device > 0 && device - 1 < (int)(sizeof(timerdi_cb) / sizeof(timerdi_cb[0])));
     if (timerdi_cb[device - 1]) {
         timerdi_cb[device - 1](event, channel);
     }
@@ -158,8 +160,7 @@ void tim3_isr(void)
     Timerdi_IRQHandler(3);
 }
 
-void Timerd_EnableEvent(uint8_t device, timerd_event_t event,
-        timerd_ch_t channel)
+void Timerd_EnableEvent(uint8_t device, timerd_event_t event, timerd_ch_t channel)
 {
     uint32_t timer = Timerdi_GetDevice(device);
 
@@ -187,8 +188,7 @@ void Timerd_EnableEvent(uint8_t device, timerd_event_t event,
     }
 }
 
-void Timerd_DisableEvent(uint8_t device, timerd_event_t event,
-        timerd_ch_t channel)
+void Timerd_DisableEvent(uint8_t device, timerd_event_t event, timerd_ch_t channel)
 {
     uint32_t timer = Timerdi_GetDevice(device);
 
@@ -224,7 +224,7 @@ uint32_t Timerd_GetFrequency(uint8_t device)
     if ((RCC_CFGR & RCC_CFGR_PPRE) == RCC_CFGR_PPRE_NODIV) {
         timer_clk = rcc_apb1_frequency;
     } else {
-        timer_clk = rcc_apb1_frequency*2;
+        timer_clk = rcc_apb1_frequency * 2;
     }
 
     return timer_clk / (TIM_PSC(Timerdi_GetDevice(device)) + 1);
@@ -237,12 +237,11 @@ void Timerd_SetClockFreq(uint8_t device, uint32_t freq_hz)
     if ((RCC_CFGR & RCC_CFGR_PPRE) == RCC_CFGR_PPRE_NODIV) {
         timer_clk = rcc_apb1_frequency;
     } else {
-        timer_clk = rcc_apb1_frequency*2;
+        timer_clk = rcc_apb1_frequency * 2;
     }
 
     ASSERT(freq_hz <= timer_clk);
-    timer_set_prescaler(Timerdi_GetDevice(device),
-            (timer_clk / freq_hz) - 1);
+    timer_set_prescaler(Timerdi_GetDevice(device), (timer_clk / freq_hz) - 1);
 }
 
 void Timerd_SetPeriod(uint8_t device, uint32_t period)
@@ -253,8 +252,7 @@ void Timerd_SetPeriod(uint8_t device, uint32_t period)
 void Timerd_SetCompare(uint8_t device, timerd_ch_t channel, uint32_t value)
 {
     ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
-    timer_set_oc_value(Timerdi_GetDevice(device), Timerdi_GetOcId(channel),
-            value);
+    timer_set_oc_value(Timerdi_GetDevice(device), Timerdi_GetOcId(channel), value);
 }
 
 uint32_t Timerd_GetCapture(uint8_t device, timerd_ch_t channel)
@@ -311,8 +309,7 @@ void Timerd_SetOneShot(uint8_t device, bool value)
 void Timerd_DisableCompare(uint8_t device, timerd_ch_t channel)
 {
     ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
-    timer_disable_oc_output(Timerdi_GetDevice(device),
-            Timerdi_GetOcId(channel));
+    timer_disable_oc_output(Timerdi_GetDevice(device), Timerdi_GetOcId(channel));
 }
 
 void Timerd_EnableCompare(uint8_t device, timerd_ch_t channel, bool invert)
@@ -342,8 +339,7 @@ void Timerd_DisableCapture(uint8_t device, timerd_ch_t channel)
     timer_ic_disable(Timerdi_GetDevice(device), Timerdi_GetIcId(channel));
 }
 
-void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel,
-        timerd_edge_t edge)
+void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel, timerd_edge_t edge)
 {
     ASSERT(channel >= TIMER_CH_1 && channel <= TIMER_CH_4);
     uint8_t offset = channel - 1;
@@ -362,16 +358,16 @@ void Timerd_EnableCapture(uint8_t device, timerd_ch_t channel,
             edge_val = 0x03;
             break;
     }
-    TIM_CCER(timer) &= ~((0x03 << 1) << offset*4);
-    TIM_CCER(timer) |= (edge_val << 1) << offset*4;
+    TIM_CCER(timer) &= ~((0x03 << 1) << offset * 4);
+    TIM_CCER(timer) |= (edge_val << 1) << offset * 4;
 
     /* Set channel to input */
     if (offset < 2) {
-        TIM_CCMR1(timer) &= ~(0x03 << offset*8);
-        TIM_CCMR1(timer) |= 0x01 << offset*8;
+        TIM_CCMR1(timer) &= ~(0x03 << offset * 8);
+        TIM_CCMR1(timer) |= 0x01 << offset * 8;
     } else {
-        TIM_CCMR2(timer) &= ~(0x03 << (offset - 2)*8);
-        TIM_CCMR2(timer) |= 0x01 << (offset - 2)*8;
+        TIM_CCMR2(timer) &= ~(0x03 << (offset - 2) * 8);
+        TIM_CCMR2(timer) |= 0x01 << (offset - 2) * 8;
     }
 
     timer_ic_set_prescaler(timer, ic_id, TIM_IC_PSC_OFF);
@@ -404,7 +400,7 @@ void Timerd_EnablePWM(uint8_t device, timerd_ch_t channel, bool invert)
 void Timerd_RegisterCb(uint8_t device, timerd_cb_t cb)
 {
     /* indexing from zero */
-    ASSERT(device > 0 && device - 1 < (int)(sizeof(timerdi_cb)/sizeof(timerdi_cb[0])));
+    ASSERT(device > 0 && device - 1 < (int)(sizeof(timerdi_cb) / sizeof(timerdi_cb[0])));
     timerdi_cb[device - 1] = cb;
 }
 
@@ -441,8 +437,7 @@ void Timerd_Init(uint8_t device)
     }
 
     /* No divider, edge alignment, up counting  */
-    timer_set_mode(timer, TIM_CR1_CKD_CK_INT,
-        TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
+    timer_set_mode(timer, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
     timer_disable_preload(timer);
     timer_continuous_mode(timer);
     timer_set_prescaler(timer, 0);

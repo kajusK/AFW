@@ -10,12 +10,12 @@
 
 #include "drivers/spi_flash.h"
 
-#define PAGE_BYTES 256
+#define PAGE_BYTES         256
 #define CHIP_ERASE_TIME_MS 40
 #define PAGE_ERASE_TIME_MS 20
 #define WRITE_PAGE_TIME_MS 2
 
-#define cs_set() IOd_SetLine(desc->cs_port, desc->cs_pad, 0)
+#define cs_set()   IOd_SetLine(desc->cs_port, desc->cs_pad, 0)
 #define cs_unset() IOd_SetLine(desc->cs_port, desc->cs_pad, 1)
 
 /** status register */
@@ -32,39 +32,39 @@ enum {
 typedef enum {
     /* Configuration */
     CMD_NOP = 0x00,
-    CMD_RSTEN = 0x66,   /** reset enable */
-    CMD_RST = 0x99,     /** reset memory */
-    CMD_EQIO = 0x38,    /** enable quad io */
-    CMD_RSTQIO = 0xff,  /** reset quad io */
-    CMD_RDSR = 0x05,    /** read status reg */
+    CMD_RSTEN = 0x66,  /** reset enable */
+    CMD_RST = 0x99,    /** reset memory */
+    CMD_EQIO = 0x38,   /** enable quad io */
+    CMD_RSTQIO = 0xff, /** reset quad io */
+    CMD_RDSR = 0x05,   /** read status reg */
 
     /* read */
-    CMD_READ = 0x03,    /** read memory */
-    CMD_HSREAD = 0x0b,  /** High speed read */
-    CMD_SB = 0xc0,      /** set burst length */
-    CMD_RBSQI = 0x0c,   /** SQI read burst with wrap */
+    CMD_READ = 0x03,   /** read memory */
+    CMD_HSREAD = 0x0b, /** High speed read */
+    CMD_SB = 0xc0,     /** set burst length */
+    CMD_RBSQI = 0x0c,  /** SQI read burst with wrap */
 
     /* Identification */
-    CMD_JEDEC = 0x9f,   /** read jedec id */
-    CMD_QJID = 0xaf,    /** read quad IO J-ID */
+    CMD_JEDEC = 0x9f, /** read jedec id */
+    CMD_QJID = 0xaf,  /** read quad IO J-ID */
 
     /* write */
-    CMD_WREN = 0x06,    /** write enable */
-    CMD_WRDI = 0x04,    /** write_disable */
-    CMD_SE = 0x20,      /** Erase 4 kB */
-    CMD_BE = 0xd8,      /** Erase 64,32 or 8 k memory */
-    CMD_CE = 0xc7,      /** Erase full array */
-    CMD_PP = 0x02,      /** Page program */
-    CMD_WRSU = 0xb0,    /** Suspend program/erase */
-    CMD_WRRE = 0x30,    /** Resume program/erase */
+    CMD_WREN = 0x06, /** write enable */
+    CMD_WRDI = 0x04, /** write_disable */
+    CMD_SE = 0x20,   /** Erase 4 kB */
+    CMD_BE = 0xd8,   /** Erase 64,32 or 8 k memory */
+    CMD_CE = 0xc7,   /** Erase full array */
+    CMD_PP = 0x02,   /** Page program */
+    CMD_WRSU = 0xb0, /** Suspend program/erase */
+    CMD_WRRE = 0x30, /** Resume program/erase */
 
     /* protection */
-    CMD_RBPR = 0x72,    /** Read block protection reg */
-    CMD_WBPR = 0x42,    /** Write block protection reg */
-    CMD_LBPR = 0x8d,    /** Lock down block protection reg */
-    CMD_RSID = 0x88,    /** Read security ID */
-    CMD_PSID = 0xa5,    /** Program user security ID */
-    CMD_LSID = 0x85,    /** Lock out security Id programming */
+    CMD_RBPR = 0x72, /** Read block protection reg */
+    CMD_WBPR = 0x42, /** Write block protection reg */
+    CMD_LBPR = 0x8d, /** Lock down block protection reg */
+    CMD_RSID = 0x88, /** Read security ID */
+    CMD_PSID = 0xa5, /** Program user security ID */
+    CMD_LSID = 0x85, /** Lock out security Id programming */
 } spiflash_cmd_t;
 
 /**
@@ -76,10 +76,10 @@ typedef enum {
  * @param dummy     Amount (up to 4) of dummy bytes to send after address
  * @param release_cs    Release cs pin after sending data
  */
-static void SpiFlashi_CmdWithAddr(const spiflash_desc_t *desc,
-        spiflash_cmd_t cmd, uint32_t addr, uint8_t dummy, bool release_cs)
+static void SpiFlashi_CmdWithAddr(const spiflash_desc_t *desc, spiflash_cmd_t cmd, uint32_t addr,
+    uint8_t dummy, bool release_cs)
 {
-    uint8_t data[8] = {0};
+    uint8_t data[8] = { 0 };
 
     ASSERT_NOT(dummy > 4);
 
@@ -89,7 +89,7 @@ static void SpiFlashi_CmdWithAddr(const spiflash_desc_t *desc,
     data[3] = addr;
 
     cs_set();
-    SPId_Send(desc->spi_device, data, 4+dummy);
+    SPId_Send(desc->spi_device, data, 4 + dummy);
 
     if (release_cs) {
         cs_unset();
@@ -115,8 +115,7 @@ static void SpiFlashi_Cmd(const spiflash_desc_t *desc, spiflash_cmd_t cmd)
  * @param desc      The device descriptor
  * @param timeout_ms    Time to wait for op to finish
  */
-static void SpiFlashi_WaitReady(const spiflash_desc_t *desc,
-        uint32_t timeout_ms)
+static void SpiFlashi_WaitReady(const spiflash_desc_t *desc, uint32_t timeout_ms)
 {
     const uint8_t cmd = CMD_RDSR;
     uint32_t start = millis();
@@ -156,7 +155,7 @@ static void SpiFlashi_WriteDisable(const spiflash_desc_t *desc)
 
 void SpiFlash_WriteUnlock(const spiflash_desc_t *desc)
 {
-    uint8_t buf[11] = {0};
+    uint8_t buf[11] = { 0 };
     buf[0] = CMD_WBPR;
 
     SpiFlashi_WriteEnable(desc);
@@ -166,16 +165,14 @@ void SpiFlash_WriteUnlock(const spiflash_desc_t *desc)
     SpiFlashi_WriteDisable(desc);
 }
 
-void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr, uint8_t *buf,
-        size_t len)
+void SpiFlash_Read(const spiflash_desc_t *desc, uint32_t addr, uint8_t *buf, size_t len)
 {
     SpiFlashi_CmdWithAddr(desc, CMD_READ, addr, 0, false);
     SPId_Receive(desc->spi_device, buf, len);
     cs_unset();
 }
 
-void SpiFlash_Write(const spiflash_desc_t *desc, uint32_t addr,
-        const uint8_t *buf, size_t len)
+void SpiFlash_Write(const spiflash_desc_t *desc, uint32_t addr, const uint8_t *buf, size_t len)
 {
     uint16_t bytes;
 
@@ -215,8 +212,7 @@ void SpiFlash_EraseSector(const spiflash_desc_t *desc, uint32_t addr)
     SpiFlashi_WriteDisable(desc);
 }
 
-void SpiFlash_Init(spiflash_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
-        uint8_t cs_pad)
+void SpiFlash_Init(spiflash_desc_t *desc, uint8_t spi_device, uint32_t cs_port, uint8_t cs_pad)
 {
     desc->spi_device = spi_device;
     desc->cs_port = cs_port;

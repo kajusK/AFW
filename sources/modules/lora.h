@@ -67,8 +67,7 @@ void Lora_GetCounters(uint32_t *frame_rx, uint32_t *frame_tx);
  * @param NwkSkey   16 bytes of the Network Session Key
  * @param AppSkey   16 bytes of the Application Session Key
  */
-void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey,
-        const uint8_t *AppSkey);
+void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey, const uint8_t *AppSkey);
 
 /**
  * Initialize LoRaWan module in Activation by Personalization (ABP)

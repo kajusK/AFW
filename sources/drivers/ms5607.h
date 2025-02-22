@@ -23,9 +23,9 @@ typedef enum {
 
 /** Descriptor for the selected device */
 typedef struct {
-    uint8_t i2c_device;     /**< I2C device to use */
-    uint8_t address;        /**< The MS5607 I2C address to use */
-    uint16_t calib[6];      /**< Calibration data of the MS5607 */
+    uint8_t i2c_device; /**< I2C device to use */
+    uint8_t address;    /**< The MS5607 I2C address to use */
+    uint16_t calib[6];  /**< Calibration data of the MS5607 */
 } ms5607_desc_t;
 
 /**
@@ -37,8 +37,8 @@ typedef struct {
  *
  * @return True if device responded and data are valid
  */
-bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
-        uint32_t *pressure_Pa, int32_t *temp_mdeg);
+bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr, uint32_t *pressure_Pa,
+    int32_t *temp_mdeg);
 
 /**
  * Initialize the pressure sensor
@@ -48,7 +48,6 @@ bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
  * @param address           Address of the device on I2C bus;
  * @return True if successfull, false if not responding
  */
-bool MS5607_Init(ms5607_desc_t *desc, uint8_t i2c_device,
-        uint8_t address);
+bool MS5607_Init(ms5607_desc_t *desc, uint8_t i2c_device, uint8_t address);
 
 #endif

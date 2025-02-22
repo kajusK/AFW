@@ -12,24 +12,24 @@
 
 /** Device descriptor */
 typedef struct {
-    uint8_t spi_device;     /**< SPI device the RFM is connected to */
-    uint32_t cs_port;       /**< MCU port the CS signal is connected to */
-    uint8_t cs_pad;         /**< MCU pin the CS signal is connected to */
-    uint32_t reset_port;    /**< MCU port the reset signal is connected to */
-    uint8_t reset_pad;      /**< MCU pin the reset signal is connected to */
-    uint32_t io0_port;      /**< MCU port the IO0 signal is connected to */
-    uint32_t io0_pad;       /**< MCU pin the IO0 signal is connected to */
-    uint32_t io4_port;      /**< MCU port the IO4 signal is connected to */
-    uint32_t io4_pad;       /**< MCU pin the IO4 signal is connected to */
-    bool is_hxx;            /**< True if RFM69HW or HCW is used */
-    bool high_power;        /**< If true, the >17dBm output is used */
-    uint8_t payload_len;    /**< Fixed payload length if used */
+    uint8_t spi_device;  /**< SPI device the RFM is connected to */
+    uint32_t cs_port;    /**< MCU port the CS signal is connected to */
+    uint8_t cs_pad;      /**< MCU pin the CS signal is connected to */
+    uint32_t reset_port; /**< MCU port the reset signal is connected to */
+    uint8_t reset_pad;   /**< MCU pin the reset signal is connected to */
+    uint32_t io0_port;   /**< MCU port the IO0 signal is connected to */
+    uint32_t io0_pad;    /**< MCU pin the IO0 signal is connected to */
+    uint32_t io4_port;   /**< MCU port the IO4 signal is connected to */
+    uint32_t io4_pad;    /**< MCU pin the IO4 signal is connected to */
+    bool is_hxx;         /**< True if RFM69HW or HCW is used */
+    bool high_power;     /**< If true, the >17dBm output is used */
+    uint8_t payload_len; /**< Fixed payload length if used */
 } rfm69_desc_t;
 
 typedef enum {
-    RFM69_ENC_NONE = 0,          /**< No DC-free encoding */
-    RFM69_ENC_MANCHESTER = 1,    /**< Manchester DC-free encoding */
-    RFM69_ENC_WHITENING = 2 ,    /**< Whitening DC-free encoding */
+    RFM69_ENC_NONE = 0,       /**< No DC-free encoding */
+    RFM69_ENC_MANCHESTER = 1, /**< Manchester DC-free encoding */
+    RFM69_ENC_WHITENING = 2,  /**< Whitening DC-free encoding */
 } rfm69_encoding_t;
 
 typedef enum {
@@ -39,7 +39,7 @@ typedef enum {
     RFM69_FSK_BT_0_3 = 0x3,     /**< Frequency shift keying modulator, Gaussian filter BT=0.3 */
     RFM69_OOK_NO_SHAPING = 0x8, /**< On-Off keying modulator, no modulation shaping */
     RFM69_OOK_BR = 0x9,         /**< On-Off keying modulator, filtering with fcutoff=BR */
-    RFM69_OOK_2BR = 0xa,       /**< On-Off keying modulator, filtering with fcutoff=2*BR */
+    RFM69_OOK_2BR = 0xa,        /**< On-Off keying modulator, filtering with fcutoff=2*BR */
 } rfm69_modulation_t;
 
 /** RX filter bandwidth in kHz */
@@ -95,13 +95,14 @@ typedef enum {
 } rfm69_rx_bandwidth_t;
 
 typedef struct {
-    uint32_t frequency_hz;          /**< Carrier frequency in Hz */
-    uint32_t bitrate_bps;           /**< Data bitrate in bits per second, or chip rate for menchester encoding */
-    uint32_t freq_deviation_hz;     /**< Frequency deviation in Hz */
-    rfm69_modulation_t modulation;  /**< Signal modulation */
-    rfm69_rx_bandwidth_t rx_bw;     /**< Input filter bandwidth */
+    uint32_t frequency_hz;         /**< Carrier frequency in Hz */
+    uint32_t bitrate_bps;          /**< Bitrate in bits per second, or chip rate for menchester */
+    uint32_t freq_deviation_hz;    /**< Frequency deviation in Hz */
+    rfm69_modulation_t modulation; /**< Signal modulation */
+    rfm69_rx_bandwidth_t rx_bw;    /**< Input filter bandwidth */
 } rfm69_config_t;
 
+// clang-format off
 /**
  * Frame format definition
  *
@@ -115,29 +116,33 @@ typedef struct {
  *
  * The FIFO is 66 bytes long, the payload length must be equal or lower
  */
-typedef struct {
-    bool variable_len;      /**< True for variable length frames, false for fixed */
-    uint8_t payload_len;     /**< Maximum payload length for variable frames, or payload len for fixed len */
+// clang-format on
 
-    uint16_t preamble_len;  /**< Size of preamble to be sent */
+typedef struct {
+    bool variable_len;   /**< True for variable length frames, false for fixed */
+    uint8_t payload_len; /**< Maximum payload length for variable frames, or len for fixed frame */
+    uint16_t preamble_len; /**< Size of preamble to be sent */
+
     struct {
-        uint8_t len;        /**< Length of sync word in bytes, 1-8 bytes,  0 to disable */
-        uint8_t value[8];   /**< Sync word bytes, 0x00 not allowed */
-        uint8_t tolerance;  /**< Number of tolerated errors in bytes, 0 to 7 */
+        uint8_t len;       /**< Length of sync word in bytes, 1-8 bytes,  0 to disable */
+        uint8_t value[8];  /**< Sync word bytes, 0x00 not allowed */
+        uint8_t tolerance; /**< Number of tolerated errors in bytes, 0 to 7 */
     } sync;
 
-    bool crc;               /**< Enable CRC generation/checking, the CRC is stripped from payload */
-    rfm69_encoding_t encoding;/**< DC free encoding method */
+    bool crc; /**< Enable CRC generation/checking, the CRC is stripped from payload */
+    rfm69_encoding_t encoding; /**< DC free encoding method */
 
     struct {
-        bool enable;        /** Enable frame filtering based on address (first byte of payload), add to payload manually at TX */
-        uint8_t unicast;    /** Unicast address to listen for */
-        uint8_t broadcast;  /** Broadcast address to listen for, set to same as unicast if not needed */
+        bool enable;     /** Enable frame filtering based on address (first byte of payload), add to
+                            payload manually at TX */
+        uint8_t unicast; /** Unicast address to listen for */
+        uint8_t
+            broadcast; /** Broadcast address to listen for, set to same as unicast if not needed */
     } filter;
 
     struct {
-        bool enable;        /**< Enable AES encryption, payload limited to 66 bytes */
-        uint8_t key[16];    /**< 16 bytes of the AES encryption key */
+        bool enable;     /**< Enable AES encryption, payload limited to 66 bytes */
+        uint8_t key[16]; /**< 16 bytes of the AES encryption key */
     } aes;
 } rfm69_frame_t;
 
@@ -147,7 +152,8 @@ typedef struct {
  * @note the HW version supports -2 to 20 dBm, the W version -18 to 13 dBm
 
  * @param desc      Device descriptor
- * @param dBm       Desired power in dBm (-18 to 20), 20 dBm is limited to 1 % duty cycle and antenna must be matched
+ * @param dBm       Desired power in dBm (-18 to 20), 20 dBm is limited to 1 % duty cycle and
+ antenna must be matched
  */
 void RFM69_SetPowerDBm(rfm69_desc_t *desc, int8_t dBm);
 
@@ -230,8 +236,7 @@ void RFM69_StartReceiver(const rfm69_desc_t *desc);
  * @param reset_pad     Pad of reset pin
  * @param is_hxx        True if device is High power version
  */
-bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port,
-        uint8_t cs_pad, uint32_t reset_port, uint8_t reset_pad,
-        bool is_hxx);
+bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port, uint8_t cs_pad,
+    uint32_t reset_port, uint8_t reset_pad, bool is_hxx);
 
 #endif

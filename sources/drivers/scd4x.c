@@ -13,16 +13,16 @@
 
 #define SCD4x_ADDRESS 0x62
 
-#define CMD_START_PERIODIC 0x21b1
-#define CMD_START_LOW_POWER 0x21ac
-#define CMD_SINGLE_SHOT 0x219d
-#define CMD_READ_MEASUREMENT 0xec05
-#define CMD_STOP_PERIODIC 0x3f86
+#define CMD_START_PERIODIC       0x21b1
+#define CMD_START_LOW_POWER      0x21ac
+#define CMD_SINGLE_SHOT          0x219d
+#define CMD_READ_MEASUREMENT     0xec05
+#define CMD_STOP_PERIODIC        0x3f86
 #define CMD_SET_AMBIENT_PRESSURE 0xe000
-#define CMD_GET_READY 0xe4b8
-#define CMD_GET_SERIAL 0x3682
-#define CMD_POWER_OFF 0x36e0
-#define CMD_WAKE_UP 0x36f6
+#define CMD_GET_READY            0xe4b8
+#define CMD_GET_SERIAL           0x3682
+#define CMD_POWER_OFF            0x36e0
+#define CMD_WAKE_UP              0x36f6
 
 /**
  * Read data from the sensor
@@ -42,16 +42,16 @@ static bool read(const scd4x_desc_t *desc, uint16_t cmd, uint16_t *data, uint8_t
 
     buf[0] = (cmd & 0xff00) >> 8;
     buf[1] = cmd & 0x00ff;
-    res = I2Cd_Transceive(desc->i2c_device, SCD4x_ADDRESS, buf, 2, buf, len*3);
+    res = I2Cd_Transceive(desc->i2c_device, SCD4x_ADDRESS, buf, 2, buf, len * 3);
     if (!res) {
         return false;
     }
 
-    for (uint8_t i = 0; i < len*3; i += 3) {
-        if (CRC8(&buf[i], 2) != buf[i+2]) {
+    for (uint8_t i = 0; i < len * 3; i += 3) {
+        if (CRC8(&buf[i], 2) != buf[i + 2]) {
             return false;
         }
-        *data++ = buf[i] << 8 | buf[i+1];
+        *data++ = buf[i] << 8 | buf[i + 1];
     }
     return true;
 }
@@ -110,10 +110,10 @@ bool SCD4x_ReadData(const scd4x_desc_t *desc, uint16_t *ppm, int16_t *temp, uint
         *ppm = buf[0];
     }
     if (temp != NULL) {
-        *temp = -45 + ((uint32_t)175*buf[1])/(65535);
+        *temp = -45 + ((uint32_t)175 * buf[1]) / (65535);
     }
     if (rh != NULL) {
-        *rh = ((uint32_t)100*buf[2])/(65535);
+        *rh = ((uint32_t)100 * buf[2]) / (65535);
     }
     return true;
 }

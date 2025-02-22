@@ -46,7 +46,6 @@ void AES128_CMACGetKeys(uint8_t *k1, uint8_t *k2, const uint8_t *key);
  * @param key       Key to use for encryption
  * @param tag       Buffer to store result to (16 bytes tag)
  */
-void AES128_CMAC(const uint8_t *data, size_t len, const uint8_t *key,
-        uint8_t *tag);
+void AES128_CMAC(const uint8_t *data, size_t len, const uint8_t *key, uint8_t *tag);
 
 #endif

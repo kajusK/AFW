@@ -13,21 +13,21 @@
 #define I2C_TIMEOUT_MS 2
 
 static const uint32_t i2cdi_regs[] = {
-		I2C1,
+    I2C1,
 #ifdef I2C2_BASE
-		I2C2,
+    I2C2,
 #ifdef I2C3_BASE
-		I2C3,
+    I2C3,
 #endif
 #endif
 };
 
 static const uint32_t i2cdi_rcc[] = {
-		RCC_I2C1,
+    RCC_I2C1,
 #ifdef I2C2_BASE
-		RCC_I2C2,
+    RCC_I2C2,
 #ifdef I2C3_BASE
-		RCC_I2C3,
+    RCC_I2C3,
 #endif
 #endif
 };
@@ -40,8 +40,8 @@ static const uint32_t i2cdi_rcc[] = {
  */
 static uint32_t I2Cdi_GetDevice(uint8_t device)
 {
-	ASSERT_NOT(device == 0 || device > sizeof(i2cdi_regs)/sizeof(i2cdi_regs[0]));
-	return i2cdi_regs[device - 1];
+    ASSERT_NOT(device == 0 || device > sizeof(i2cdi_regs) / sizeof(i2cdi_regs[0]));
+    return i2cdi_regs[device - 1];
 }
 
 /**
@@ -52,8 +52,8 @@ static uint32_t I2Cdi_GetDevice(uint8_t device)
  */
 static enum rcc_periph_clken I2Cdi_GetRcc(uint8_t device)
 {
-	ASSERT_NOT(device == 0 || device > sizeof(i2cdi_rcc)/sizeof(i2cdi_rcc[0]));
-	return i2cdi_rcc[device - 1];
+    ASSERT_NOT(device == 0 || device > sizeof(i2cdi_rcc) / sizeof(i2cdi_rcc[0]));
+    return i2cdi_rcc[device - 1];
 }
 
 /**
@@ -102,8 +102,8 @@ static bool I2Cdi_WaitFlag(uint32_t i2c, uint32_t flag)
     return true;
 }
 
-bool I2Cd_Transceive(uint8_t device, uint8_t address, const uint8_t *txbuf,
-		uint8_t txlen, uint8_t *rxbuf, uint8_t rxlen)
+bool I2Cd_Transceive(uint8_t device, uint8_t address, const uint8_t *txbuf, uint8_t txlen,
+    uint8_t *rxbuf, uint8_t rxlen)
 {
     uint32_t i2c = I2Cdi_GetDevice(device);
 
@@ -155,9 +155,9 @@ bool I2Cd_Transceive(uint8_t device, uint8_t address, const uint8_t *txbuf,
 
 void I2Cd_Init(uint8_t device, bool fast)
 {
-	enum rcc_periph_clken rcc = I2Cdi_GetRcc(device);
-	uint32_t i2c = I2Cdi_GetDevice(device);
-	uint8_t clk_mhz;
+    enum rcc_periph_clken rcc = I2Cdi_GetRcc(device);
+    uint32_t i2c = I2Cdi_GetDevice(device);
+    uint8_t clk_mhz;
 
     rcc_periph_clock_enable(rcc);
     /*
@@ -178,9 +178,9 @@ void I2Cd_Init(uint8_t device, bool fast)
     i2c_enable_analog_filter(i2c);
     i2c_set_digital_filter(i2c, 0);
     if (fast) {
-		i2c_set_speed(i2c, i2c_speed_fm_400k, clk_mhz);
+        i2c_set_speed(i2c, i2c_speed_fm_400k, clk_mhz);
     } else {
-		i2c_set_speed(i2c, i2c_speed_sm_100k, clk_mhz);
+        i2c_set_speed(i2c, i2c_speed_sm_100k, clk_mhz);
     }
     i2c_enable_stretching(i2c);
     i2c_set_7bit_addr_mode(i2c);

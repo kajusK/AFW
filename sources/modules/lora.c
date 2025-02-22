@@ -34,8 +34,7 @@ static lora_send_cb_t lorai_send_cb;
  * @param frame_cnt     Frame counter to be used
  * @param tx            True if encryption outgoing transmission (uplink)
  */
-static void Lorai_PayloadEncrypt(uint8_t *data, uint8_t len, uint32_t frame_cnt,
-        bool tx)
+static void Lorai_PayloadEncrypt(uint8_t *data, uint8_t len, uint32_t frame_cnt, bool tx)
 {
     uint8_t block[16];
     uint8_t i, j;
@@ -82,8 +81,7 @@ static void Lorai_PayloadEncrypt(uint8_t *data, uint8_t len, uint32_t frame_cnt,
  * @param frame_cnt Frame counter to be used
  * @param tx            True if encryption outgoing transmission (uplink)
  */
-static void Lorai_GetMIC(uint8_t *mic, uint8_t *data, uint8_t len,
-        uint32_t frame_cnt, bool tx)
+static void Lorai_GetMIC(uint8_t *mic, uint8_t *data, uint8_t len, uint32_t frame_cnt, bool tx)
 {
     uint8_t k1[16], k2[16];
     uint8_t tag[16];
@@ -173,7 +171,7 @@ bool Lora_Send(const uint8_t *data, uint8_t len)
 
     memcpy(&message[9], data, len);
     Lorai_PayloadEncrypt(&message[9], len, lorai_frame_tx_cnt, true);
-    Lorai_GetMIC(&message[9+len], message, len+9, lorai_frame_tx_cnt, true);
+    Lorai_GetMIC(&message[9 + len], message, len + 9, lorai_frame_tx_cnt, true);
 
     lorai_send_cb(message, len + 13);
     lorai_frame_tx_cnt++;
@@ -188,7 +186,7 @@ void Lora_ResetFrameCounters(void)
 
 void Lora_SetCounters(uint32_t frame_rx, uint32_t frame_tx)
 {
-    (void) frame_rx;
+    (void)frame_rx;
     lorai_frame_tx_cnt = frame_tx;
 }
 
@@ -202,8 +200,7 @@ void Lora_GetCounters(uint32_t *frame_rx, uint32_t *frame_tx)
     }
 }
 
-void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey,
-        const uint8_t *AppSkey)
+void Lora_SetAbpKeys(const uint8_t *DevAddr, const uint8_t *NwkSkey, const uint8_t *AppSkey)
 {
     lorai_NwkSkey = NwkSkey;
     lorai_AppSkey = AppSkey;

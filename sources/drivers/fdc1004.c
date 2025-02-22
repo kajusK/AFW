@@ -47,8 +47,7 @@ typedef enum {
  * @param data  Data buffer to write
  * @return True if sensor acked the command
  */
-static bool FDC1004i_WriteReg(const fdc1004_desc_t *desc, fdc1004_reg_t reg,
-        uint16_t data)
+static bool FDC1004i_WriteReg(const fdc1004_desc_t *desc, fdc1004_reg_t reg, uint16_t data)
 {
     uint8_t buf[3];
 
@@ -68,8 +67,7 @@ static bool FDC1004i_WriteReg(const fdc1004_desc_t *desc, fdc1004_reg_t reg,
  * @param data  Data buffer to read to
  * @return True if sensor acked the command
  */
-static bool FDC1004i_ReadReg(const fdc1004_desc_t *desc, fdc1004_reg_t reg,
-        uint16_t *data)
+static bool FDC1004i_ReadReg(const fdc1004_desc_t *desc, fdc1004_reg_t reg, uint16_t *data)
 {
     uint8_t buf[2];
     ASSERT_NOT(desc == NULL || data == NULL);
@@ -81,8 +79,7 @@ static bool FDC1004i_ReadReg(const fdc1004_desc_t *desc, fdc1004_reg_t reg,
     return true;
 }
 
-bool FDC1004_ReadResultRaw(const fdc1004_desc_t *desc,
-        fdc1004_meas_t channel, uint32_t *raw)
+bool FDC1004_ReadResultRaw(const fdc1004_desc_t *desc, fdc1004_meas_t channel, uint32_t *raw)
 {
     uint16_t msb, lsb;
     bool ret = false;
@@ -137,9 +134,8 @@ bool FDC1004_IsMeasComplete(const fdc1004_desc_t *desc, fdc1004_meas_t channel)
     return false;
 }
 
-bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc,
-        fdc1004_meas_t channel, fdc1004_ch_t positive, fdc1004_ch_t negative,
-        uint32_t offset_pf)
+bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc, fdc1004_meas_t channel,
+    fdc1004_ch_t positive, fdc1004_ch_t negative, uint32_t offset_pf)
 {
     uint16_t conf;
     uint8_t offset;
@@ -165,8 +161,7 @@ bool FDC1004_ConfigureMeasurement(const fdc1004_desc_t *desc,
     return false;
 }
 
-bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
-        fdc1004_meas_t channel)
+bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate, fdc1004_meas_t channel)
 {
     switch (channel) {
         case FDC_MEAS_1:
@@ -181,15 +176,22 @@ bool FDC1004_RunSingle(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
     return false;
 }
 
-bool FDC1004_RunRepeated(const fdc1004_desc_t *desc, fdc1004_rate_t rate,
-        uint8_t channels)
+bool FDC1004_RunRepeated(const fdc1004_desc_t *desc, fdc1004_rate_t rate, uint8_t channels)
 {
     uint16_t data = rate << 10 | 1 << 8;
 
-    if (channels & FDC_MEAS_1) { data |= 1 << 7; }
-    if (channels & FDC_MEAS_2) { data |= 1 << 6; }
-    if (channels & FDC_MEAS_3) { data |= 1 << 5; }
-    if (channels & FDC_MEAS_4) { data |= 1 << 4; }
+    if (channels & FDC_MEAS_1) {
+        data |= 1 << 7;
+    }
+    if (channels & FDC_MEAS_2) {
+        data |= 1 << 6;
+    }
+    if (channels & FDC_MEAS_3) {
+        data |= 1 << 5;
+    }
+    if (channels & FDC_MEAS_4) {
+        data |= 1 << 4;
+    }
 
     return FDC1004i_WriteReg(desc, FDC_CONF, data);
 }

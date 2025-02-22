@@ -10,25 +10,25 @@
 #include "drivers/ssd1306.h"
 
 typedef enum {
-    SSD1306_MEM_MODE = 0x20,        /** modes - page, vertical, horizontal */
-    SSD1306_HV_COL_ADDR = 0x21,     /** Min and max col addr in non page mode */
-    SSD1306_HV_PAGE_ADDR = 0x22,    /** Min and max page addr in non page mode */
-    SSD1306_START_LINE = 0x40,      /** Line to start drawing to disp from */
-    SSD1306_CONTRAST = 0x81,        /** Contrast setup */
-    SSD1306_DISP_OFF = 0xae,        /** Turn display off */
-    SSD1306_DISP_ON = 0xaf,         /** Turn display on */
-    SSD1306_MULTIPLEX = 0xa8,       /** Set multiplex - number of lines */
-    SSD1306_VERTICAL_NORMAL = 0xc0, /** Show display non flipped vertically */
-    SSD1306_VERTICAL_FLIP = 0xc8,   /** Flip display vertically */
+    SSD1306_MEM_MODE = 0x20,          /** modes - page, vertical, horizontal */
+    SSD1306_HV_COL_ADDR = 0x21,       /** Min and max col addr in non page mode */
+    SSD1306_HV_PAGE_ADDR = 0x22,      /** Min and max page addr in non page mode */
+    SSD1306_START_LINE = 0x40,        /** Line to start drawing to disp from */
+    SSD1306_CONTRAST = 0x81,          /** Contrast setup */
+    SSD1306_DISP_OFF = 0xae,          /** Turn display off */
+    SSD1306_DISP_ON = 0xaf,           /** Turn display on */
+    SSD1306_MULTIPLEX = 0xa8,         /** Set multiplex - number of lines */
+    SSD1306_VERTICAL_NORMAL = 0xc0,   /** Show display non flipped vertically */
+    SSD1306_VERTICAL_FLIP = 0xc8,     /** Flip display vertically */
     SSD1306_HORIZONTAL_NORMAL = 0xa0, /** Normal horizontal orientation */
-    SSD1306_HORIZONTAL_FLIP = 0xa1, /** Flip display horizontally */
-    SSD1306_CLK_DIV = 0xd5,         /** Set display clock divide ratio */
-    SSD1306_PRECHARGE = 0xd9,       /** Set precharge period */
-    SSD1306_COM_PINS = 0xda,        /** Set pins layout to match oled hw */
-    SSD1306_VCOM_DETECT = 0xdb,     /** Adjust Vcom regulator output */
-    SSD1306_CHARGE_PUMP = 0x8d,     /** Configure charge pump */
-    SSD1306_DISP_NORM = 0xa6,       /** 1 = black, 0 = white */
-    SSD1306_DISP_INVERTED = 0xa7,   /** Invert display colors */
+    SSD1306_HORIZONTAL_FLIP = 0xa1,   /** Flip display horizontally */
+    SSD1306_CLK_DIV = 0xd5,           /** Set display clock divide ratio */
+    SSD1306_PRECHARGE = 0xd9,         /** Set precharge period */
+    SSD1306_COM_PINS = 0xda,          /** Set pins layout to match oled hw */
+    SSD1306_VCOM_DETECT = 0xdb,       /** Adjust Vcom regulator output */
+    SSD1306_CHARGE_PUMP = 0x8d,       /** Configure charge pump */
+    SSD1306_DISP_NORM = 0xa6,         /** 1 = black, 0 = white */
+    SSD1306_DISP_INVERTED = 0xa7,     /** Invert display colors */
 } ssd1306_cmd_t;
 
 /**
@@ -39,8 +39,7 @@ typedef enum {
  *
  * @return  True if ACKed
  */
-static bool SSD1306i_Data(const ssd1306_desc_t *desc, const uint8_t *buf,
-        size_t len)
+static bool SSD1306i_Data(const ssd1306_desc_t *desc, const uint8_t *buf, size_t len)
 {
     return I2Cd_Transceive(desc->i2c_device, desc->address, buf, len, NULL, 0);
 }
@@ -59,8 +58,7 @@ static bool SSD1306i_Cmd(const ssd1306_desc_t *desc, ssd1306_cmd_t cmd)
     buf[0] = 0x00; /* control byte = 0 -> command */
     buf[1] = cmd;
 
-    return I2Cd_Transceive(desc->i2c_device, desc->address, buf,
-            sizeof(buf), NULL, 0);
+    return I2Cd_Transceive(desc->i2c_device, desc->address, buf, sizeof(buf), NULL, 0);
 }
 
 /**
@@ -69,8 +67,7 @@ static bool SSD1306i_Cmd(const ssd1306_desc_t *desc, ssd1306_cmd_t cmd)
  * @param cmd       Command
  * @param data      Data for the command
  */
-static void SSD1306i_Cmd2(const ssd1306_desc_t *desc, ssd1306_cmd_t cmd,
-        uint8_t data)
+static void SSD1306i_Cmd2(const ssd1306_desc_t *desc, ssd1306_cmd_t cmd, uint8_t data)
 {
     /* not a bug, command data are really sent as another command... */
     SSD1306i_Cmd(desc, cmd);
@@ -84,19 +81,18 @@ static void SSD1306i_Cmd2(const ssd1306_desc_t *desc, ssd1306_cmd_t cmd,
  * @param data1     Data for the command
  * @param data2     Data for the command
  */
-static void SSD1306i_Cmd3(const ssd1306_desc_t *desc, ssd1306_cmd_t cmd,
-        uint8_t data1, uint8_t data2)
+static void SSD1306i_Cmd3(const ssd1306_desc_t *desc, ssd1306_cmd_t cmd, uint8_t data1,
+    uint8_t data2)
 {
     SSD1306i_Cmd(desc, cmd);
     SSD1306i_Cmd(desc, data1);
     SSD1306i_Cmd(desc, data2);
 }
 
-void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x, uint16_t y,
-        uint16_t color)
+void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x, uint16_t y, uint16_t color)
 {
     uint8_t bit = 1 << (y & 7);
-    uint16_t pos = x+y/8*(SSD1306_WIDTH+1);
+    uint16_t pos = x + y / 8 * (SSD1306_WIDTH + 1);
     /* first byte is ssd1306 command */
     pos += 1;
 
@@ -114,7 +110,7 @@ void SSD1306_DrawPixel(const ssd1306_desc_t *desc, uint16_t x, uint16_t y,
 
 void SSD1306_Flush(const ssd1306_desc_t *desc)
 {
-    uint8_t page = SSD1306_HEIGHT/8;
+    uint8_t page = SSD1306_HEIGHT / 8;
     uint8_t *addr = desc->fbuf;
 
     /* reset ram address pinter */
@@ -123,8 +119,8 @@ void SSD1306_Flush(const ssd1306_desc_t *desc)
     /* write split into pages due to i2c driver limitation of max tx data len */
     while (page--) {
         /* first byte in fbuf is control byte 0x40 with data mode */
-        SSD1306i_Data(desc, addr, SSD1306_WIDTH+1);
-        addr += SSD1306_WIDTH+1;
+        SSD1306i_Data(desc, addr, SSD1306_WIDTH + 1);
+        addr += SSD1306_WIDTH + 1;
     }
 }
 
@@ -139,7 +135,7 @@ void SSD1306_DispEnable(const ssd1306_desc_t *desc, bool on)
 
 void SSD1306_SetContrast(const ssd1306_desc_t *desc, uint8_t pct)
 {
-    SSD1306i_Cmd2(desc, SSD1306_CONTRAST, pct*255U/100);
+    SSD1306i_Cmd2(desc, SSD1306_CONTRAST, pct * 255U / 100);
 }
 
 void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip)
@@ -153,8 +149,8 @@ void SSD1306_SetOrientation(const ssd1306_desc_t *desc, bool flip)
     }
 }
 
-bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf, uint8_t i2c_device,
-        uint8_t address, uint32_t reset_port, uint8_t reset_pad)
+bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf, uint8_t i2c_device, uint8_t address,
+    uint32_t reset_port, uint8_t reset_pad)
 {
     uint32_t pos;
 
@@ -201,7 +197,7 @@ bool SSD1306_Init(ssd1306_desc_t *desc, uint8_t *fbuf, uint8_t i2c_device,
     SSD1306i_Cmd2(desc, SSD1306_MEM_MODE, 0); /* horizontal addressing */
     /* Set area to write */
     SSD1306i_Cmd3(desc, SSD1306_HV_COL_ADDR, 0, SSD1306_WIDTH - 1);
-    SSD1306i_Cmd3(desc, SSD1306_HV_PAGE_ADDR, 0, SSD1306_HEIGHT/8 - 1);
+    SSD1306i_Cmd3(desc, SSD1306_HV_PAGE_ADDR, 0, SSD1306_HEIGHT / 8 - 1);
     /* write empty framebuffer to clear possible mess in display ram */
     SSD1306_Flush(desc);
 

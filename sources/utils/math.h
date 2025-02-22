@@ -15,7 +15,7 @@
  * @param div   Divisor
  * @return Result of ceil(num/div)
  */
-#define ceil_div(num, div) (((num) + (div) - 1)/(div))
+#define ceil_div(num, div) (((num) + (div) - 1) / (div))
 
 /**
  * Calculate sin function

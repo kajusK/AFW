@@ -19,13 +19,13 @@
 
 /** Structure of the configuration stored in flash memory */
 typedef struct {
-    uint16_t crc;       /** Checksum of the config data */
+    uint16_t crc; /** Checksum of the config data */
     config_t config;
 } config_internal_t;
 
 extern const config_internal_t _config_part1;
 #if CONFIG_USE_TWO_PARTITIONS
-    extern const config_internal_t _config_part2;
+extern const config_internal_t _config_part2;
 #endif
 
 static const config_t *conf_valid;

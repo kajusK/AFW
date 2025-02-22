@@ -12,9 +12,9 @@ uint8_t count1s(uint32_t data)
     return __builtin_popcount(data);
 #else
     /*
-    * Not the more common SWAR implementation - loop is faster in most cases and
-    * we are not handling encryption to keep the O(1) time
-    */
+     * Not the more common SWAR implementation - loop is faster in most cases and
+     * we are not handling encryption to keep the O(1) time
+     */
     uint8_t count = 0;
     while (data != 0) {
         data = data & (data - 1);

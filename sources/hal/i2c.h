@@ -23,8 +23,8 @@
  * @TODO add support for more than 255 bytes in both directions
  * @return True if data were acked, False for NACK
  */
-bool I2Cd_Transceive(uint8_t device, uint8_t address,
-		const uint8_t *txbuf, uint8_t txlen, uint8_t *rxbuf, uint8_t rxlen);
+bool I2Cd_Transceive(uint8_t device, uint8_t address, const uint8_t *txbuf, uint8_t txlen,
+    uint8_t *rxbuf, uint8_t rxlen);
 
 /**
  * Initialize the i2c peripheral

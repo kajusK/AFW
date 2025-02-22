@@ -13,25 +13,25 @@
 #include <libopencm3/stm32/gpio.h> /* required for PORTA,... defines */
 
 /** setting bits in IO registers */
-#define PIN_MODE_INPUT(n)           (0U << ((n) * 2U))
-#define PIN_MODE_OUTPUT(n)          (1U << ((n) * 2U))
-#define PIN_MODE_ALTERNATE(n)       (2U << ((n) * 2U))
-#define PIN_MODE_ANALOG(n)          (3U << ((n) * 2U))
-#define PIN_ODR_LOW(n)              (0U << (n))
-#define PIN_ODR_HIGH(n)             (1U << (n))
-#define PIN_OTYPE_PUSHPULL(n)       (0U << (n))
-#define PIN_OTYPE_OPENDRAIN(n)      (1U << (n))
-#define PIN_OSPEED_VERYLOW(n)       (0U << ((n) * 2U))
-#define PIN_OSPEED_LOW(n)           (1U << ((n) * 2U))
-#define PIN_OSPEED_MEDIUM(n)        (2U << ((n) * 2U))
-#define PIN_OSPEED_HIGH(n)          (3U << ((n) * 2U))
-#define PIN_PUPDR_FLOATING(n)       (0U << ((n) * 2U))
-#define PIN_PUPDR_PULLUP(n)         (1U << ((n) * 2U))
-#define PIN_PUPDR_PULLDOWN(n)       (2U << ((n) * 2U))
-#define PIN_AFIO_AF(n, v)           ((v) << (((n) % 8U) * 4U))
+#define PIN_MODE_INPUT(n)      (0U << ((n) * 2U))
+#define PIN_MODE_OUTPUT(n)     (1U << ((n) * 2U))
+#define PIN_MODE_ALTERNATE(n)  (2U << ((n) * 2U))
+#define PIN_MODE_ANALOG(n)     (3U << ((n) * 2U))
+#define PIN_ODR_LOW(n)         (0U << (n))
+#define PIN_ODR_HIGH(n)        (1U << (n))
+#define PIN_OTYPE_PUSHPULL(n)  (0U << (n))
+#define PIN_OTYPE_OPENDRAIN(n) (1U << (n))
+#define PIN_OSPEED_VERYLOW(n)  (0U << ((n) * 2U))
+#define PIN_OSPEED_LOW(n)      (1U << ((n) * 2U))
+#define PIN_OSPEED_MEDIUM(n)   (2U << ((n) * 2U))
+#define PIN_OSPEED_HIGH(n)     (3U << ((n) * 2U))
+#define PIN_PUPDR_FLOATING(n)  (0U << ((n) * 2U))
+#define PIN_PUPDR_PULLUP(n)    (1U << ((n) * 2U))
+#define PIN_PUPDR_PULLDOWN(n)  (2U << ((n) * 2U))
+#define PIN_AFIO_AF(n, v)      ((v) << (((n) % 8U) * 4U))
 
 /** PAL_LINE for chibios format of line define */
-#define PAL_LINE(a, b)  a, b
+#define PAL_LINE(a, b) a, b
 
 #include "board_gpio.h"
 

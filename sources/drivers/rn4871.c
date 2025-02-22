@@ -18,72 +18,72 @@
 /** Timeout in ms for waiting on command response */
 #define COMMAND_TIMEOUT_MS 500
 /** Timeout to wait for prompt after command */
-#define PROMPT_TIMEOUT_MS 300
+#define PROMPT_TIMEOUT_MS  300
 
 /** Timeout between bytes in % % message */
 #define INTER_BYTE_TIMEOUT_MS 20
 
 /** Timeout for device reboot */
-#define REBOOT_TIMEOUT_MS  5000
+#define REBOOT_TIMEOUT_MS 5000
 
 /* Commands */
-#define CMD_SET_SERIALIZED_NAME "S-"
-#define CMD_SET_AUTH "SA"
-#define CMD_SET_BAUD "SB"
-#define CMD_SET_CONNECTABLE "SC"
-#define CMD_SET_APPEARANCE "SDA"
-#define CMD_SET_DIS_FW "SDF"
-#define CMD_SET_DIS_HW "SDH"
-#define CMD_SET_DIS_SW "SDR"
-#define CMD_SET_DIS_MODEL "SDM"
-#define CMD_SET_DIS_MANUF "SDN"
-#define CMD_SET_DIS_SERIAL "SDS"
-#define CMD_SET_FACTORY "SF"
-#define CMD_SET_ADV_POWER "SGA"
-#define CMD_SET_CON_POWER "SGC"
-#define CMD_SET_TIMER "SM"
-#define CMD_SET_NAME "SN"
-#define CMD_SET_LOW_POWER "SO"  /* requires PIO with UART_RX_IND connected */
-#define CMD_SET_PIN "SP"
-#define CMD_SET_FEATURES "SR"
-#define CMD_SET_DEFAULT_SERVICES "SS"       /* reboot required upon change */
-    #define SERVICE_DEV_INFO        0x80
-    #define SERVICE_TRANSP_UART     0x40
-    #define SERVICE_BEACON          0x20
-#define CMD_SET_CON_PARAM "ST"
-#define CMD_SET_ADV_TIMEOUT "STA"
-#define CMD_SET_ADV_BEACON "STB"
-#define CMD_SET_GPIO "SW"
-#define CMD_GET_CONN_STAT "GK"
-#define CMD_GET_PEER_NAME "GNR"
-#define CMD_GET_ADC "@"
-#define CMD_GET_GPIO_VAL "|I"
-#define CMD_SET_GPIO_VAL "|O"
-#define CMD_SET_PWM "["
-#define CMD_SET_MAC "&"
-#define CMD_GET_CONNECTED "GK"
-#define CMD_CLEAR_MAC "&C"
-#define CMD_GENERATE_MAC "&R"
-#define CMD_START_ADVERTISING "A"
-#define CMD_STOP_ADVERTISING "Y"
-#define CMD_CREATE_BOND "B"         /* Bond to createa secure communication */
-#define CMD_CONNECT "C"             /* Connect to last/specific device */
-#define CMD_START_CENTRAL "F"       /* Switches to central mode and starts scanning */
-#define CMD_ENTER_TRANS_UART "I"    /* Enter transparent uart mode */
-#define CMD_SUSPEND "O"
-#define CMD_REBOOT "R"
-#define CMD_ADD_SERVICE "PS"
-#define CMD_ADD_CHAR "PC"
-#define CMD_CLEAR_SERVICES "PZ"
-#define CMD_WRITE_LOCAL "SHW"
-#define CMD_READ_LOCAL "SHR"
+#define CMD_SET_SERIALIZED_NAME  "S-"
+#define CMD_SET_AUTH             "SA"
+#define CMD_SET_BAUD             "SB"
+#define CMD_SET_CONNECTABLE      "SC"
+#define CMD_SET_APPEARANCE       "SDA"
+#define CMD_SET_DIS_FW           "SDF"
+#define CMD_SET_DIS_HW           "SDH"
+#define CMD_SET_DIS_SW           "SDR"
+#define CMD_SET_DIS_MODEL        "SDM"
+#define CMD_SET_DIS_MANUF        "SDN"
+#define CMD_SET_DIS_SERIAL       "SDS"
+#define CMD_SET_FACTORY          "SF"
+#define CMD_SET_ADV_POWER        "SGA"
+#define CMD_SET_CON_POWER        "SGC"
+#define CMD_SET_TIMER            "SM"
+#define CMD_SET_NAME             "SN"
+#define CMD_SET_LOW_POWER        "SO" /* requires PIO with UART_RX_IND connected */
+#define CMD_SET_PIN              "SP"
+#define CMD_SET_FEATURES         "SR"
+#define CMD_SET_DEFAULT_SERVICES "SS" /* reboot required upon change */
+#define SERVICE_DEV_INFO         0x80
+#define SERVICE_TRANSP_UART      0x40
+#define SERVICE_BEACON           0x20
+#define CMD_SET_CON_PARAM        "ST"
+#define CMD_SET_ADV_TIMEOUT      "STA"
+#define CMD_SET_ADV_BEACON       "STB"
+#define CMD_SET_GPIO             "SW"
+#define CMD_GET_CONN_STAT        "GK"
+#define CMD_GET_PEER_NAME        "GNR"
+#define CMD_GET_ADC              "@"
+#define CMD_GET_GPIO_VAL         "|I"
+#define CMD_SET_GPIO_VAL         "|O"
+#define CMD_SET_PWM              "["
+#define CMD_SET_MAC              "&"
+#define CMD_GET_CONNECTED        "GK"
+#define CMD_CLEAR_MAC            "&C"
+#define CMD_GENERATE_MAC         "&R"
+#define CMD_START_ADVERTISING    "A"
+#define CMD_STOP_ADVERTISING     "Y"
+#define CMD_CREATE_BOND          "B" /* Bond to createa secure communication */
+#define CMD_CONNECT              "C" /* Connect to last/specific device */
+#define CMD_START_CENTRAL        "F" /* Switches to central mode and starts scanning */
+#define CMD_ENTER_TRANS_UART     "I" /* Enter transparent uart mode */
+#define CMD_SUSPEND              "O"
+#define CMD_REBOOT               "R"
+#define CMD_ADD_SERVICE          "PS"
+#define CMD_ADD_CHAR             "PC"
+#define CMD_CLEAR_SERVICES       "PZ"
+#define CMD_WRITE_LOCAL          "SHW"
+#define CMD_READ_LOCAL           "SHR"
 
-#define ENTER_CMD_MODE "$$$"        /* Shows CMD> upon entering */
-#define LEAVE_CMD_MODE "---"        /* Gets END response */
-#define PROMPT "CMD>"
+#define ENTER_CMD_MODE "$$$" /* Shows CMD> upon entering */
+#define LEAVE_CMD_MODE "---" /* Gets END response */
+#define PROMPT         "CMD>"
 
 /** Wait for prompt response */
-#define RN4871i_WaitPrompt(desc)    RN4871i_Expect((desc), PROMPT, PROMPT_TIMEOUT_MS, false)
+#define RN4871i_WaitPrompt(desc) RN4871i_Expect((desc), PROMPT, PROMPT_TIMEOUT_MS, false)
 
 /** Descriptor used for receiving function */
 static rn4871_desc_t *rn4871i_desc;
@@ -130,8 +130,7 @@ static void RN4871i_ProcessStatus(rn4871_desc_t *desc, const char *msg)
  * @param       pos     Position in the message
  * @param       byte    Byte received
  */
-static void RN4871i_ProcessWriteByte(rn4871_evt_data_t *data, uint16_t pos,
-        uint8_t byte)
+static void RN4871i_ProcessWriteByte(rn4871_evt_data_t *data, uint16_t pos, uint8_t byte)
 {
     ASSERT_NOT(data == NULL);
 
@@ -141,7 +140,7 @@ static void RN4871i_ProcessWriteByte(rn4871_evt_data_t *data, uint16_t pos,
     }
 
     if (pos <= 6) {
-        data->handle |= ((uint16_t) hex2dec(byte)) << (4*(6-pos));
+        data->handle |= ((uint16_t)hex2dec(byte)) << (4 * (6 - pos));
     } else if (pos >= 8 && data->len < sizeof(data->data)) {
         if (pos & 0x1) {
             data->data[data->len] |= hex2dec(byte);
@@ -188,7 +187,7 @@ static void RN4871i_UartCb(uint8_t byte)
             if (!in_write) {
                 buf[pos] = '\0';
                 RN4871i_ProcessStatus(rn4871i_desc, buf);
-            } else if (rn4871i_desc->cb != NULL){
+            } else if (rn4871i_desc->cb != NULL) {
                 rn4871i_desc->cb(BLE_EVT_WRITE, &data);
             }
         }
@@ -222,8 +221,8 @@ static void RN4871i_UartCb(uint8_t byte)
  * @return True if string received and terminated by new line, false if
  *           something other arrived
  */
-static bool RN4871i_Expect(rn4871_desc_t *desc, const char *expect,
-        uint16_t timeout_ms, bool terminated)
+static bool RN4871i_Expect(rn4871_desc_t *desc, const char *expect, uint16_t timeout_ms,
+    bool terminated)
 {
     char c;
     uint8_t pos = 0;
@@ -261,8 +260,8 @@ static bool RN4871i_Expect(rn4871_desc_t *desc, const char *expect,
  * @param timeout_ms    Time to wait for response
  * @return True if succeeded (expected string returned)
  */
-static bool RN4871i_CmdRaw(rn4871_desc_t *desc, const char *cmd,
-        const char *param, const char *expect, uint16_t timeout_ms)
+static bool RN4871i_CmdRaw(rn4871_desc_t *desc, const char *cmd, const char *param,
+    const char *expect, uint16_t timeout_ms)
 {
     ASSERT_NOT(desc == NULL || cmd == NULL);
 
@@ -286,8 +285,7 @@ static bool RN4871i_CmdRaw(rn4871_desc_t *desc, const char *cmd,
  * @param param     Optional parameters or NULL
  * @return True if succeeded (AOK returned)
  */
-static bool RN4871i_Cmd(rn4871_desc_t *desc, const char *cmd,
-        const char *param)
+static bool RN4871i_Cmd(rn4871_desc_t *desc, const char *cmd, const char *param)
 {
     bool ret;
 
@@ -336,8 +334,7 @@ static bool RN4871i_WaitReboot(rn4871_desc_t *desc)
 static bool RN4871i_ResetFactory(rn4871_desc_t *desc)
 {
     desc->rebooted = false;
-    RN4871i_CmdRaw(desc, CMD_SET_FACTORY, "2", "Reboot after Factory Reset",
-            COMMAND_TIMEOUT_MS);
+    RN4871i_CmdRaw(desc, CMD_SET_FACTORY, "2", "Reboot after Factory Reset", COMMAND_TIMEOUT_MS);
     /* factory reset clears the baudrate */
     UARTd_SetBaudrate(desc->uart_device, RN4871_DEF_BAUDRATE);
     if (!RN4871i_WaitReboot(desc)) {
@@ -370,8 +367,7 @@ static bool RN4871i_SetDefaultServices(rn4871_desc_t *desc, uint8_t mask)
  * @param name          Device name
  * @param appearance    Appearance value
  */
-static bool RN4871i_SetGAPService(rn4871_desc_t *desc, const char *name,
-        uint16_t appearance)
+static bool RN4871i_SetGAPService(rn4871_desc_t *desc, const char *name, uint16_t appearance)
 {
     char buf[5];
     num2hex(appearance, 4, buf);
@@ -386,8 +382,7 @@ static bool RN4871i_SetGAPService(rn4871_desc_t *desc, const char *name,
  * @param dis      Data to fill in the service
  * @return True if succeeded
  */
-static bool RN4871i_SetDeviceInformation(rn4871_desc_t *desc,
-        const rn4871_dis_t *dis)
+static bool RN4871i_SetDeviceInformation(rn4871_desc_t *desc, const rn4871_dis_t *dis)
 {
     ASSERT_NOT(desc == NULL || dis == NULL);
 
@@ -423,8 +418,7 @@ static uint16_t RN4871i_Str2Handle(const char *buf)
  * @param uuid      UUID string (without dashes)
  * @return 0 if failed or characteristic handle
  */
-static uint16_t RN4871i_GetHandle(rn4871_desc_t *desc, const char *service_uuid,
-        const char *uuid)
+static uint16_t RN4871i_GetHandle(rn4871_desc_t *desc, const char *service_uuid, const char *uuid)
 {
     const char *end = "END";
     uint8_t pos_end = 0;
@@ -474,8 +468,7 @@ static uint16_t RN4871i_GetHandle(rn4871_desc_t *desc, const char *service_uuid,
     return handle;
 }
 
-uint16_t RN4871_AddChar(rn4871_desc_t *desc, const char *uuid, uint16_t props,
-        uint8_t size)
+uint16_t RN4871_AddChar(rn4871_desc_t *desc, const char *uuid, uint16_t props, uint8_t size)
 {
     char buf[39];
     uint8_t len;
@@ -505,8 +498,7 @@ bool RN4871_AddService(rn4871_desc_t *desc, const char *uuid)
     return RN4871i_Cmd(desc, CMD_ADD_SERVICE, uuid);
 }
 
-bool RN4871_WriteChar(rn4871_desc_t *desc, uint16_t handle, const uint8_t *data,
-        uint8_t len)
+bool RN4871_WriteChar(rn4871_desc_t *desc, uint16_t handle, const uint8_t *data, uint8_t len)
 {
     bool ret;
     char buf[5];
@@ -529,8 +521,7 @@ bool RN4871_WriteChar(rn4871_desc_t *desc, uint16_t handle, const uint8_t *data,
     return ret;
 }
 
-uint8_t RN4871_ReadChar(rn4871_desc_t *desc, uint16_t handle, uint8_t *data,
-        uint8_t len)
+uint8_t RN4871_ReadChar(rn4871_desc_t *desc, uint16_t handle, uint8_t *data, uint8_t len)
 {
     char buf[5];
     char c;
@@ -581,8 +572,7 @@ bool RN4871_IsConnected(rn4871_desc_t *desc)
     return desc->connected;
 }
 
-bool RN4871_StartAdvertising(rn4871_desc_t *desc, uint16_t interval_ms,
-        uint32_t timeout_ms)
+bool RN4871_StartAdvertising(rn4871_desc_t *desc, uint16_t interval_ms, uint32_t timeout_ms)
 {
     char buf[10];
     if (timeout_ms == 0) {
@@ -590,7 +580,7 @@ bool RN4871_StartAdvertising(rn4871_desc_t *desc, uint16_t interval_ms,
     } else {
         num2hex(interval_ms, 4, buf);
         buf[4] = ',';
-        num2hex((uint16_t)((uint32_t)timeout_ms*1000/640), 4, &buf[5]);
+        num2hex((uint16_t)((uint32_t)timeout_ms * 1000 / 640), 4, &buf[5]);
     }
     return RN4871i_Cmd(desc, CMD_START_ADVERTISING, buf);
 }
@@ -605,36 +595,36 @@ bool RN4871_Reboot(rn4871_desc_t *desc)
     return RN4871i_EnterCmdMode(desc);
 }
 
-bool RN4871_SetConnParam(rn4871_desc_t *desc, uint32_t min_interval_ms,
-        uint32_t max_interval_ms, uint16_t latency, uint32_t timeout_ms)
+bool RN4871_SetConnParam(rn4871_desc_t *desc, uint32_t min_interval_ms, uint32_t max_interval_ms,
+    uint16_t latency, uint32_t timeout_ms)
 {
     char buf[20];
 
-    num2hex((uint16_t)(min_interval_ms*100/125), 4, buf);
+    num2hex((uint16_t)(min_interval_ms * 100 / 125), 4, buf);
     buf[4] = ',';
-    num2hex((uint16_t)(max_interval_ms*100/125), 4, &buf[5]);
+    num2hex((uint16_t)(max_interval_ms * 100 / 125), 4, &buf[5]);
     buf[9] = ',';
     num2hex(latency, 4, &buf[10]);
     buf[14] = ',';
-    num2hex((uint16_t)(timeout_ms/10), 4, &buf[15]);
+    num2hex((uint16_t)(timeout_ms / 10), 4, &buf[15]);
 
     return RN4871i_Cmd(desc, CMD_SET_CON_PARAM, buf);
 }
 
-bool RN4871_SetAdvIntervals(rn4871_desc_t *desc, uint16_t fast_ms,
-        uint32_t timeout_s, uint16_t slow_ms, uint16_t beacon_ms)
+bool RN4871_SetAdvIntervals(rn4871_desc_t *desc, uint16_t fast_ms, uint32_t timeout_s,
+    uint16_t slow_ms, uint16_t beacon_ms)
 {
     char buf[15];
 
-    num2hex((uint16_t)((uint32_t)fast_ms*1000/625),4, buf);
+    num2hex((uint16_t)((uint32_t)fast_ms * 1000 / 625), 4, buf);
     buf[4] = ',';
-    num2hex((uint16_t)(timeout_s*100/1024), 4, &buf[5]);
+    num2hex((uint16_t)(timeout_s * 100 / 1024), 4, &buf[5]);
     buf[9] = ',';
-    num2hex((uint16_t)((uint32_t)slow_ms*1000/625), 4, &buf[10]);
+    num2hex((uint16_t)((uint32_t)slow_ms * 1000 / 625), 4, &buf[10]);
     if (RN4871i_Cmd(desc, CMD_SET_ADV_TIMEOUT, buf) == false) {
         return false;
     }
-    num2hex(beacon_ms*1000/625, 4, buf);
+    num2hex(beacon_ms * 1000 / 625, 4, buf);
     return RN4871i_Cmd(desc, CMD_SET_ADV_BEACON, buf);
 }
 
@@ -664,9 +654,7 @@ void RN4871_SetLowPower(rn4871_desc_t *desc, bool state)
     }
 }
 
-
-bool RN4871_EnableLowPowerSupport(rn4871_desc_t *desc, uint32_t rx_ind_port,
-        uint8_t rx_ind_pad)
+bool RN4871_EnableLowPowerSupport(rn4871_desc_t *desc, uint32_t rx_ind_port, uint8_t rx_ind_pad)
 {
     desc->low_power = true;
     desc->rx_ind_port = rx_ind_port;
@@ -681,16 +669,15 @@ void RN4871_RegisterEventCb(rn4871_desc_t *desc, rn4871_evt_cb_t cb)
     desc->cb = cb;
 }
 
-bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device,
-        rn4871_baudrate_t baudrate, const char *name, uint16_t appearance,
-        const rn4871_dis_t *dis)
+bool RN4871_Init(rn4871_desc_t *desc, uint8_t uart_device, rn4871_baudrate_t baudrate,
+    const char *name, uint16_t appearance, const rn4871_dis_t *dis)
 {
     char buf[3];
-    static const uint32_t baudrates[] = {921600, 460800, 230400, 115200, 57600,
-        38400, 28800, 19200, 14400, 9600, 4800, 2400};
+    static const uint32_t baudrates[] = { 921600, 460800, 230400, 115200, 57600, 38400, 28800,
+        19200, 14400, 9600, 4800, 2400 };
 
-    ASSERT_NOT(desc == NULL || name == NULL ||
-            baudrate >= sizeof(baudrates)/sizeof(baudrates[0]));
+    ASSERT_NOT(
+        desc == NULL || name == NULL || baudrate >= sizeof(baudrates) / sizeof(baudrates[0]));
 
     Ring_Init(&desc->rbuf, desc->rbuf_data, sizeof(desc->rbuf_data));
     rn4871i_desc = desc;

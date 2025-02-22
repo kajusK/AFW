@@ -34,16 +34,16 @@ typedef struct {
 /** Satellite in view info */
 typedef struct {
     uint8_t prn;
-    uint8_t elevation;  /* 0-90 */
-    uint16_t azimuth;   /* 0-359 */
-    uint8_t snr;        /* 0-99 */
+    uint8_t elevation; /* 0-90 */
+    uint16_t azimuth;  /* 0-359 */
+    uint8_t snr;       /* 0-99 */
 } nmea_sv_info_t;
 
 typedef struct {
     nmea_time_t fix_time;
     bool valid;
-    nmea_float_t lat;   /* in decimal degrees */
-    nmea_float_t lon;   /* in decimal degrees */
+    nmea_float_t lat; /* in decimal degrees */
+    nmea_float_t lon; /* in decimal degrees */
     nmea_float_t speed_kmh;
     nmea_float_t course;
     nmea_date_t date;

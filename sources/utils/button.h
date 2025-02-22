@@ -11,7 +11,7 @@
 /** Amount of debouncing runs before considering signal stable */
 #define BTN_DEBOUNCE_STEPS 10
 /** Long press minimum time */
-#define BTN_LONG_PRESS_MS 500
+#define BTN_LONG_PRESS_MS  500
 
 typedef struct {
     uint32_t port;
@@ -47,7 +47,6 @@ button_event_t Button(button_t *button);
  * @param pad       MCU pin to which the button is connected
  * @param inverted  If true, the button is pressed when pin is zero
  */
-void Button_Init(button_t *button, uint32_t port, uint8_t pad,
-        bool inverted);
+void Button_Init(button_t *button, uint32_t port, uint8_t pad, bool inverted);
 
 #endif

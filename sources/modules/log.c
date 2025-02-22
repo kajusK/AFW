@@ -11,14 +11,14 @@
 
 #include "log.h"
 
-#define TERM_NORMAL "\x1B[0m"
-#define TERM_RED    "\x1B[31m"
-#define TERM_GREEN  "\x1B[32m"
-#define TERM_YELLOW "\x1B[33m"
-#define TERM_BLUE   "\x1B[34m"
+#define TERM_NORMAL  "\x1B[0m"
+#define TERM_RED     "\x1B[31m"
+#define TERM_GREEN   "\x1B[32m"
+#define TERM_YELLOW  "\x1B[33m"
+#define TERM_BLUE    "\x1B[34m"
 #define TERM_MAGENTA "\x1B[35m"
-#define TERM_CYAN   "\x1B[36m"
-#define TERM_WHITE  "\x1B[37m"
+#define TERM_CYAN    "\x1B[36m"
+#define TERM_WHITE   "\x1B[37m"
 
 static log_level_t logi_level = LOG_INFO;
 static uint8_t logi_uart = 0xff;
@@ -86,14 +86,14 @@ static void Logi_Printf(const char *fmt, va_list ap)
                 UARTd_Putc(logi_uart, '%');
                 break;
             case 'c':
-                UARTd_Putc(logi_uart, (char) va_arg(ap, int));
+                UARTd_Putc(logi_uart, (char)va_arg(ap, int));
                 break;
             case 's':
                 UARTd_Puts(logi_uart, va_arg(ap, const char *));
                 break;
             case 'p':
                 UARTd_Puts(logi_uart, "0x");
-                Logi_Uitoa((uint32_t) va_arg(ap, uint32_t *), 16);
+                Logi_Uitoa((uint32_t)va_arg(ap, uint32_t *), 16);
                 break;
             case 'd':
             case 'i':
@@ -102,7 +102,7 @@ static void Logi_Printf(const char *fmt, va_list ap)
                     UARTd_Putc(logi_uart, '-');
                     num = -num;
                 }
-                Logi_Uitoa((uint32_t) num, 10);
+                Logi_Uitoa((uint32_t)num, 10);
                 break;
             case 'u':
                 unum = va_arg(ap, unsigned int);

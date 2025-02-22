@@ -43,9 +43,9 @@ static void Gpsi_RxCb(uint8_t c)
 static int32_t Gpsi_NmeaF2Dec(const nmea_float_t *f, int32_t scale)
 {
     if (f->scale < scale) {
-        return f->num * (scale/f->scale);
+        return f->num * (scale / f->scale);
     }
-    return f->num/(f->scale/scale);
+    return f->num / (f->scale / scale);
 }
 
 /**
@@ -55,10 +55,9 @@ static int32_t Gpsi_NmeaF2Dec(const nmea_float_t *f, int32_t scale)
  * @param date      Date structure
  * @return  Unix formated timestamp (seconds since 1.1.1970)
  */
-static time_t Gpsi_Nmea2Timestamp(const nmea_time_t *time,
-        const nmea_date_t *date)
+static time_t Gpsi_Nmea2Timestamp(const nmea_time_t *time, const nmea_date_t *date)
 {
-    struct tm tmstruct = {0};
+    struct tm tmstruct = { 0 };
 
     tmstruct.tm_sec = time->second;
     tmstruct.tm_min = time->minute;
@@ -123,8 +122,8 @@ static void Gpsi_ProcessGsv(const char *msg, gps_sat_t *info)
 
     for (int i = 0; i < gsv.count; i++) {
         /* There are up to 4 satellites per message */
-        pos = 4*(gsv.msg_id - 1) + i;
-        if (pos >= sizeof(info->sat)/sizeof(info->sat[0])) {
+        pos = 4 * (gsv.msg_id - 1) + i;
+        if (pos >= sizeof(info->sat) / sizeof(info->sat[0])) {
             break;
         }
 
@@ -132,9 +131,9 @@ static void Gpsi_ProcessGsv(const char *msg, gps_sat_t *info)
     }
 
     if (gsv.messages == gsv.msg_id) {
-        count = (gsv.messages - 1)*4 + gsv.count;
-        if (count > sizeof(info->sat)/sizeof(info->sat[0])) {
-            count = sizeof(info->sat)/sizeof(info->sat[0]);
+        count = (gsv.messages - 1) * 4 + gsv.count;
+        if (count > sizeof(info->sat) / sizeof(info->sat[0])) {
+            count = sizeof(info->sat) / sizeof(info->sat[0]);
         }
         info->count = count;
     }

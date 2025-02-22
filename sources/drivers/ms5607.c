@@ -10,11 +10,11 @@
 #include <utils/time.h>
 #include "drivers/ms5607.h"
 
-#define CMD_RESET 0x1e
+#define CMD_RESET      0x1e
 #define CMD_CONVERT_D1 0x40
 #define CMD_CONVERT_D2 0x50
-#define CMD_READ_ADC 0x00
-#define CMD_READ_PROM 0xa0
+#define CMD_READ_ADC   0x00
+#define CMD_READ_PROM  0xa0
 
 /* Conversion time for osr 256, each step doubles the time */
 #define CONVERSION_TIME_MS 1
@@ -47,9 +47,9 @@ static bool MS5607i_Crc(uint16_t *buf)
     buf[7] &= 0xff00;
     for (uint8_t i = 0; i < 16; i++) {
         if (i & 1) {
-            rem ^= buf[i/2] & 0x00ff;
+            rem ^= buf[i / 2] & 0x00ff;
         } else {
-            rem ^= buf[i/2] >> 8;
+            rem ^= buf[i / 2] >> 8;
         }
 
         for (uint8_t j = 0; j < 8; j++) {
@@ -96,8 +96,7 @@ static bool MS5607i_ReadAdc(const ms5607_desc_t *desc, uint32_t *val)
  * @param val       Pointer to store result to
  * @return  true if succeeded, false if not responding
  */
-static bool MS5607i_ReadProm(const ms5607_desc_t *desc, uint8_t addr,
-        uint16_t *val)
+static bool MS5607i_ReadProm(const ms5607_desc_t *desc, uint8_t addr, uint16_t *val)
 {
     uint8_t buf[2];
 
@@ -110,8 +109,8 @@ static bool MS5607i_ReadProm(const ms5607_desc_t *desc, uint8_t addr,
     return true;
 }
 
-bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
-        uint32_t *pressure_Pa, int32_t *temp_mdeg)
+bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr, uint32_t *pressure_Pa,
+    int32_t *temp_mdeg)
 {
     uint32_t d1, d2;
     int32_t dt, temp, p, t2;
@@ -131,20 +130,20 @@ bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
     }
 
     dt = (int32_t)d2 - ((uint32_t)desc->calib[4] << 8);
-    temp = 2000 + ((dt*(int64_t)desc->calib[5]) >> 23);
+    temp = 2000 + ((dt * (int64_t)desc->calib[5]) >> 23);
 
-    off = ((uint64_t) desc->calib[1] << 17) + (((int64_t)desc->calib[3]*dt) >> 6);
-    sens = ((uint64_t) desc->calib[0] << 16) + (((int64_t)desc->calib[2]*dt) >> 7);
+    off = ((uint64_t)desc->calib[1] << 17) + (((int64_t)desc->calib[3] * dt) >> 6);
+    sens = ((uint64_t)desc->calib[0] << 16) + (((int64_t)desc->calib[2] * dt) >> 7);
 
     if (temp < 2000) {
-        t2 = ((int64_t)dt*dt) >> 31;
-        tmp = ((int64_t) temp - 2000)*(temp - 2000);
-        off2 = (61*tmp) >> 4;
-        sens2 = 2*tmp;
+        t2 = ((int64_t)dt * dt) >> 31;
+        tmp = ((int64_t)temp - 2000) * (temp - 2000);
+        off2 = (61 * tmp) >> 4;
+        sens2 = 2 * tmp;
         if (temp < -1500) {
-            tmp = ((int64_t) temp + 1500)*(temp + 1500);
-            off2 += 15*tmp;
-            sens2 += 8*tmp;
+            tmp = ((int64_t)temp + 1500) * (temp + 1500);
+            off2 += 15 * tmp;
+            sens2 += 8 * tmp;
         }
     } else {
         t2 = 0;
@@ -155,7 +154,7 @@ bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
     temp = temp - t2;
     off = off - off2;
     sens = sens - sens2;
-    p = (((d1*sens) >> 21) - off) >> 15;
+    p = (((d1 * sens) >> 21) - off) >> 15;
 
     if (temp_mdeg != NULL) {
         *temp_mdeg = temp * 10;
@@ -167,8 +166,7 @@ bool MS5607_Read(const ms5607_desc_t *desc, ms5607_osr_t osr,
     return true;
 }
 
-bool MS5607_Init(ms5607_desc_t *desc, uint8_t i2c_device,
-        uint8_t address)
+bool MS5607_Init(ms5607_desc_t *desc, uint8_t i2c_device, uint8_t address)
 {
     uint16_t buf[8];
     ASSERT_NOT(desc == NULL);
@@ -191,7 +189,7 @@ bool MS5607_Init(ms5607_desc_t *desc, uint8_t i2c_device,
 
     /* finally copy valid calibration to global variable */
     for (uint8_t i = 0; i < 6; i++) {
-        desc->calib[i] = buf[i+1];
+        desc->calib[i] = buf[i + 1];
     }
 
     return true;

@@ -7,14 +7,12 @@
 #include "utils/math.h"
 
 /** lookup table for sin*1000 function, 0-90 degrees */
-static const uint16_t mathi_sin_lookup[] = {
-    0, 17, 35, 52, 70, 87, 105, 122, 139, 156, 174, 191, 208, 225, 242, 259,
-    276, 292, 309, 326, 342, 358, 375, 391, 407, 423, 438, 454, 469, 485, 500,
-    515, 530, 545, 559, 574, 588, 602, 616, 629, 643, 656, 669, 682, 695, 707,
-    719, 731, 743, 755, 766, 777, 788, 799, 809, 819, 829, 839, 848, 857, 866,
-    875, 883, 891, 899, 906, 914, 921, 927, 934, 940, 946, 951, 956, 961, 966,
-    970, 974, 978, 982, 985, 988, 990, 993, 995, 996, 998, 999, 999, 1000, 1000,
-};
+static const uint16_t mathi_sin_lookup[] = { 0, 17, 35, 52, 70, 87, 105, 122, 139, 156, 174, 191,
+    208, 225, 242, 259, 276, 292, 309, 326, 342, 358, 375, 391, 407, 423, 438, 454, 469, 485, 500,
+    515, 530, 545, 559, 574, 588, 602, 616, 629, 643, 656, 669, 682, 695, 707, 719, 731, 743, 755,
+    766, 777, 788, 799, 809, 819, 829, 839, 848, 857, 866, 875, 883, 891, 899, 906, 914, 921, 927,
+    934, 940, 946, 951, 956, 961, 966, 970, 974, 978, 982, 985, 988, 990, 993, 995, 996, 998, 999,
+    999, 1000, 1000 };
 
 /**
  * Find point in sin lookup table and interpolate more
@@ -26,22 +24,22 @@ static const uint16_t mathi_sin_lookup[] = {
 static int32_t mathi_sin_find(int32_t x)
 {
     int32_t x1, x2, y1, y2;
-    uint8_t pos = x/1000;
+    uint8_t pos = x / 1000;
 
     ASSERT_NOT(pos > 90);
 
     /* point directly in lookup table */
     if (pos * 1000 == x) {
-        return (int32_t) mathi_sin_lookup[pos];
+        return (int32_t)mathi_sin_lookup[pos];
     }
 
-    x1 = pos*1000;
-    x2 = x1+1000;
+    x1 = pos * 1000;
+    x2 = x1 + 1000;
     y1 = mathi_sin_lookup[pos];
-    y2 = mathi_sin_lookup[pos+1];
+    y2 = mathi_sin_lookup[pos + 1];
 
     /* similarity of triangles, linear interpolation */
-    return ((y2-y1)*(x-x1))/(x2-x1) + y1;
+    return ((y2 - y1) * (x - x1)) / (x2 - x1) + y1;
 }
 
 int32_t msin(int32_t mdeg)
@@ -61,10 +59,10 @@ int32_t msin(int32_t mdeg)
     }
 
     if (mdeg < 90000) {
-        return sign*mathi_sin_find(mdeg);
+        return sign * mathi_sin_find(mdeg);
     }
     /* between 90-180, same as (180-angle) */
-    return sign*mathi_sin_find(180000-mdeg);
+    return sign * mathi_sin_find(180000 - mdeg);
 }
 
 int32_t mcos(int32_t mdeg)
@@ -79,7 +77,7 @@ int32_t mtan(int32_t mdeg)
     if (cos == 0) {
         return ~(1 << 31);
     }
-    return (msin(mdeg)*1000)/cos;
+    return (msin(mdeg) * 1000) / cos;
 }
 
 uint32_t int_sqrt(uint64_t x)
@@ -88,10 +86,9 @@ uint32_t int_sqrt(uint64_t x)
     /* https://stackoverflow.com/a/10330951 */
     uint32_t res = 0;
     uint32_t add = 1 << 31;
-    for(int i = 0; i < 32; i++)
-    {
+    for (int i = 0; i < 32; i++) {
         uint32_t temp = res | add;
-        uint64_t g2 = (uint64_t)temp*temp;
+        uint64_t g2 = (uint64_t)temp * temp;
         if (x >= g2) {
             res = temp;
         }

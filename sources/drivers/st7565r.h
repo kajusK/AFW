@@ -8,21 +8,21 @@
 
 #include <types.h>
 
-#define ST7565R_WIDTH 128
+#define ST7565R_WIDTH  128
 #define ST7565R_HEIGHT 64
 
-#define ST7565R_FBUF_SIZE (ST7565R_WIDTH*ST7565R_HEIGHT/8)
+#define ST7565R_FBUF_SIZE (ST7565R_WIDTH * ST7565R_HEIGHT / 8)
 
 typedef struct {
     uint32_t cs_port;
     uint32_t a0_port;
     uint32_t reset_port;
-    uint8_t spi_device;     /**< Number of SPI device to use */
+    uint8_t spi_device; /**< Number of SPI device to use */
     uint8_t cs_pad;
     uint8_t a0_pad;
     uint8_t reset_pad;
-    uint8_t *fbuf;          /**< Framebuffer of ST7565R_FBUF_SIZE size */
-    bool flipped;           /**< Is the display in vertically flipped mode */
+    uint8_t *fbuf; /**< Framebuffer of ST7565R_FBUF_SIZE size */
+    bool flipped;  /**< Is the display in vertically flipped mode */
 } st7565r_desc_t;
 
 /**
@@ -33,8 +33,7 @@ typedef struct {
  * @param y     Vertical position
  * @param color Value for given pixel (0 = white, others = black)
  */
-void ST7565R_DrawPixel(const st7565r_desc_t *desc, uint16_t x, uint16_t y,
-        uint16_t color);
+void ST7565R_DrawPixel(const st7565r_desc_t *desc, uint16_t x, uint16_t y, uint16_t color);
 
 /**
  * Flush data from internal frame buffer to display
@@ -82,8 +81,7 @@ void ST7565R_SetOrientation(st7565r_desc_t *desc, bool flip);
  *
  * @return      True if display is responding to commands
  */
-void ST7565R_Init(st7565r_desc_t *desc, uint8_t *fbuf,
-        uint8_t spi_device, uint32_t cs_port, uint8_t cs_pad, uint32_t a0_port,
-        uint8_t a0_pad, uint32_t reset_port, uint8_t reset_pad);
+void ST7565R_Init(st7565r_desc_t *desc, uint8_t *fbuf, uint8_t spi_device, uint32_t cs_port,
+    uint8_t cs_pad, uint32_t a0_port, uint8_t a0_pad, uint32_t reset_port, uint8_t reset_pad);
 
 #endif

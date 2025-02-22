@@ -9,22 +9,22 @@
 #include "hal/spi.h"
 
 static const uint32_t spidi_regs[] = {
-		SPI1,
+    SPI1,
 #ifdef SPI2_BASE
-		SPI2,
+    SPI2,
 #endif
 #ifdef SPI3_BASE
-		SPI3,
+    SPI3,
 #endif
 };
 
 static const uint32_t spidi_rcc[] = {
-		RCC_SPI1,
+    RCC_SPI1,
 #ifdef SPI2_BASE
-		RCC_SPI2,
+    RCC_SPI2,
 #endif
 #ifdef SPI3_BASE
-		RCC_SPI3,
+    RCC_SPI3,
 #endif
 };
 
@@ -36,8 +36,8 @@ static const uint32_t spidi_rcc[] = {
  */
 static uint32_t SPIdi_GetDevice(uint8_t device)
 {
-	ASSERT_NOT(device == 0 || device > sizeof(spidi_regs)/sizeof(spidi_regs[0]));
-	return spidi_regs[device - 1];
+    ASSERT_NOT(device == 0 || device > sizeof(spidi_regs) / sizeof(spidi_regs[0]));
+    return spidi_regs[device - 1];
 }
 
 /**
@@ -48,8 +48,8 @@ static uint32_t SPIdi_GetDevice(uint8_t device)
  */
 static enum rcc_periph_clken SPIdi_GetRcc(uint8_t device)
 {
-	ASSERT_NOT(device == 0 || device > sizeof(spidi_rcc)/sizeof(spidi_rcc[0]));
-	return spidi_rcc[device - 1];
+    ASSERT_NOT(device == 0 || device > sizeof(spidi_rcc) / sizeof(spidi_rcc[0]));
+    return spidi_rcc[device - 1];
 }
 
 /**
@@ -71,81 +71,81 @@ static uint8_t SPId_Xfer8(uint32_t spi, uint8_t data)
 
 uint8_t SPId_Transceive(uint8_t device, uint8_t data)
 {
-	uint32_t spi = SPIdi_GetDevice(device);
+    uint32_t spi = SPIdi_GetDevice(device);
 
-	return SPId_Xfer8(spi, data);
+    return SPId_Xfer8(spi, data);
 }
 
 void SPId_Send(uint8_t device, const uint8_t *buf, size_t len)
 {
-	uint32_t spi = SPIdi_GetDevice(device);
+    uint32_t spi = SPIdi_GetDevice(device);
 
-	while (len-- != 0) {
-		SPId_Xfer8(spi, *buf++);
-	}
+    while (len-- != 0) {
+        SPId_Xfer8(spi, *buf++);
+    }
 }
 
 void SPId_Receive(uint8_t device, uint8_t *buf, size_t len)
 {
-	uint32_t spi = SPIdi_GetDevice(device);
+    uint32_t spi = SPIdi_GetDevice(device);
 
-	while (len-- != 0) {
-		*buf++ = SPId_Xfer8(spi, 0xff);
-	}
+    while (len-- != 0) {
+        *buf++ = SPId_Xfer8(spi, 0xff);
+    }
 }
 
 spid_prescaler_t SPId_GetPrescaler(uint8_t device)
 {
-	uint32_t spi = SPIdi_GetDevice(device);
-	return (SPI_CR1(spi) >> 3) & 0x07;
+    uint32_t spi = SPIdi_GetDevice(device);
+    return (SPI_CR1(spi) >> 3) & 0x07;
 }
 
 void SPId_SetPrescaler(uint8_t device, spid_prescaler_t prescaler)
 {
-	uint32_t spi = SPIdi_GetDevice(device);
-	spi_set_baudrate_prescaler(spi, prescaler);
+    uint32_t spi = SPIdi_GetDevice(device);
+    spi_set_baudrate_prescaler(spi, prescaler);
 }
 
 void SPId_Init(uint8_t device, spid_prescaler_t prescaler, spid_mode_t mode)
 {
-	enum rcc_periph_clken rcc = SPIdi_GetRcc(device);
-	uint32_t spi = SPIdi_GetDevice(device);
+    enum rcc_periph_clken rcc = SPIdi_GetRcc(device);
+    uint32_t spi = SPIdi_GetDevice(device);
 
-	rcc_periph_clock_enable(rcc);
-	spi_reset(spi);
+    rcc_periph_clock_enable(rcc);
+    spi_reset(spi);
 
-	spi_set_master_mode(spi);
-	spi_set_baudrate_prescaler(spi, prescaler);
+    spi_set_master_mode(spi);
+    spi_set_baudrate_prescaler(spi, prescaler);
 
-	switch (mode) {
-		case SPI_MODE_0:
-			spi_set_clock_polarity_0(spi);
-			spi_set_clock_phase_0(spi);
-			break;
-		case SPI_MODE_1:
-			spi_set_clock_polarity_0(spi);
-			spi_set_clock_phase_1(spi);
-			break;
-		case SPI_MODE_2:
-			spi_set_clock_polarity_1(spi);
-			spi_set_clock_phase_0(spi);
-			break;
-		case SPI_MODE_3:
-			spi_set_clock_polarity_1(spi);
-			spi_set_clock_phase_1(spi);
-			break;
-	}
+    switch (mode) {
+        case SPI_MODE_0:
+            spi_set_clock_polarity_0(spi);
+            spi_set_clock_phase_0(spi);
+            break;
+        case SPI_MODE_1:
+            spi_set_clock_polarity_0(spi);
+            spi_set_clock_phase_1(spi);
+            break;
+        case SPI_MODE_2:
+            spi_set_clock_polarity_1(spi);
+            spi_set_clock_phase_0(spi);
+            break;
+        case SPI_MODE_3:
+            spi_set_clock_polarity_1(spi);
+            spi_set_clock_phase_1(spi);
+            break;
+    }
 
-	spi_set_full_duplex_mode(spi);
-	spi_set_unidirectional_mode(spi);
-	spi_set_data_size(spi, SPI_CR2_DS_8BIT);
-	spi_send_msb_first(spi);
-	spi_fifo_reception_threshold_8bit(spi);
+    spi_set_full_duplex_mode(spi);
+    spi_set_unidirectional_mode(spi);
+    spi_set_data_size(spi, SPI_CR2_DS_8BIT);
+    spi_send_msb_first(spi);
+    spi_fifo_reception_threshold_8bit(spi);
 
-	/* CS controlled manually, but this should be set anyway */
-	spi_enable_software_slave_management(spi);
-	spi_enable_ss_output(spi);
-	spi_set_nss_high(spi);
+    /* CS controlled manually, but this should be set anyway */
+    spi_enable_software_slave_management(spi);
+    spi_enable_ss_output(spi);
+    spi_set_nss_high(spi);
 
-	spi_enable(spi);
+    spi_enable(spi);
 }
