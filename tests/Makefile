@@ -1,4 +1,4 @@
-CMD=docker run -it -v $(shell pwd)/../:/home/dev/project -w /home/dev/project/tests --user $(shell id -u):$(shell id -g) afw_ceedling
+CMD=docker run -v $(shell pwd)/../:/home/dev/project -w /home/dev/project/tests --user $(shell id -u):$(shell id -g) afw_ceedling
 IMAGE_NAME=afw_ceedling
 
 tests: docker
