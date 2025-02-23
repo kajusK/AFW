@@ -3,8 +3,9 @@
  * @brief   Usuall time measurement utilities - millis, etc.
  */
 
+#include <types.h>
 #include "hal/systick.h"
-#include "utils/time.h"
+#include "time.h"
 
 static volatile uint32_t timei_elapsed_ms;
 

@@ -1,4 +1,2 @@
-coverage
-bin
+build
 *.img
-run_tests

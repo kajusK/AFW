@@ -1,74 +1,34 @@
-/*
- * Copyright (C) 2019 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-/**
- * @file    utils/test_button.c
- * @brief   Unit tests for button.c
- *
- * @addtogroup tests
- * @{
- */
-
 #include <string.h>
-#include <main.h>
-
-#include "utils/button.h"
+#include <unity.h>
+#include "utils/button.c"
 
 #define BUTTON_PORT 1234
-#define BUTTON_PAD 12
+#define BUTTON_PAD  12
 
 static uint32_t time_ms;
 static bool gpio;
 static button_t btn;
 
-/* *****************************************************************************
- * Mocks
-***************************************************************************** */
-static uint32_t millis(void)
+uint32_t millis(void)
 {
     return time_ms;
 }
 
-static bool IOd_GetLine(uint32_t port, uint8_t pad)
+bool IOd_GetLine(uint32_t port, uint8_t pad)
 {
     TEST_ASSERT_EQUAL(BUTTON_PORT, port);
     TEST_ASSERT_EQUAL(BUTTON_PAD, pad);
     return gpio;
 }
 
-/* *****************************************************************************
- * Tests
-***************************************************************************** */
-#include "utils/button.c"
-TEST_GROUP(BUTTON);
-
-TEST_SETUP(BUTTON)
+void setUp(void)
 {
     time_ms = 0;
     gpio = false;
     Button_Init(&btn, BUTTON_PORT, BUTTON_PAD, false);
 }
 
-TEST_TEAR_DOWN(BUTTON)
-{
-
-}
-
-TEST(BUTTON, debounce)
+void test_button_debounce(void)
 {
     TEST_ASSERT_EQUAL(false, Buttoni_Debounce(&btn));
 
@@ -99,7 +59,7 @@ TEST(BUTTON, debounce)
     TEST_ASSERT_EQUAL(false, Buttoni_Debounce(&btn));
 }
 
-TEST(BUTTON, shortPress)
+void test_shortPress(void)
 {
     TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
     gpio = 1;
@@ -114,7 +74,7 @@ TEST(BUTTON, shortPress)
     TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
 }
 
-TEST(BUTTON, LongPress)
+void test_LongPress(void)
 {
     TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
     gpio = 1;
@@ -136,7 +96,7 @@ TEST(BUTTON, LongPress)
     TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
 }
 
-TEST(BUTTON, inverted)
+void test_inverted(void)
 {
     Button_Init(&btn, BUTTON_PORT, BUTTON_PAD, true);
     gpio = 1;
@@ -152,18 +112,3 @@ TEST(BUTTON, inverted)
     TEST_ASSERT_EQUAL(BTN_RELEASED_SHORT, Button(&btn));
     TEST_ASSERT_EQUAL(BTN_NONE, Button(&btn));
 }
-
-TEST_GROUP_RUNNER(BUTTON)
-{
-    RUN_TEST_CASE(BUTTON, debounce);
-    RUN_TEST_CASE(BUTTON, shortPress);
-    RUN_TEST_CASE(BUTTON, LongPress);
-    RUN_TEST_CASE(BUTTON, inverted);
-}
-
-void Button_RunTests(void)
-{
-    RUN_TEST_GROUP(BUTTON);
-}
-
-/** @} */

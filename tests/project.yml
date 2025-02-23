@@ -1,0 +1,69 @@
+:project:
+  :use_exceptions: FALSE
+  :use_mocks: TRUE
+  :use_test_preprocessor: :none
+  :use_deep_preprocessor: :none
+  :build_root: build
+  :test_file_prefix: test_
+  :test_threads: :auto
+  :compile_threads: :auto
+  :default_tasks:
+    - test:all
+
+:extension:
+  :executable: .out
+
+:plugins:
+  :enabled:
+    - report_tests_pretty_stdout
+    - module_generator
+    - fff
+    - gcov
+
+:gcov:
+  :utilities:
+    - gcovr
+  :reports:
+    - HtmlDetailed
+  :gcovr:
+    :html_artifact_filename: "./coverage.html"
+    :html_title: "AFW Test Coverage"
+    :report_root: "../sources"
+    :object_directory: "build"
+    :gcov_exclude: ".*tests.*|.*test_.*"
+
+:defines:
+  :test:
+    - UNIT_TEST
+    - STM32F0
+
+:paths:
+  :test:
+    - +:unit/**
+  :source:
+    - ../sources/**
+  :include:
+    - ../sources
+    - ../sources/external/libopencm3/include
+  :support:
+    - support
+
+:libraries:
+  :placement: :end
+  :flag: "-l${1}"
+  :path_flag: "-L ${1}"
+  :system: [m]
+  :test: []
+  :release: []
+
+cmock:
+  :mock_prefix: mock_
+  :when_no_prototypes: :warn
+  :enforce_strict_ordering: TRUE
+  :treat_externs: :include
+  :includes:
+    - stdint.h
+    - stdbool.h
+  :plugins:
+    - :ignore
+    - :callback

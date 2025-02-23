@@ -4,7 +4,7 @@
  */
 
 #include <types.h>
-#include "utils/math.h"
+#include "math.h"
 
 /** lookup table for sin*1000 function, 0-90 degrees */
 static const uint16_t mathi_sin_lookup[] = { 0, 17, 35, 52, 70, 87, 105, 122, 139, 156, 174, 191,

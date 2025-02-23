@@ -21,7 +21,11 @@ typedef enum {
 } config_item_int_t;
 
 /** Default values for the int config items */
-#define CONFIG_INT_DEFAULTS {42, -1024, }
+#define CONFIG_INT_DEFAULTS \
+    { \
+        42, \
+        -1024, \
+    }
 
 /** float config options */
 typedef enum {
@@ -31,7 +35,11 @@ typedef enum {
 } config_item_float_t;
 
 /** Default values for the float config items */
-#define CONFIG_FLOAT_DEFAULTS {42.43, -123.456, }
+#define CONFIG_FLOAT_DEFAULTS \
+    { \
+        42.43, \
+        -123.456, \
+    }
 
 /** string config options */
 typedef enum {
@@ -41,7 +49,11 @@ typedef enum {
 } config_item_string_t;
 
 /** Default values for the string config items */
-#define CONFIG_STRING_DEFAULTS {"Hello world", "Watch the cat!", }
+#define CONFIG_STRING_DEFAULTS \
+    { \
+        "Hello world", \
+        "Watch the cat!", \
+    }
 
 /** ptr config options */
 typedef enum {
@@ -51,26 +63,34 @@ typedef enum {
 } config_item_ptr_t;
 
 /** Default values for the ptr config items */
-#define CONFIG_PTR_DEFAULTS {"foo", "bar", }
+#define CONFIG_PTR_DEFAULTS \
+    { \
+        "foo", \
+        "bar", \
+    }
 
 /** Bool config options */
 typedef enum {
-    CONFIG_BOOL_TEST1, 
-    CONFIG_BOOL_TEST2, 
-    CONFIG_BOOL_TEST3, 
-    CONFIG_BOOL_TEST4, 
-    CONFIG_BOOL_TEST5, 
-    CONFIG_BOOL_TEST6, 
-    CONFIG_BOOL_TEST7, 
-    CONFIG_BOOL_TEST8, 
-    CONFIG_BOOL_TEST9, 
-    CONFIG_BOOL_TEST10, 
-    CONFIG_BOOL_TEST11, 
-    CONFIG_BOOL_TEST12, 
+    CONFIG_BOOL_TEST1,
+    CONFIG_BOOL_TEST2,
+    CONFIG_BOOL_TEST3,
+    CONFIG_BOOL_TEST4,
+    CONFIG_BOOL_TEST5,
+    CONFIG_BOOL_TEST6,
+    CONFIG_BOOL_TEST7,
+    CONFIG_BOOL_TEST8,
+    CONFIG_BOOL_TEST9,
+    CONFIG_BOOL_TEST10,
+    CONFIG_BOOL_TEST11,
+    CONFIG_BOOL_TEST12,
     CONFIG_BOOL_COUNT
 } config_item_bool_t;
 
 /** Default values for the bool config items */
-#define CONFIG_BOOL_DEFAULTS {0x02,0x04,}
+#define CONFIG_BOOL_DEFAULTS \
+    { \
+        0x02, \
+        0x04, \
+    }
 
 #endif

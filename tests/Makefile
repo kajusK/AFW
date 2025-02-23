@@ -1,90 +1,22 @@
-###############################################################################
-# Jakub Kaderka 2020
-###############################################################################
+CMD=docker run -it -v $(shell pwd)/../:/home/dev/project -w /home/dev/project/tests --user $(shell id -u):$(shell id -g) afw_ceedling
+IMAGE_NAME=afw_ceedling
 
-#######################
-# Project configuration
-#######################
-# resulting binary name
-PROJECT = run_tests
+tests: docker
+	$(CMD) ceedling test:all
 
-# sources directory
-SRCDIR = src
-UNITY_DIR = ../sources/external/Unity
+coverage: docker
+	$(CMD) ceedling gcov:all
 
-# source files to include in build
-SOURCES = $(wildcard $(SRCDIR)/*.c) \
-	  $(wildcard $(SRCDIR)/*/*.c) \
-	  $(wildcard $(UNITY_DIR)/src/*.c) \
-	  $(wildcard $(UNITY_DIR)/extras/fixture/src/*.c)
+docker:
+	@if [ -z "$$(docker images -q $(IMAGE_NAME))" ]; then \
+		touch Dockerfile; \
+		$(MAKE) docker_build; \
+	fi
 
-INCLUDES = $(SRCDIR) \
-	   ../sources \
-	   $(UNITY_DIR)/src \
-	   $(UNITY_DIR)/extras/fixture/src \
-	   $(UNITY_DIR)/extras/memory/src
-
-#######################
-# Directories and stuff
-#######################
-BUILD_DIR = bin
-OPENCM3_DIR = ../sources/external/libopencm3
-SOURCES := $(subst ../,,$(SOURCES))
-OBJS = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
-
-#######################
-# Build configuration
-#######################
-CSTD = -std=gnu11
-OPT = -O0
-CFLAGS = -Wall -Wextra -Wstrict-prototypes -Wundef -Wshadow -Wredundant-decls \
-	-Wno-missing-field-initializers -Wmissing-prototypes -pedantic \
-	-fno-common -ffunction-sections -fdata-sections  \
-	-Wno-missing-field-initializers -Wno-unused-function \
-	-Wno-redundant-decls \
-	-Wimplicit-function-declaration  -fprofile-arcs -ftest-coverage \
-	-DUNITY_FLOAT_VERBOSE -DUNIT_TEST \
-	$(CSTD) $(OPT) $(addprefix -I, $(INCLUDES)) \
-	-I $(OPENCM3_DIR)/include
-LDFLAGS = $(BUILD_FLAGS) -lm -fprofile-arcs --coverage
-
-PREFIX	=
-CC	= $(PREFIX)gcc
-CXX	:= $(PREFIX)g++
-LD	:= $(PREFIX)gcc
-AR	:= $(PREFIX)ar
-AS	:= $(PREFIX)as
-OBJCOPY	:= $(PREFIX)objcopy
-OBJDUMP	:= $(PREFIX)objdump
-GDB	:= $(PREFIX)gdb
-SIZE	:= $(PREFIX)size
-
-#######################
-# Build rules
-#######################
-all: $(PROJECT) tests coverage
-
-# Need a special rule to have a bin dir
-$(BUILD_DIR)/%.o: %.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -MD -o $@ -c $<
-
-$(BUILD_DIR)/%.o: ../%.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -MD -o $@ -c $<
-
-$(PROJECT): $(OBJS)
-	$(LD) $(LDFLAGS) $(OBJS) -o $@
-
-tests: $(PROJECT)
-	./$< -v
-
-coverage: tests
-	mkdir -p coverage
-	gcovr --html --html-details -o coverage/index.html -s -u -r "." -e ".*/tests/.*" -e ".*/external/.*"
+docker_build: Dockerfile
+	docker build -t $(IMAGE_NAME) .
 
 clean:
-	@rm -rf $(BUILD_DIR) $(PROJECT) coverage *.pbm ramdisk.img
+	@rm -rf ./build
 
-.PHONY: all clean flash
--include $(OBJS:.o=.d)
+.PHONY: docker clean coverage docker docker_build

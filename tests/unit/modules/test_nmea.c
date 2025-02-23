@@ -1,48 +1,7 @@
-/*
- * Copyright (C) 2019 Jakub Kaderka
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-/**
- * @file    modules/test_nmea.c
- * @brief   Unit tests for nmea.c
- *
- * @addtogroup tests
- * @{
- */
-
-#include <string.h>
-#include <ctype.h>
-#include <main.h>
+#include <unity.h>
 #include "modules/nmea.c"
 
-/* *****************************************************************************
- * Tests
-***************************************************************************** */
-TEST_GROUP(NMEA);
-
-TEST_SETUP(NMEA)
-{
-}
-
-TEST_TEAR_DOWN(NMEA)
-{
-
-}
-
-TEST(NMEA, Hex2Dec)
+void test_Hex2Dec(void)
 {
     TEST_ASSERT_EQUAL(0, Nmeai_Hex2Dec('0'));
     TEST_ASSERT_EQUAL(3, Nmeai_Hex2Dec('3'));
@@ -52,7 +11,7 @@ TEST(NMEA, Hex2Dec)
     TEST_ASSERT_EQUAL(15, Nmeai_Hex2Dec('F'));
 }
 
-TEST(NMEA, Str2Dec)
+void test_Str2Dec(void)
 {
     const char *str1 = "123";
     const char *str2 = "12a";
@@ -66,28 +25,28 @@ TEST(NMEA, Str2Dec)
     TEST_ASSERT_EQUAL('3', *str3);
 }
 
-TEST(NMEA, Float2Decdeg)
+void test_Float2Decdeg(void)
 {
-    nmea_float_t f = {-1155892345, 100000};
+    nmea_float_t f = { -1155892345, 100000 };
 
     Nmeai_Float2DecDeg(&f);
     TEST_ASSERT_EQUAL(-1159820575, f.num);
     TEST_ASSERT_EQUAL(10000000, f.scale);
 }
 
-TEST(NMEA, VerifyChecksum)
+void test_VerifyChecksum(void)
 {
-    TEST_ASSERT_TRUE(Nmea_VerifyChecksum(
-            "$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0A"));
+    TEST_ASSERT_TRUE(
+        Nmea_VerifyChecksum("$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0A"));
 
-    TEST_ASSERT_TRUE(Nmea_VerifyChecksum(
-            "$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0a"));
+    TEST_ASSERT_TRUE(
+        Nmea_VerifyChecksum("$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0a"));
 
-    TEST_ASSERT_FALSE(Nmea_VerifyChecksum(
-            "$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*1F"));
+    TEST_ASSERT_FALSE(
+        Nmea_VerifyChecksum("$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*1F"));
 
-    TEST_ASSERT_FALSE(Nmea_VerifyChecksum(
-            "$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0["));
+    TEST_ASSERT_FALSE(
+        Nmea_VerifyChecksum("$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0["));
 
     TEST_ASSERT_FALSE(Nmea_VerifyChecksum("GPGSA,,,,,1.38*1F"));
     TEST_ASSERT_FALSE(Nmea_VerifyChecksum("$GPGSA,,,,,1.38*1"));
@@ -98,25 +57,24 @@ TEST(NMEA, VerifyChecksum)
     TEST_ASSERT_FALSE(Nmea_VerifyChecksum("$*"));
 }
 
-TEST(NMEA, VerifyMsg)
+void test_VerifyMsg(void)
 {
-    TEST_ASSERT_TRUE(Nmea_VerifyMessage(
-            "$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0A"));
+    TEST_ASSERT_TRUE(
+        Nmea_VerifyMessage("$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0A"));
 
-    TEST_ASSERT_FALSE(Nmea_VerifyMessage(
-            "$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*1A"));
+    TEST_ASSERT_FALSE(
+        Nmea_VerifyMessage("$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*1A"));
 
-    TEST_ASSERT_FALSE(Nmea_VerifyMessage(
-            "$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0"));
+    TEST_ASSERT_FALSE(
+        Nmea_VerifyMessage("$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38*0"));
 
-    TEST_ASSERT_TRUE(Nmea_VerifyMessage(
-            "$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38"));
+    TEST_ASSERT_TRUE(Nmea_VerifyMessage("$GPGSA,A,3,10,07,05,02,29,04,08,13,,,,,1.72,1.03,1.38"));
 
     TEST_ASSERT_FALSE(Nmea_VerifyMessage("foo"));
     TEST_ASSERT_TRUE(Nmea_VerifyMessage("$foobar,valid"));
 }
 
-TEST(NMEA, Scan)
+void test_Scan(void)
 {
     char c;
     int8_t dir1, dir2;
@@ -126,8 +84,8 @@ TEST(NMEA, Scan)
     nmea_date_t date;
     nmea_time_t time1, time2, time3;
 
-    TEST_ASSERT_TRUE(Nmeai_Scan("GPFOO,f,ign,05,+12.04,-4912.12345,", "sc_ifp_",
-            str, &c, &i, &f1, &f2));
+    TEST_ASSERT_TRUE(
+        Nmeai_Scan("GPFOO,f,ign,05,+12.04,-4912.12345,", "sc_ifp_", str, &c, &i, &f1, &f2));
     TEST_ASSERT_EQUAL_STRING("GPFOO", str);
     TEST_ASSERT_EQUAL('f', c);
     TEST_ASSERT_EQUAL(5, i);
@@ -137,8 +95,8 @@ TEST(NMEA, Scan)
     TEST_ASSERT_EQUAL(-492020575, f2.num);
     TEST_ASSERT_EQUAL(10000000, f2.scale);
 
-    TEST_ASSERT_TRUE(Nmeai_Scan("$N,S,120125,122508,053011.123,,A*23", "DDdttt_",
-            &dir1, &dir2, &date, &time1, &time2, &time3));
+    TEST_ASSERT_TRUE(Nmeai_Scan("$N,S,120125,122508,053011.123,,A*23", "DDdttt_", &dir1, &dir2,
+        &date, &time1, &time2, &time3));
     TEST_ASSERT_EQUAL(1, dir1);
     TEST_ASSERT_EQUAL(-1, dir2);
     TEST_ASSERT_EQUAL(12, date.day);
@@ -157,22 +115,19 @@ TEST(NMEA, Scan)
     TEST_ASSERT_EQUAL(-1, time3.second);
     TEST_ASSERT_EQUAL(0, time3.micros);
 
-    TEST_ASSERT_FALSE(Nmeai_Scan("N,S", "DDdtt", &dir1,
-            &dir2, &date, &time1, &time2));
+    TEST_ASSERT_FALSE(Nmeai_Scan("N,S", "DDdtt", &dir1, &dir2, &date, &time1, &time2));
     TEST_ASSERT_FALSE(Nmeai_Scan("N,S", "D", &dir1));
 }
 
-TEST(NMEA, ParseRmc)
+void test_ParseRmc(void)
 {
     nmea_rmc_t rmc;
 
-    TEST_ASSERT_FALSE(Nmea_ParseRmc(
-            "$GPFOO,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E",
-            &rmc));
+    TEST_ASSERT_FALSE(
+        Nmea_ParseRmc("$GPFOO,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E", &rmc));
 
-    TEST_ASSERT_TRUE(Nmea_ParseRmc(
-            "$GPRMC,081836,A,3751.65,S,14507.36,E,999.99,123.4,130998,011.3,W",
-            &rmc));
+    TEST_ASSERT_TRUE(
+        Nmea_ParseRmc("$GPRMC,081836,A,3751.65,S,14507.36,E,999.99,123.4,130998,011.3,W", &rmc));
 
     TEST_ASSERT_TRUE(rmc.valid);
     TEST_ASSERT_EQUAL(8, rmc.fix_time.hour);
@@ -193,9 +148,8 @@ TEST(NMEA, ParseRmc)
     TEST_ASSERT_EQUAL(-113, rmc.mag_variation.num);
     TEST_ASSERT_EQUAL(10, rmc.mag_variation.scale);
 
-    TEST_ASSERT_TRUE(Nmea_ParseRmc(
-            "$GPRMC,191118.000,A,4911.3987,N,01745.4449,E,0.01,6.42,241020,,,A",
-            &rmc));
+    TEST_ASSERT_TRUE(
+        Nmea_ParseRmc("$GPRMC,191118.000,A,4911.3987,N,01745.4449,E,0.01,6.42,241020,,,A", &rmc));
     TEST_ASSERT_TRUE(rmc.valid);
     TEST_ASSERT_EQUAL(19, rmc.fix_time.hour);
     TEST_ASSERT_EQUAL(11, rmc.fix_time.minute);
@@ -216,21 +170,20 @@ TEST(NMEA, ParseRmc)
     TEST_ASSERT_EQUAL(1, rmc.mag_variation.scale);
 
     /* Used on L96 and similar */
-    TEST_ASSERT_TRUE(Nmea_ParseRmc(
-            "$GNRMC,181320.000,A,4238.4047,N,01141.4529,E,0.00,356.03,040621,,,A,V",
+    TEST_ASSERT_TRUE(
+        Nmea_ParseRmc("$GNRMC,181320.000,A,4238.4047,N,01141.4529,E,0.00,356.03,040621,,,A,V",
             &rmc));
 }
 
-TEST(NMEA, ParseGga)
+void test_ParseGga(void)
 {
     nmea_gga_t gga;
 
-    TEST_ASSERT_FALSE(Nmea_ParseGga(
-            "$GPFOO,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,",
-            &gga));
+    TEST_ASSERT_FALSE(
+        Nmea_ParseGga("$GPFOO,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,", &gga));
 
-    TEST_ASSERT_TRUE(Nmea_ParseGga(
-            "$GPGGA,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,*76",
+    TEST_ASSERT_TRUE(
+        Nmea_ParseGga("$GPGGA,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,*76",
             &gga));
     TEST_ASSERT_EQUAL(9, gga.fix_time.hour);
     TEST_ASSERT_EQUAL(27, gga.fix_time.minute);
@@ -249,17 +202,15 @@ TEST(NMEA, ParseGga)
     TEST_ASSERT_EQUAL(10, gga.above_ellipsoid_m.scale);
 }
 
-TEST(NMEA, ParseGsv)
+void test_ParseGsv(void)
 {
     nmea_gsv_t gsv;
 
-    TEST_ASSERT_FALSE(Nmea_ParseGsv(
-            "$GPGSF,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D",
-            &gsv));
+    TEST_ASSERT_FALSE(
+        Nmea_ParseGsv("$GPGSF,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D", &gsv));
 
-    TEST_ASSERT_TRUE(Nmea_ParseGsv(
-            "$GPGSV,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D",
-            &gsv));
+    TEST_ASSERT_TRUE(
+        Nmea_ParseGsv("$GPGSV,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D", &gsv));
 
     TEST_ASSERT_EQUAL(3, gsv.messages);
     TEST_ASSERT_EQUAL(3, gsv.msg_id);
@@ -282,22 +233,24 @@ TEST(NMEA, ParseGsv)
     TEST_ASSERT_EQUAL(0, gsv.sv[2].snr);
 }
 
-TEST(NMEA, GetSentenceType)
+void test_GetSentenceType(void)
 {
-    TEST_ASSERT_EQUAL(NMEA_SENTENCE_RMC, Nmea_GetSentenceType(
-        "$GPRMC,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*62"));
+    TEST_ASSERT_EQUAL(NMEA_SENTENCE_RMC,
+        Nmea_GetSentenceType("$GPRMC,081836,A,3751.65,S,14507.36,E,000.0,360.0,130998,011.3,E*62"));
 
-    TEST_ASSERT_EQUAL(NMEA_SENTENCE_GGA, Nmea_GetSentenceType(
-        "$GPGGA,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,*76"));
+    TEST_ASSERT_EQUAL(NMEA_SENTENCE_GGA,
+        Nmea_GetSentenceType(
+            "$GPGGA,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,*76"));
 
-    TEST_ASSERT_EQUAL(NMEA_SENTENCE_GSV, Nmea_GetSentenceType(
-        "$GPGSV,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D"));
+    TEST_ASSERT_EQUAL(NMEA_SENTENCE_GSV,
+        Nmea_GetSentenceType("$GPGSV,3,3,11,22,42,067,42,24,14,311,43,27,05,244,00,,,,*4D"));
 
-    TEST_ASSERT_EQUAL(NMEA_SENTENCE_UNKNOWN, Nmea_GetSentenceType(
-        "$GPFOO,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,"));
+    TEST_ASSERT_EQUAL(NMEA_SENTENCE_UNKNOWN,
+        Nmea_GetSentenceType(
+            "$GPFOO,092750.000,5321.6802,N,00630.3372,W,1,8,1.03,61.7,M,55.2,M,,"));
 }
 
-TEST(NMEA, AddChar)
+void test_AddChar(void)
 {
     char buf[] = "$foobar,444,123,112123,232321,*32";
     char buf2[] = "$foobar,444,123,*32";
@@ -319,27 +272,3 @@ TEST(NMEA, AddChar)
     TEST_ASSERT_NOT_NULL(res);
     TEST_ASSERT_EQUAL_STRING(buf2, res);
 }
-
-TEST_GROUP_RUNNER(NMEA)
-{
-    RUN_TEST_CASE(NMEA, Hex2Dec);
-    RUN_TEST_CASE(NMEA, Str2Dec);
-    RUN_TEST_CASE(NMEA, Float2Decdeg);
-    RUN_TEST_CASE(NMEA, Scan);
-    RUN_TEST_CASE(NMEA, VerifyChecksum);
-    RUN_TEST_CASE(NMEA, VerifyMsg);
-    RUN_TEST_CASE(NMEA, ParseRmc);
-    RUN_TEST_CASE(NMEA, ParseGga);
-    RUN_TEST_CASE(NMEA, ParseGsv);
-    RUN_TEST_CASE(NMEA, GetSentenceType);
-    RUN_TEST_CASE(NMEA, AddChar);
-}
-
-void Nmea_RunTests(void)
-{
-    RUN_TEST_GROUP(NMEA);
-}
-
-/** @} */
-
-
