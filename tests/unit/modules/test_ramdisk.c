@@ -39,7 +39,7 @@ static void Ramdisk_WriteTest(const uint8_t *buf, size_t size, uint32_t offset)
 
 void setUp(void)
 {
-    struct tm time;
+    struct tm time = { 0 };
 
     memset(data_written, 0xab, 512);
     data_offset = (uint32_t)-1;
@@ -144,6 +144,7 @@ void test_RootDirectory(void)
     TEST_ASSERT_EQUAL_STRING_LEN("Foo     ", &buf[offset], 8);
     TEST_ASSERT_EQUAL_STRING_LEN("br ", &buf[offset + 8], 3);
     TEST_ASSERT_EQUAL_HEX8(0x21, buf[offset + 0xb]);
+
     /* time 12:32:11 */
     TEST_ASSERT_EQUAL_HEX8(5 | ((32 << 5) & 0x1f), buf[offset + 0x16]);
     TEST_ASSERT_EQUAL_HEX8((32 >> 3) | (12 << 3), buf[offset + 0x17]);
