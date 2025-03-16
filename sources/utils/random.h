@@ -9,7 +9,7 @@
 #include <types.h>
 
 /** Get random number */
-uint32_t Random_Get();
+uint32_t Random_Get(void);
 
 /**
  * Initialize the Random number generator with seed, the output sequence is

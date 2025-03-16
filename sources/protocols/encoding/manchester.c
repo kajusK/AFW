@@ -6,6 +6,7 @@
  */
 
 #include <types.h>
+#include "manchester.h"
 
 /** Lookup table for manchester encoding (4bit input) */
 static const uint8_t encodeTable[] = {

@@ -8,7 +8,7 @@
 
 static uint32_t state;
 
-uint32_t Random_Get()
+uint32_t Random_Get(void)
 {
     /* Simple Xorshift random number generator */
     state ^= state << 13;
