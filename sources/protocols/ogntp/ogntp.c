@@ -160,7 +160,7 @@ static uint8_t encodeClimbRate(int16_t rate_dms)
 /** Calculate parity bit (even parity) for header (first 28 bits)*/
 static bool getParityBit(const packet_v1_t *packet)
 {
-    return count1s(packet->header_data & 0x0FFFFFFF) & 0x01;
+    return count1s(packet->header_data & 0x07FFFFFF) & 0x01;
 }
 
 /**
@@ -173,6 +173,7 @@ static bool getParityBit(const packet_v1_t *packet)
 static void fillPositionPacket(packet_v1_t *packet, const ogntp_aircraft_t *aircraft,
     const gps_info_t *gps)
 {
+    memset(packet, 0x0, sizeof(packet_v1_t));
     packet->header.emergency = 0;
     packet->header.encrypted = 0;
     packet->header.relay = 0;   // direct packet

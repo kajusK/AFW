@@ -71,7 +71,7 @@ void getFCS(const uint8_t data[20], uint8_t parity[6])
 
     for (uint8_t bit = 0; bit < 48; bit++) {
         uint8_t ones = 0;
-        const uint8_t *gen = (uint8_t *)ldpc_matrix[bit];
+        const uint8_t *gen = (const uint8_t *)ldpc_matrix[bit];
 
         for (uint8_t byte = 0; byte < 20; byte++) {
             ones += count1s(data[byte] & gen[byte]);
@@ -82,6 +82,7 @@ void getFCS(const uint8_t data[20], uint8_t parity[6])
         mask <<= 1;
         if (mask == 0) {
             parity++;
+            *parity = 0;
             mask = 0x01;
         }
     }
