@@ -1,7 +1,7 @@
 :project:
   :use_exceptions: FALSE
   :use_mocks: TRUE
-  :use_test_preprocessor: :none
+  :use_test_preprocessor: :tests
   :use_deep_preprocessor: :none
   :build_root: build
   :test_file_prefix: test_
