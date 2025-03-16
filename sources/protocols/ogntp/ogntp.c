@@ -17,6 +17,7 @@
  */
 
 #include <types.h>
+#include <string.h>
 #include "utils/utils.h"
 #include "protocols/encoding/manchester.h"
 #include "ogn_internal.h"
