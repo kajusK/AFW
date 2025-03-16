@@ -11,15 +11,31 @@
 #include "utils/ringbuf.h"
 #include "modules/nmea.h"
 
+typedef enum {
+    GPS_FIX_NOT_VALID = 0, /**< GPS fix is not valid */
+    GPS_FIX_GPS = 1,       /**< Standard GPS */
+    GPS_FIX_DGPS = 2,      /**< Differential GPS */
+    GPS_FIX_PPS = 3,       /**< Precision position system */
+    GPS_FIX_RTK = 4,       /**< Real time kinematics, fixed */
+    GPS_FIX_RTKF = 5,      /**< Real time kinematics, float */
+    GPS_FIX_RECKONING = 6, /**< Dead time reckoning */
+    GPS_FIX_MANUAL = 7,    /**< Manual position input */
+    GPS_FIX_SIMULATED = 8, /**< Simulated position input */
+} gps_fix_quality_t;
+
 typedef struct {
-    nmea_float_t lat;    /**< In decimal degrees */
-    nmea_float_t lon;    /**< In deciaml degrees */
-    int32_t altitude_dm; /**< Altitude in dm */
-    int32_t speed_dmh;   /**< speed in dm/s */
-    int32_t hdop_dm;     /**< location precision */
-    uint8_t satellites;  /**< Visible satellites */
-    time_t time;         /**< Unix time (s since 1.1.1970) of the data received */
-    uint32_t timestamp;  /**< Millis timestamp when the gps fix was obtained */
+    uint32_t timestamp;     /**< Millis timestamp when the gps fix was obtained */
+    nmea_date_t date;       /**< UTC date of the fix */
+    nmea_time_t time;       /**< UTC time of the fix */
+    nmea_float_t latitude;  /**< Latitude in decimal degrees */
+    nmea_float_t longitude; /**< Longitude in decimal degrees */
+    uint16_t heading_ddeg;  /**< Heading in 0.1 degrees unit */
+    int32_t altitude_dm;    /**< Altitude above MSL in dm */
+    int32_t speed_dms;      /**< Ground speed in dm/s */
+    int32_t hdop_d;         /**< Horizontal dilution of precision in 0.1 units, 1.0 to infinity */
+    uint8_t satellites;     /**< Amount of used satellites */
+    gps_fix_quality_t fix_quality; /**< Quality of the current GPS fix */
+    bool is_3d_fix;                /**< Enough satellites for valid 3D fix obtained */
 } gps_info_t;
 
 typedef struct {
@@ -94,14 +110,14 @@ void Gps_InvalidateData(gps_desc_t *desc);
  * Should be called periodically as it fetches the data from uart buffer
  *
  * @param desc        Device descriptor
- * @return data If have valid GPS data or NULL
+ * @return data If just received a position update
  */
 const gps_info_t *Gps_Loop(gps_desc_t *desc);
 
 /**
  * Initialize GPS module
  *
- * Due to implementation limitations, only one device could be used (
+ * Due to implementation limitations, only one device can be used (
  * the receiving function is using descriptor provided in last Gps_Init call)
  *
  * @param [out] desc        Device descriptor

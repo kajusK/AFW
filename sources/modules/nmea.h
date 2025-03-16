@@ -26,6 +26,7 @@ typedef struct {
     int32_t micros;
 } nmea_time_t;
 
+/* Float number representation, divide num by scale to get float number */
 typedef struct {
     int32_t num;
     int32_t scale;
@@ -33,40 +34,40 @@ typedef struct {
 
 /** Satellite in view info */
 typedef struct {
-    uint8_t prn;
-    uint8_t elevation; /* 0-90 */
-    uint16_t azimuth;  /* 0-359 */
-    uint8_t snr;       /* 0-99 */
+    uint8_t prn;       /**< Satellite PRN number, 1-32 for gps */
+    uint8_t elevation; /**< 0-90 degrees */
+    uint16_t azimuth;  /**< 0-359 degrees */
+    uint8_t snr;       /**< 0-99 dB */
 } nmea_sv_info_t;
 
 typedef struct {
-    nmea_time_t fix_time;
-    bool valid;
-    nmea_float_t lat; /* in decimal degrees */
-    nmea_float_t lon; /* in decimal degrees */
-    nmea_float_t speed_kmh;
-    nmea_float_t course;
-    nmea_date_t date;
-    nmea_float_t mag_variation;
+    nmea_time_t fix_time;       /**< UTC time of GPS fix */
+    bool valid;                 /**< Validity of data, do not use when invalid */
+    nmea_float_t lat;           /**< Latitude in decimal degrees */
+    nmea_float_t lon;           /**< Longitude in decimal degrees */
+    nmea_float_t speed_ms;      /**< Speed over ground in m/s */
+    nmea_float_t heading;       /**< Heading over ground in degrees */
+    nmea_date_t date;           /**< Current date */
+    nmea_float_t mag_variation; /**< Magnetic variation in degrees */
 } nmea_rmc_t;
 
 typedef struct {
-    nmea_time_t fix_time;
-    nmea_float_t lat; /* in decimal degrees */
-    nmea_float_t lon; /* in decimal degrees */
-    uint8_t quality;
-    uint8_t satellites;
-    nmea_float_t hdop;
-    nmea_float_t altitude_m;
-    nmea_float_t above_ellipsoid_m;
+    nmea_time_t fix_time;           /**< UTC time of GPS fix */
+    nmea_float_t lat;               /**< Latitude in decimal degrees */
+    nmea_float_t lon;               /**< Longitude in decimal degrees */
+    uint8_t quality;                /**< Fix quality 0 Fix not valid, 1 GPS, 2 Differential GPS */
+    uint8_t satellites;             /**< Number of satellites in use */
+    nmea_float_t hdop;              /**< Horizontal dilution of precision, 1.0 to infinity */
+    nmea_float_t altitude_m;        /**< Height above MSL in meters */
+    nmea_float_t above_ellipsoid_m; /**< Geoidal separation measures in meters */
 } nmea_gga_t;
 
 typedef struct {
-    uint8_t messages;
-    uint8_t msg_id;
-    uint8_t visible;
-    uint8_t count;
-    nmea_sv_info_t sv[4];
+    uint8_t messages;     /**< Total number of GSV messages for this cycle */
+    uint8_t msg_id;       /**< Current message number out of all gsv messages */
+    uint8_t visible;      /**< Total number of visible satellites */
+    uint8_t count;        /**< Amount of SVs in this message */
+    nmea_sv_info_t sv[4]; /**< List of received satellites */
 } nmea_gsv_t;
 
 typedef enum {

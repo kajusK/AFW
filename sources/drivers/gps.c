@@ -48,27 +48,6 @@ static int32_t Gpsi_NmeaF2Dec(const nmea_float_t *f, int32_t scale)
     return f->num / (f->scale / scale);
 }
 
-/**
- * Convert nmea date and time into unix timestamp
- *
- * @param time      Time structure
- * @param date      Date structure
- * @return  Unix formated timestamp (seconds since 1.1.1970)
- */
-static time_t Gpsi_Nmea2Timestamp(const nmea_time_t *time, const nmea_date_t *date)
-{
-    struct tm tmstruct = { 0 };
-
-    tmstruct.tm_sec = time->second;
-    tmstruct.tm_min = time->minute;
-    tmstruct.tm_hour = time->hour;
-    tmstruct.tm_mday = date->day;
-    tmstruct.tm_mon = date->month - 1;
-    tmstruct.tm_year = date->year + 100;
-
-    return mktime(&tmstruct);
-}
-
 static bool Gpsi_ProcessRmc(const char *msg, gps_info_t *info)
 {
     nmea_rmc_t rmc;
@@ -81,10 +60,12 @@ static bool Gpsi_ProcessRmc(const char *msg, gps_info_t *info)
         return false;
     }
 
-    info->speed_dmh = Gpsi_NmeaF2Dec(&rmc.speed_kmh, 10);
-    info->lat = rmc.lat;
-    info->lon = rmc.lon;
-    info->time = Gpsi_Nmea2Timestamp(&rmc.fix_time, &rmc.date);
+    info->latitude = rmc.lat;
+    info->longitude = rmc.lon;
+    info->speed_dms = Gpsi_NmeaF2Dec(&rmc.speed_ms, 10);
+    info->heading_ddeg = Gpsi_NmeaF2Dec(&rmc.heading, 10);
+    info->time = rmc.fix_time;
+    info->date = rmc.date;
     return true;
 }
 
@@ -101,10 +82,12 @@ static bool Gpsi_ProcessGga(const char *msg, gps_info_t *info)
     }
 
     info->satellites = gga.satellites;
-    info->lat = gga.lat;
-    info->lon = gga.lon;
-    info->hdop_dm = Gpsi_NmeaF2Dec(&gga.hdop, 10);
+    info->latitude = gga.lat;
+    info->longitude = gga.lon;
+    info->hdop_d = Gpsi_NmeaF2Dec(&gga.hdop, 10);
     info->altitude_dm = Gpsi_NmeaF2Dec(&gga.altitude_m, 10);
+    info->fix_quality = gga.quality;
+    info->is_3d_fix = gga.quality >= 1 && gga.satellites >= 4;
     return true;
 }
 
@@ -177,6 +160,8 @@ void Gps_InvalidateData(gps_desc_t *desc)
 
 const gps_info_t *Gps_Loop(gps_desc_t *desc)
 {
+    bool was_updated = false;
+
     while (!Ring_Empty(&desc->ringbuf)) {
         const char *msg = Nmea_AddChar(Ring_Pop(&desc->ringbuf));
         if (msg == NULL) {
@@ -186,15 +171,16 @@ const gps_info_t *Gps_Loop(gps_desc_t *desc)
         Log_Debug("GPS", msg);
         switch (Nmea_GetSentenceType(msg)) {
             case NMEA_SENTENCE_GGA:
-                /* Main source of data, sets data validity */
                 if (Gpsi_ProcessGga(msg, &desc->info)) {
                     desc->data_valid |= 0x01;
+                    was_updated = true;
                 }
                 break;
             case NMEA_SENTENCE_RMC:
                 if (Gpsi_ProcessRmc(msg, &desc->info)) {
                     desc->data_valid |= 0x02;
                     desc->info.timestamp = millis();
+                    was_updated = true;
                 }
                 break;
             case NMEA_SENTENCE_GSV:
@@ -210,7 +196,7 @@ const gps_info_t *Gps_Loop(gps_desc_t *desc)
         desc->data_valid = 0;
     }
 
-    if (desc->data_valid == 0x03) {
+    if (desc->data_valid == 0x03 && was_updated) {
         return &desc->info;
     }
     return NULL;

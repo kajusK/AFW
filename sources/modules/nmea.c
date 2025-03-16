@@ -360,7 +360,7 @@ bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc)
     /* $GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68 */
     ret =
         Nmeai_Scan(msg, "stcpDpDffdfD__", type, &rmc->fix_time, &c, &rmc->lat, &dir_lat, &rmc->lon,
-            &dir_lon, &rmc->speed_kmh, &rmc->course, &rmc->date, &rmc->mag_variation, &dir_var);
+            &dir_lon, &rmc->speed_ms, &rmc->heading, &rmc->date, &rmc->mag_variation, &dir_var);
     if (!ret || strncmp(type + 2, "RMC", 3) != 0) {
         return false;
     }
@@ -370,19 +370,19 @@ bool Nmea_ParseRmc(const char *msg, nmea_rmc_t *rmc)
     rmc->lon.num *= dir_lon;
     rmc->mag_variation.num *= dir_var;
 
-    /* convert from knots to kmh */
-    if (rmc->speed_kmh.scale > 100) {
-        div = rmc->speed_kmh.scale / 100;
-        rmc->speed_kmh.scale /= div;
-        rmc->speed_kmh.num /= div;
+    /* convert number to 2 decimal places */
+    if (rmc->speed_ms.scale > 100) {
+        div = rmc->speed_ms.scale / 100;
+        rmc->speed_ms.scale /= div;
+        rmc->speed_ms.num /= div;
     } else {
-        div = 100 / rmc->speed_kmh.scale;
-        rmc->speed_kmh.scale *= div;
-        rmc->speed_kmh.num *= div;
+        div = 100 / rmc->speed_ms.scale;
+        rmc->speed_ms.scale *= div;
+        rmc->speed_ms.num *= div;
     }
-    rmc->speed_kmh.num *= 1852;
-    rmc->speed_kmh.num += 500;  /* rounded, same as adding 0.5 */
-    rmc->speed_kmh.num /= 1000; /* divided by 1000 to get to original range */
+    rmc->speed_ms.num *= 5144;
+    rmc->speed_ms.num += 5000;  /* rounded, same as adding 0.5 */
+    rmc->speed_ms.num /= 10000; /* divided to get to original range */
 
     return true;
 }

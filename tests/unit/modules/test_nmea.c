@@ -137,11 +137,11 @@ void test_ParseRmc(void)
     TEST_ASSERT_EQUAL(10000, rmc.lat.scale);
     TEST_ASSERT_EQUAL(1451226, rmc.lon.num);
     TEST_ASSERT_EQUAL(10000, rmc.lon.scale);
-    /* 999,99 knots is equal to 1851,981 kmh/h */
-    TEST_ASSERT_EQUAL(185198, rmc.speed_kmh.num);
-    TEST_ASSERT_EQUAL(100, rmc.speed_kmh.scale);
-    TEST_ASSERT_EQUAL(1234, rmc.course.num);
-    TEST_ASSERT_EQUAL(10, rmc.course.scale);
+    /* 999,99 knots is equal to 514.43929999556 m/s */
+    TEST_ASSERT_EQUAL(51439, rmc.speed_ms.num);
+    TEST_ASSERT_EQUAL(100, rmc.speed_ms.scale);
+    TEST_ASSERT_EQUAL(1234, rmc.heading.num);
+    TEST_ASSERT_EQUAL(10, rmc.heading.scale);
     TEST_ASSERT_EQUAL(13, rmc.date.day);
     TEST_ASSERT_EQUAL(9, rmc.date.month);
     TEST_ASSERT_EQUAL(98, rmc.date.year);
@@ -149,7 +149,7 @@ void test_ParseRmc(void)
     TEST_ASSERT_EQUAL(10, rmc.mag_variation.scale);
 
     TEST_ASSERT_TRUE(
-        Nmea_ParseRmc("$GPRMC,191118.000,A,4911.3987,N,01745.4449,E,0.01,6.42,241020,,,A", &rmc));
+        Nmea_ParseRmc("$GPRMC,191118.000,A,4911.3987,N,01745.4449,E,12.561,6.42,241020,,,A", &rmc));
     TEST_ASSERT_TRUE(rmc.valid);
     TEST_ASSERT_EQUAL(19, rmc.fix_time.hour);
     TEST_ASSERT_EQUAL(11, rmc.fix_time.minute);
@@ -158,11 +158,10 @@ void test_ParseRmc(void)
     TEST_ASSERT_EQUAL(1000000, rmc.lat.scale);
     TEST_ASSERT_EQUAL(17757415, rmc.lon.num);
     TEST_ASSERT_EQUAL(1000000, rmc.lon.scale);
-    /* 999,99 knots is equal to 1851,981 kmh/h */
-    TEST_ASSERT_EQUAL(2, rmc.speed_kmh.num);
-    TEST_ASSERT_EQUAL(100, rmc.speed_kmh.scale);
-    TEST_ASSERT_EQUAL(642, rmc.course.num);
-    TEST_ASSERT_EQUAL(100, rmc.course.scale);
+    TEST_ASSERT_EQUAL(646, rmc.speed_ms.num);
+    TEST_ASSERT_EQUAL(100, rmc.speed_ms.scale);
+    TEST_ASSERT_EQUAL(642, rmc.heading.num);
+    TEST_ASSERT_EQUAL(100, rmc.heading.scale);
     TEST_ASSERT_EQUAL(24, rmc.date.day);
     TEST_ASSERT_EQUAL(10, rmc.date.month);
     TEST_ASSERT_EQUAL(20, rmc.date.year);
