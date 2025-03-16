@@ -3,13 +3,16 @@
 #include "protocols/ogntp/fcs.c"
 #include "protocols/ogntp/whitening.c"
 #include "utils/utils.c"
+#include "protocols/encoding/manchester.c"
 #include "protocols/ogntp/ogntp.c"
 
 void test_EncodePosition(void)
 {
     uint32_t buffer[OGNTP_FRAME_BYTES];
-    const uint32_t expected[] = { 0x03ddeeff, 0x86c383e2, 0xbb5e931d, 0xca3d88c8, 0x7cabf3f1,
-        0xa54773e5, 0x00007aa8 };
+    const uint32_t expected[] = { 0x56565555, 0xa5aa5959, 0xa56aa656, 0x966aa55a, 0xa56959a9,
+        0x65655699, 0x6a6a6a5a, 0x665a59a5, 0xa555a955, 0x5a956566, 0xa5959956, 0x9966959a,
+        0x66956a66 };
+
     ogntp_aircraft_t aircraft = {
         .address = 0xddeeff,
         .addr_type = OGNTP_ADDRESS_OGN,
@@ -30,5 +33,5 @@ void test_EncodePosition(void)
     };
 
     OGNTP_EncodePosition((uint8_t *)buffer, &aircraft, &gps);
-    TEST_ASSERT_EQUAL_HEX8_ARRAY(expected, buffer, OGNTP_FRAME_BYTES);
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(expected, buffer, sizeof(expected) / sizeof(expected[0]));
 }

@@ -49,7 +49,24 @@ typedef struct {
 } ogntp_aircraft_t;
 
 /** Length of the OGN frame in bytes */
-#define OGNTP_FRAME_BYTES 26
+#define OGNTP_FRAME_BYTES 52
+
+/**
+ * Radio settings:
+ *   100kbps bit rate
+ *   +-50 kHz deviation
+ *   243.3 kHz rxBandwidth
+ *   NRZ encoding
+ *   8 bits minimum preamble length
+ *   FSK modulation shaping BT=0.5
+ *   Preamble length = 8 bits
+ */
+
+/** OGNTP sync frame, 0x0AF3656C encoded in Manchester */
+#define OGNTP_SYNC { 0xAA, 0x66, 0x55, 0xA5, 0x96, 0x99, 0x96, 0x5A }
+
+/** OGNTP center frequency for Europe - there are actually two channels, let's keep this simple */
+#define OGNTP_FREQUENCY_HZ 868200000
 
 /**
  * Create an OGNTP position message

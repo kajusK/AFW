@@ -18,6 +18,7 @@
 
 #include <types.h>
 #include "utils/utils.h"
+#include "protocols/encoding/manchester.h"
 #include "ogn_internal.h"
 #include "ogntp.h"
 
@@ -202,12 +203,12 @@ static void fillPositionPacket(packet_v1_t *packet, const ogntp_aircraft_t *airc
     packet->header.parity = getParityBit(packet);
 }
 
-void OGNTP_EncodePosition(uint8_t buffer[26], const ogntp_aircraft_t *aircraft,
+void OGNTP_EncodePosition(uint8_t buffer[OGNTP_FRAME_BYTES], const ogntp_aircraft_t *aircraft,
     const gps_info_t *gps)
 {
     packet_v1_t packet;
     fillPositionPacket(&packet, aircraft, gps);
     whitenPayload((uint8_t *)packet.data);
     getFCS((uint8_t *)&packet, packet.fec);
-    memcpy(buffer, &packet, sizeof(packet));
+    ManchesterEncode(buffer, (uint8_t *)&packet, sizeof(packet));
 }
