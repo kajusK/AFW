@@ -9,6 +9,21 @@
 #include <types.h>
 #include "modules/nmea.h"
 
+/** World regions */
+typedef enum {
+    NAV_REGION_EUROPE,
+    NAV_REGION_ASIA,
+    NAV_REGION_NORTH_AMERICA,
+    NAV_REGION_SOUTH_AMERICA,
+    NAV_REGION_AFRICA,
+    NAV_REGION_OCEANIA,
+    NAV_REGION_AUSTRALIA_ZEELAND,
+    NAV_REGION_KOREA,
+    NAV_REGION_CHINA,
+    NAV_REGION_INDIA,
+    NAV_REGION_UNKNOWN,
+} nav_region_t;
+
 /**
  * Calculate distance between two gps points
  *
@@ -30,5 +45,12 @@
  */
 uint32_t Nav_GetDistanceDm(const nmea_float_t *lat1, const nmea_float_t *lon1,
     const nmea_float_t *lat2, const nmea_float_t *lon2);
+
+/**
+ * Estimate the world region we are in
+ *
+ * Very rough estimation from rectangular boxes drawn on map
+ */
+nav_region_t Nav_GetRegion(nmea_float_t latitude, nmea_float_t longitude);
 
 #endif

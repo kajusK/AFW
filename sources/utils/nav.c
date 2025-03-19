@@ -40,3 +40,41 @@ uint32_t Nav_GetDistanceDm(const nmea_float_t *lat1, const nmea_float_t *lon1,
      */
     return deglen * int_sqrt((uint64_t)x * x + (uint64_t)y * y) / (lat1->scale / 10);
 }
+
+nav_region_t Nav_GetRegion(nmea_float_t latitude, nmea_float_t longitude)
+{
+    int16_t lat = latitude.num / latitude.scale;
+    int16_t lon = longitude.num / longitude.scale;
+
+    if (lat >= 35 && lat <= 73 && lon >= -27 && lon <= 51) {
+        return NAV_REGION_EUROPE;
+    }
+    if (lat >= 10 && lat <= 84 && lon >= -173 && lon <= 33) {
+        return NAV_REGION_NORTH_AMERICA;
+    }
+    if (lat >= -60 && lat <= 14 && lon >= -95 && lon <= -30) {
+        return NAV_REGION_SOUTH_AMERICA;
+    }
+    if (lat >= -37 && lat <= 36 && lon >= -28 && lon <= 61) {
+        return NAV_REGION_AFRICA;
+    }
+    if (lat >= -12 && lat <= 20 && lon >= 90 && lon <= 180) {
+        return NAV_REGION_OCEANIA;
+    }
+    if (lat >= -50 && lat <= -7 && lon >= 108 && lon <= 180) {
+        return NAV_REGION_AUSTRALIA_ZEELAND;
+    }
+    if (lat >= 33 && lat <= 43 && lon >= 124 && lon <= 131) {
+        return NAV_REGION_KOREA;
+    }
+    if (lat >= 4 && lat <= 37 && lon >= 68 && lon <= 92) {
+        return NAV_REGION_INDIA;
+    }
+    if (lat >= 18 && lat <= 55 && lon >= 73 && lon <= 136) {
+        return NAV_REGION_CHINA;
+    }
+    if (lat >= 34 && lat <= 82 && ((lon >= 40 && lon <= 180) || (lon >= -170 && lon <= -180))) {
+        return NAV_REGION_ASIA;
+    }
+    return NAV_REGION_UNKNOWN;
+}
