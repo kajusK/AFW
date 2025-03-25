@@ -1,6 +1,14 @@
 /**
  * @file    ogntp.h
  * @brief   OGN Tracking Protocol implementation
+ *
+ * Radio settings:
+ *   100kbps bit rate
+ *   +-50 kHz deviation
+ *   243.3 kHz rxBandwidth
+ *   NRZ encoding
+ *   8 bits preamble length (0xAA)
+ *   FSK modulation shaping BT=0.5
  */
 
 #ifndef _PROTOCOL_OGNTP_H_
@@ -8,6 +16,24 @@
 
 #include <types.h>
 #include "drivers/gps.h"
+#include "utils/nav.h"
+
+/** Length of the OGN frame in bytes */
+#define OGNTP_FRAME_BYTES 52
+
+/** OGNTP sync frame, 0x0AF3656C encoded in Manchester */
+#define OGNTP_SYNC { 0xAA, 0x66, 0x55, 0xA5, 0x96, 0x99, 0x96, 0x5A }
+
+/** Length of the OGNTP frame transmission in ms */
+#define OGNTP_TX_LEN_MS 5
+
+/** Slot 0 timing, delay since the GPS PPS pulse */
+#define OGNTP_SLOT0_START_MS 400
+#define OGNTP_SLOT0_END_MS   800
+
+/** Slot 1 timing, delay since the GPS PPS pulse, can happen after next pps pulse */
+#define OGNTP_SLOT1_START_MS 800
+#define OGNTP_SLOT1_END_MS   1200
 
 /**
  * List of available aircraft types
@@ -48,26 +74,6 @@ typedef struct {
     ogntp_aircraft_type_t type;
 } ogntp_aircraft_t;
 
-/** Length of the OGN frame in bytes */
-#define OGNTP_FRAME_BYTES 52
-
-/**
- * Radio settings:
- *   100kbps bit rate
- *   +-50 kHz deviation
- *   243.3 kHz rxBandwidth
- *   NRZ encoding
- *   8 bits minimum preamble length
- *   FSK modulation shaping BT=0.5
- *   Preamble length = 8 bits
- */
-
-/** OGNTP sync frame, 0x0AF3656C encoded in Manchester */
-#define OGNTP_SYNC { 0xAA, 0x66, 0x55, 0xA5, 0x96, 0x99, 0x96, 0x5A }
-
-/** OGNTP center frequency for Europe - there are actually two channels, let's keep this simple */
-#define OGNTP_FREQUENCY_HZ 868200000
-
 /**
  * Create an OGNTP position message
  *
@@ -77,5 +83,18 @@ typedef struct {
  */
 void OGNTP_EncodePosition(uint8_t buffer[OGNTP_FRAME_BYTES], const ogntp_aircraft_t *aircraft,
     const gps_info_t *gps);
+
+/**
+ * Get frequency to transmit on in given timeslot
+ *
+ * The OGNTP has two time slots defined, each timeslot can have a different
+ * transmit frequency.
+ *
+ * @param region          The region to select frequency plan for
+ * @param slot            Timeslot to use (0 or 1)
+ * @param timestamp_utc   Current UTC time as unix timestamp, used for frequency hoping
+ * @return Transmit frequency in Hz
+ */
+uint32_t OGNTP_GetFrequencyHz(nav_region_t region, uint8_t slot, uint32_t timestamp_utc);
 
 #endif
