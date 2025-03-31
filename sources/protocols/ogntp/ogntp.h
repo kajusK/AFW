@@ -74,15 +74,39 @@ typedef struct {
     ogntp_aircraft_type_t type;
 } ogntp_aircraft_t;
 
+/** Position frame content */
+typedef struct {
+    ogntp_aircraft_t aircraft;
+    uint8_t relay_cnt; /**< Amount of times the frame was relayed, 0 for direct frame */
+    bool emergency;    /**< Aircraft in emergency if true */
+
+    nmea_float_t latitude;
+    nmea_float_t longitude;
+    uint8_t time_s;          /**< Second of the current minute, 0-59 */
+    int32_t gps_altitude_dm; /**< GPS altitude in dm unit */
+    uint32_t speed_dms;      /**< Speed in 0.1 m/s units */
+    uint16_t heading_ddeg;   /**< Heading in 0.1 degrees unit */
+    uint8_t dop_d;           /**< GPS dilution of precision in 0.1 units */
+    bool is_3d_fix;          /**< Altitude is valid if true */
+    uint8_t fix_quality;     /**< GPS fix quality */
+} ogntp_position_t;
+
 /**
  * Create an OGNTP position message
  *
  * @param buffer    Buffer to store message to
- * @param aircraft  Aircraft identification
- * @param gps       GPS data to create frame from
+ * @param position  Positional data to encode
  */
-void OGNTP_EncodePosition(uint8_t buffer[OGNTP_FRAME_BYTES], const ogntp_aircraft_t *aircraft,
-    const gps_info_t *gps);
+void OGNTP_EncodePosition(uint8_t buffer[OGNTP_FRAME_BYTES], const ogntp_position_t *position);
+
+/**
+ * Decode OGNTP frame
+ *
+ * @param buffer    Buffer with the message
+ * @param position  Decoded message gets stored here
+ * @return True if decoded position data, false if not valid or other message type received
+ */
+bool OGNTP_DecodePosition(const uint8_t buffer[OGNTP_FRAME_BYTES], ogntp_position_t *position);
 
 /**
  * Get frequency to transmit on in given timeslot

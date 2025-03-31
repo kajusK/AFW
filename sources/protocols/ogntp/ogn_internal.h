@@ -26,17 +26,22 @@ void dewhitenPayload(uint8_t payload[16]);
 
 /** Encode unsigned number (0 to 61440) to 14 bits */
 uint16_t encodeToUint14(uint16_t value);
+uint16_t decodeFromUint14(uint16_t value);
 
 /* Encode unsigned number (0 to 3840) to 10 bits with compression */
 uint16_t encodeToUint10(uint16_t value);
+uint16_t decodeFromUint10(uint16_t value);
 
 /** Encode unsigned number (0 to 240) to 4 bits with compression */
-uint8_t encodeToUint4(uint8_t value);
+uint8_t encodeToUint6(uint8_t value);
+uint8_t decodeFromUint6(uint8_t value);
 
 /** Encode signed number (-480 to 480) to 8 bit with compression */
 uint8_t encodeSignedToUint8(int16_t value);
+int16_t decodeSignedFromUint8(uint8_t value);
 
 /** Encode signed number (-960 to 960) to 9 bits with compression */
 uint16_t encodeSignedToUint9(int16_t value);
+int16_t decodeSignedFromUint9(uint16_t value);
 
 #endif

@@ -17,7 +17,7 @@
  * @param input     Data to be encoded
  * @param len       Length of the input data
  */
-void ManchesterEncode(uint8_t *output, uint8_t *input, uint32_t len);
+void ManchesterEncode(uint8_t *output, const uint8_t *input, uint32_t len);
 
 /**
  * Decode manchester encoded data
@@ -27,6 +27,6 @@ void ManchesterEncode(uint8_t *output, uint8_t *input, uint32_t len);
  * @param len       Length of the input data
  * @return True if ok, false if data are invalid
  */
-bool ManchesterDecode(uint8_t *output, uint8_t *input, uint32_t len);
+bool ManchesterDecode(uint8_t *output, const uint8_t *input, uint32_t len);
 
 #endif

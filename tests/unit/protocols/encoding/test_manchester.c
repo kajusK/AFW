@@ -60,3 +60,16 @@ void test_ManchesterDecode_invalid_data(void)
     bool result = ManchesterDecode(output, input, sizeof(input));
     TEST_ASSERT_FALSE(result);
 }
+
+void test_ManchesterEncodeDecode(void)
+{
+    const uint32_t input[] = { 0x56565555, 0xa5aa5959, 0xa56aa656, 0x966aa55a, 0xa56959a9,
+        0x65655699, 0x6a6a6a5a, 0x665a59a5, 0xa555a955, 0x5a956566, 0xa5959956, 0x9966959a,
+        0x66956a66 };
+    const uint32_t encoded[(sizeof(input) * 2) / 4];
+    const uint32_t decoded[(sizeof(input)) / 4];
+
+    ManchesterEncode((uint8_t *)encoded, (uint8_t *)input, sizeof(input));
+    TEST_ASSERT_TRUE(ManchesterDecode((uint8_t *)decoded, (uint8_t *)encoded, sizeof(input) * 2));
+    TEST_ASSERT_EQUAL_HEX32_ARRAY(input, decoded, sizeof(input) / 4);
+}

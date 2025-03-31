@@ -28,7 +28,7 @@ static const uint8_t encodeTable[] = {
     0x55,
 };
 
-void ManchesterEncode(uint8_t *output, uint8_t *input, uint32_t len)
+void ManchesterEncode(uint8_t *output, const uint8_t *input, uint32_t len)
 {
     while (len-- > 0) {
         *output++ = encodeTable[(*input >> 4) & 0x0f];
@@ -37,7 +37,7 @@ void ManchesterEncode(uint8_t *output, uint8_t *input, uint32_t len)
     }
 }
 
-bool ManchesterDecode(uint8_t *output, uint8_t *input, uint32_t len)
+bool ManchesterDecode(uint8_t *output, const uint8_t *input, uint32_t len)
 {
     if ((len & 0x01) != 0) {
         return false;

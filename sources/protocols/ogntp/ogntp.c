@@ -53,7 +53,7 @@ typedef struct __attribute__((packed)) {
             uint32_t time_s     : 6;  /**< UTC second, 0-59 */
             uint32_t fix_quality: 2;  /**< GPS fix quality, 0=no fix, 1=GPS, 2=D-GPS */
             int32_t longitude   : 24; /**< Longitude in minutes * 10000 >> 4 */
-            uint32_t dop        : 6;  /**< GPS dilution of precision, 0.1 m */
+            uint32_t dop        : 6;  /**< GPS dilution of precision, 0.1 unit */
             uint32_t
                 baro_msb: 1; /**< Negated bit 8 of the altitude difference between baro and GPS */
             uint32_t fix_mode: 1;  /**< GPS fix type, 0=2D, 1=3D*/
@@ -85,6 +85,11 @@ static int32_t encodeLatitude(nmea_float_t latitude)
     return result >> 3;
 }
 
+static nmea_float_t decodeLatitude(int32_t value)
+{
+    return (nmea_float_t){ ((value << 3) + 4) / 60, 10000 };
+}
+
 /**
  * Encode longitude from decimal degrees to OGN format
  *
@@ -95,6 +100,11 @@ static int32_t encodeLongitude(nmea_float_t longitude)
 {
     int32_t result = (int64_t)longitude.num * 60 * 10000 / longitude.scale;
     return result >> 4;
+}
+
+static nmea_float_t decodeLongitude(int32_t value)
+{
+    return (nmea_float_t){ ((value << 4) + 8) / 60, 10000 };
 }
 
 /**
@@ -108,15 +118,24 @@ static uint16_t encodeAltitude(int32_t alt_m)
     return encodeToUint14(value);
 }
 
+static int32_t decodeAltitude(uint16_t value)
+{
+    return decodeFromUint14(value);
+}
+
 /**
  * Encode speed to OGN 10 bits format
  *
  * @param speed_dms Speed in 0.1 m/s unit, 0 to 383.2 m/s
  */
-static uint16_t encodeSpeed(int32_t speed_dms)
+static uint16_t encodeSpeed(uint32_t speed_dms)
 {
-    uint16_t value = speed_dms > 0 ? speed_dms : 0;
-    return encodeToUint10(value);
+    return encodeToUint10(speed_dms);
+}
+
+static uint32_t decodeSpeed(uint16_t value)
+{
+    return decodeFromUint10(value);
 }
 
 /**
@@ -126,7 +145,12 @@ static uint16_t encodeSpeed(int32_t speed_dms)
  */
 static uint8_t encodeDOP(uint8_t dop_d)
 {
-    return encodeToUint4(dop_d - 10);
+    return encodeToUint6(dop_d - 10);
+}
+
+static uint8_t decodeDOP(uint8_t value)
+{
+    return decodeFromUint6(value) + 10;
 }
 
 /**
@@ -139,6 +163,11 @@ static uint16_t encodeHeading(uint16_t heading_ddeg)
     return (((uint32_t)heading_ddeg << 10) + 180) / 3600;
 }
 
+static uint16_t decodeHeading(uint16_t value)
+{
+    return ((value * 3600) - 180) >> 10;
+}
+
 /**
  * Encode turn rate to OGN 8 bit format
  *
@@ -147,6 +176,11 @@ static uint16_t encodeHeading(uint16_t heading_ddeg)
 static uint8_t encodeTurnRate(int16_t rate_ddegs)
 {
     return encodeSignedToUint8(rate_ddegs);
+}
+
+static int16_t decodeTurnRate(uint8_t value)
+{
+    return decodeSignedFromUint8(value);
 }
 
 /**
@@ -159,6 +193,11 @@ static uint8_t encodeClimbRate(int16_t rate_dms)
     return encodeSignedToUint9(rate_dms);
 }
 
+static int16_t decodeClimbRate(int8_t value)
+{
+    return decodeSignedFromUint9(value);
+}
+
 /** Calculate parity bit (even parity) for header (first 28 bits)*/
 static bool getParityBit(const packet_v1_t *packet)
 {
@@ -169,31 +208,29 @@ static bool getParityBit(const packet_v1_t *packet)
  * Encode positional data into OGN packet structure
  *
  * @param packet    Encode data to this memory address
- * @param address   OGN address, 24 bits
- * @param gps       Current GPS data
+ * @param position  Data to be encoded
  */
-static void fillPositionPacket(packet_v1_t *packet, const ogntp_aircraft_t *aircraft,
-    const gps_info_t *gps)
+static void fillPositionPacket(packet_v1_t *packet, const ogntp_position_t *position)
 {
     memset(packet, 0x0, sizeof(packet_v1_t));
-    packet->header.emergency = 0;
+    packet->header.emergency = position->emergency;
     packet->header.encrypted = 0;
-    packet->header.relay = 0;   // direct packet
+    packet->header.relay = position->relay_cnt;
     packet->header.non_pos = 0; // positional data
-    packet->header.addr_type = aircraft->addr_type;
-    packet->header.address = aircraft->address & 0x00ffffff;
-    packet->position.aircraft_type = aircraft->type;
+    packet->header.addr_type = position->aircraft.addr_type;
+    packet->header.address = position->aircraft.address & 0x00ffffff;
+    packet->position.aircraft_type = position->aircraft.type;
     packet->position.stealth_flag = 0;
 
-    packet->position.latitude = encodeLatitude(gps->latitude);
-    packet->position.longitude = encodeLongitude(gps->longitude);
-    packet->position.altitude = encodeAltitude((gps->altitude_dm + 5) / 10);
-    packet->position.speed = encodeSpeed(gps->speed_dms);
-    packet->position.heading = encodeHeading(gps->heading_ddeg);
-    packet->position.dop = encodeDOP(gps->hdop_d);
-    packet->position.fix_quality = gps->fix_quality > 0x03 ? 0x03 : gps->fix_quality;
-    packet->position.fix_mode = gps->is_3d_fix;
-    packet->position.time_s = gps->time.second;
+    packet->position.latitude = encodeLatitude(position->latitude);
+    packet->position.longitude = encodeLongitude(position->longitude);
+    packet->position.altitude = encodeAltitude((position->gps_altitude_dm + 5) / 10);
+    packet->position.speed = encodeSpeed(position->speed_dms);
+    packet->position.heading = encodeHeading(position->heading_ddeg);
+    packet->position.dop = encodeDOP(position->dop_d);
+    packet->position.fix_quality = position->fix_quality > 0x03 ? 0x03 : position->fix_quality;
+    packet->position.fix_mode = position->is_3d_fix;
+    packet->position.time_s = position->time_s;
 
     packet->position.turn_rate = 0x80;   // not available
     packet->position.climb_rate = 0x100; // not available
@@ -204,12 +241,63 @@ static void fillPositionPacket(packet_v1_t *packet, const ogntp_aircraft_t *airc
     packet->header.parity = getParityBit(packet);
 }
 
-void OGNTP_EncodePosition(uint8_t buffer[OGNTP_FRAME_BYTES], const ogntp_aircraft_t *aircraft,
-    const gps_info_t *gps)
+/**
+ * Read OGN packet structure into positional data
+ *
+ * @param packet    Encoded packet
+ * @param position  Decode packet here
+ */
+static void readPositionPacket(const packet_v1_t *packet, ogntp_position_t *position)
+{
+    memset(position, 0x0, sizeof(ogntp_position_t));
+
+    position->aircraft.address = packet->header.address;
+    position->aircraft.addr_type = packet->header.addr_type;
+    position->aircraft.type = packet->position.aircraft_type;
+
+    position->emergency = packet->header.emergency;
+    position->relay_cnt = packet->header.relay;
+
+    position->latitude = decodeLatitude(packet->position.latitude);
+    position->longitude = decodeLongitude(packet->position.longitude);
+    position->gps_altitude_dm = decodeAltitude(packet->position.altitude) * 10;
+    position->speed_dms = decodeSpeed(packet->position.speed);
+    position->heading_ddeg = decodeHeading(packet->position.heading);
+    position->dop_d = decodeDOP(packet->position.dop);
+
+    position->fix_quality = packet->position.fix_quality;
+    position->is_3d_fix = packet->position.fix_mode;
+    position->time_s = packet->position.time_s;
+}
+
+void OGNTP_EncodePosition(uint8_t buffer[OGNTP_FRAME_BYTES], const ogntp_position_t *position)
 {
     packet_v1_t packet;
-    fillPositionPacket(&packet, aircraft, gps);
+    fillPositionPacket(&packet, position);
     whitenPayload((uint8_t *)packet.data);
     getFCS((uint8_t *)&packet, packet.fec);
     ManchesterEncode(buffer, (uint8_t *)&packet, sizeof(packet));
+}
+
+bool OGNTP_DecodePosition(const uint8_t buffer[OGNTP_FRAME_BYTES], ogntp_position_t *position)
+{
+    packet_v1_t packet;
+    if (!ManchesterDecode((uint8_t *)&packet, buffer, OGNTP_FRAME_BYTES)) {
+        return false;
+    }
+    if (!isFCSValid((uint8_t *)&packet, packet.fec)) {
+        return false;
+    }
+    if (packet.header.parity != getParityBit(&packet)) {
+        return false;
+    }
+    if (packet.header.encrypted) {
+        return false;
+    }
+    if (packet.header.non_pos) {
+        return false;
+    }
+    dewhitenPayload((uint8_t *)packet.data);
+    readPositionPacket(&packet, position);
+    return true;
 }
