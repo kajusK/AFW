@@ -14,11 +14,6 @@
 void Fw_Run(void);
 
 /**
- * Reboot the MCU
- */
-void Fw_Reboot(void);
-
-/**
  * Initialize FW update and erase FW area
  *
  * @param major     Major fw version

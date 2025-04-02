@@ -17,6 +17,7 @@
 #include <libopencm3/cm3/cortex.h>
 #include "utils/crc.h"
 #include "hal/flash.h"
+#include "hal/reloc.h"
 #include "modules/fw.h"
 #include "app.h"
 
@@ -25,8 +26,6 @@ extern const char *fw_img_addr;
 extern const char *fw_img2_addr;
 extern const char *fw_img_size;
 
-/** Start of RAM memory */
-#define FW_RAM_START          0x20000000U
 /** Image Header size */
 #define FW_HDR_SIZE           0x80U /* align at 7 bits for VTOR settings */
 /** Size of the image area including fw header, aligned to page boundary */
@@ -68,67 +67,6 @@ const fw_version_t fw_version = { FW_MAJOR, FW_MINOR, FW_MAGIC };
 typedef void (*app_t)(void);
 
 static fw_update_t fwi_update;
-
-/**
- * Replace current vector table with fw image one
- *
- * @param addr      Address of the firmware image vector table (address 0)
- */
-static void Fwi_RelocateVectors(uint32_t addr)
-{
-    uint32_t cpuid = SCB_CPUID;
-    if (((cpuid & SCB_CPUID_IMPLEMENTER) >> SCB_CPUID_IMPLEMENTER_LSB) == 0x41 &&
-        ((cpuid & SCB_CPUID_VARIANT) >> SCB_CPUID_VARIANT_LSB) == 0x00 &&
-        ((cpuid & SCB_CPUID_CONSTANT) >> SCB_CPUID_CONSTANT_LSB) == 0xc &&
-        ((cpuid & SCB_CPUID_PARTNO) >> SCB_CPUID_PARTNO_LSB) == 0xc20)
-    {
-        /*
-         * The Cortex-M0 doesn't have VTOR register, move vector table
-         * to beggining of RAM and remap RAM to address 0x0
-         * In this case, first XY bytes of RAM must be reserved in image linker
-         */
-        /* Cortex-M0 has 48 interrupt handlers, 4 bytes wide */
-        memcpy((void *)FW_RAM_START, (void *)addr, 0xC0);
-
-        /* Clock for SYSCFG must be enabled for remmaping to work */
-        rcc_periph_clock_enable(RCC_SYSCFG_COMP);
-
-        /* Remap RAM to 0x0 */
-        SYSCFG_CFGR1 &= SYSCFG_CFGR1_MEM_MODE;
-        SYSCFG_CFGR1 |= SYSCFG_CFGR1_MEM_MODE_SRAM;
-    } else {
-        /* If running other core than M0, the VTOR can be use to point to a new
-         * vector table. The address must be 7 bit aligned though */
-        ASSERT((addr & 0x7f) == 0);
-        SCB_VTOR = addr << SCB_VTOR_TBLOFF_LSB;
-    }
-}
-
-/**
- * Set stack pointer and jump to fw image on given address
- *
- * @param address   Address of the image in the flash memory
- */
-static void Fwi_JumpToApp(uint32_t addr)
-{
-    uint32_t app = *((uint32_t *)(addr + 4));
-    uint32_t sp = *((uint32_t *)addr);
-
-    /* Disable all interrupts */
-    for (uint8_t i = 0; i < NVIC_IRQ_COUNT; i++) {
-        nvic_disable_irq(i);
-    }
-    /*
-     * Memory/instruction barrier to make sure pending interrupts
-     * were not triggered
-     */
-    asm volatile("dsb");
-    asm volatile("isb");
-
-    Fwi_RelocateVectors(addr);
-    asm volatile("mov sp, %0" : : "r"(sp));
-    asm volatile("bx %0" : : "r"(app));
-}
 
 /**
  * Load image header
@@ -211,15 +149,7 @@ void Fw_Run(void)
         Fwi_CopyImage();
     }
 
-    Fwi_JumpToApp(FW_IMG_DATA_ADDR(0));
-}
-
-void Fw_Reboot(void)
-{
-    scb_reset_system();
-    while (1) {
-        ;
-    }
+    Reloc_RunFwBinary(FW_IMG_DATA_ADDR(0));
 }
 
 bool Fw_UpdateInit(uint16_t crc, uint32_t len)
