@@ -1,267 +1,243 @@
 /**
- * @file    modules/fw.c
+ * @file    fw.c
  * @brief   Firmware upgrade module
- *
- * We use two separate images, one is used to launch the application, the second
- * is used to store the data during the FW update. The bootloader decides if the
- * data in the second partition are valid and if so, the second partition
- * is copied to the first one and booted. Else the first partition is booted
- * directly
  */
-#include <string.h>
+
 #include <types.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/syscfg.h>
-#include <libopencm3/cm3/scb.h>
-#include <libopencm3/cm3/nvic.h>
-#include <libopencm3/cm3/cortex.h>
-#include "utils/crc.h"
 #include "hal/flash.h"
 #include "hal/reloc.h"
-#include "modules/fw.h"
-#include "app.h"
+#include "utils/crc.h"
+#include "fw.h"
 
 /* These symbols are to be defined in a linker file */
-extern const char *fw_img_addr;
-extern const char *fw_img2_addr;
-extern const char *fw_img_size;
+extern const char *_fw_runtime_addr;
+extern const char *_fw_slot_size;
+extern const char *_fw_upgrade_addr;
 
-/** Image Header size */
-#define FW_HDR_SIZE           0x80U /* align at 7 bits for VTOR settings */
-/** Size of the image area including fw header, aligned to page boundary */
-#define FW_IMG_SIZE           ((uint32_t)&fw_img_size)
-/** Max size of the image itself */
-#define FW_IMG_DATA_SIZE      (FW_IMG_SIZE - FW_HDR_SIZE)
-/** Address of the image header */
-#define FW_IMG_HDR_ADDR(img)  ((uint32_t)(img == 0 ? &fw_img_addr : &fw_img2_addr))
-/** Address of the image itself */
-#define FW_IMG_DATA_ADDR(img) (FW_IMG_HDR_ADDR(img) + FW_HDR_SIZE)
+/** Image Header size, align at 7 bits for VTOR settings */
+#define FW_HDR_SIZE     0x80U
+/** Size of the firmware slot, including header */
+#define FW_SLOT_SIZE    ((uint32_t)&_fw_slot_size)
+/** Address of the runtime slot */
+#define FW_RUNTIME_ADDR ((uint32_t)&_fw_runtime_addr)
+/** Address of the upgrade slot */
+#ifdef FW_USE_DUALSLOT
+#define FW_UPGRADE_ADDR ((uint32_t)&_fw_upgrade_addr)
+#else
+#define FW_UPGRADE_ADDR ((uint32_t)&_fw_runtime_addr)
+#endif
 
-/** Header describing stored firmware image */
-typedef struct {
-    uint32_t magic;
-    uint32_t len;
-    uint16_t crc;
+#ifndef FW_MAGIC
+#error "Define FW_MAGIC macro to identify compatible fw images"
+#endif
+
+/** FW image header */
+typedef struct __attribute__((__packed__)) {
+    uint32_t magic; /**< Unique identifier of compatible images */
+    uint32_t len;   /**< Length of the firmware image */
+    uint16_t crc;   /**< Checksum of the firmware image */
+    fw_meta_t meta; /**< Firmware image metadata */
 } fw_hdr_t;
 
-/** Firmware version information structure */
-typedef struct {
-    uint8_t major;
-    uint8_t minor;
-    uint32_t magic;
-} __attribute__((packed)) fw_version_t;
+/* Header must fit max header size */
+_Static_assert(sizeof(fw_hdr_t) == FW_HDR_SIZE, "fw_hdr_t must be FW_HDR_SIZE long");
 
-typedef struct {
-    uint16_t crc;
-    uint32_t len;
-    uint32_t last_erased;
-    uint32_t last_written;
-    bool running;
-} fw_update_t;
-
-/** Firmware version encoded in image binary */
-__attribute__((section(".fw_version")))
-const fw_version_t fw_version = { FW_MAJOR, FW_MINOR, FW_MAGIC };
-
-/** Pointer to application to jump to */
-typedef void (*app_t)(void);
-
-static fw_update_t fwi_update;
+/** Upgrade progress monitoring */
+static struct {
+    bool running;         /**< If true, upgrade is in progress */
+    uint32_t erase_addr;  /**< First unerased address */
+    uint32_t write_addr;  /**< Address to write incoming data to */
+    uint32_t written;     /**< Amount of bytes written */
+    uint8_t pending_byte; /**< Writes to flash must be 2 byte aligned, pending off byte to write
+                             from prev write */
+} update_state;
 
 /**
- * Load image header
+ * Check if the given address contains a valid image (crc, magic,...)
  *
- * @param img   Image number
- * @param hdr   Address to store header to
+ * @param addr  Address of the image header
  */
-static void Fwi_GetImgHeader(uint8_t img, fw_hdr_t *hdr)
+static bool isImgValid(uint32_t addr)
 {
-    uint8_t *src = (uint8_t *)FW_IMG_HDR_ADDR(img);
-    memcpy((uint8_t *)hdr, src, sizeof(fw_hdr_t));
+    const fw_hdr_t *hdr = (const fw_hdr_t *)addr;
+    uint16_t crc = 0;
+
+    if (hdr->magic != FW_MAGIC) {
+        return false;
+    }
+    if ((hdr->len + FW_HDR_SIZE) > FW_SLOT_SIZE) {
+        return false;
+    }
+
+    crc = CRC16((uint8_t *)(addr + FW_HDR_SIZE), hdr->len);
+    return hdr->crc == crc;
 }
 
+#ifdef FW_USE_DUALSLOT
 /**
- * Check if image has valid length and CRC is correct
+ * Copy firmware image from one flash address to another one
  *
- * @param img       Image number
- * @return True if valid
+ * @note Image length is read from image header, destination must be large enough
+ *
+ * @param target    Address in flash to copy image to
+ * @param source    Source address to copy image from
  */
-static bool Fwi_CheckImgValid(uint8_t img)
+static void copyImage(uint32_t target, uint32_t source)
 {
-    fw_hdr_t hdr;
-    uint16_t crc;
+    uint32_t page_size = Flashd_GetPageSize();
+    const fw_hdr_t *hdr = (const fw_hdr_t *)source;
+    uint32_t end = target + FW_HDR_SIZE + hdr->len;
 
-    Fwi_GetImgHeader(img, &hdr);
-
-    if (hdr.magic != FW_MAGIC) {
-        return false;
-    }
-    if (hdr.len > FW_IMG_DATA_SIZE) {
-        return false;
-    }
-
-    crc = CRC16((uint8_t *)FW_IMG_DATA_ADDR(img), hdr.len);
-    if (crc != hdr.crc) {
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * Copy the update image into runnable area
- */
-static void Fwi_CopyImage(void)
-{
-    fw_hdr_t hdr;
-    uint32_t end;
-    uint32_t page_size;
-    uint32_t addr = FW_IMG_HDR_ADDR(0);
-    uint8_t *p = (uint8_t *)FW_IMG_HDR_ADDR(1);
-
-    Fwi_GetImgHeader(1, &hdr);
-    end = FW_IMG_DATA_ADDR(1) + hdr.len;
-
-    page_size = Flashd_GetPageSize();
     Flashd_WriteEnable();
-    while ((uint32_t)p < end) {
-        Flashd_ErasePage(addr);
-        Flashd_Write(addr, p, page_size);
-        addr += page_size;
-        p += page_size;
+    while (source < end) {
+        uint32_t remaining = end - source;
+        uint32_t bytes = page_size;
+        if (remaining < page_size) {
+            bytes = remaining;
+        }
+
+        Flashd_ErasePage(target);
+        Flashd_Write(target, source, bytes);
+        source += bytes;
+        target += bytes;
     }
     Flashd_WriteDisable();
 }
+#endif
 
-void Fw_Run(void)
+bool Fw_Run(void)
 {
-    fw_hdr_t hdr_run;
-    fw_hdr_t hdr_img;
-    bool img_valid;
+    bool runtime_valid = isImgValid(FW_RUNTIME_ADDR);
+#ifdef FW_USE_DUALSLOT
+    const fw_hdr_t *runtime = (const fw_hdr_t *)FW_RUNTIME_ADDR;
+    const fw_hdr_t *upgrade = (const fw_hdr_t *)FW_UPGRADE_ADDR;
+    bool upgrade_valid = isImgValid(FW_UPGRADE_ADDR);
 
-    Fwi_GetImgHeader(0, &hdr_run);
-    Fwi_GetImgHeader(1, &hdr_img);
-    img_valid = Fwi_CheckImgValid(1);
-
-    if ((hdr_run.crc != hdr_img.crc) && img_valid) {
-        Fwi_CopyImage();
-    } else if (!Fwi_CheckImgValid(0) && img_valid) {
-        Fwi_CopyImage();
+    if (upgrade_valid && ((runtime->crc != upgrade->crc) || !runtime_valid)) {
+        copyImage(FW_RUNTIME_ADDR, FW_UPGRADE_ADDR);
     }
-
-    Reloc_RunFwBinary(FW_IMG_DATA_ADDR(0));
-}
-
-bool Fw_UpdateInit(uint16_t crc, uint32_t len)
-{
-    uint32_t addr = FW_IMG_HDR_ADDR(1);
-    /* Image must start at page boundary */
-    ASSERT(addr % Flashd_GetPageSize() == 0);
-
-    if (len > FW_IMG_DATA_SIZE) {
+#endif
+    if (!runtime_valid) {
         return false;
     }
+    Reloc_RunFwBinary(FW_RUNTIME_ADDR + FW_HDR_SIZE);
+    return true; // just to make compiler happy
+}
 
-    fwi_update.crc = crc;
-    fwi_update.last_erased = addr + Flashd_GetPageSize();
-    fwi_update.last_written = 0;
-    fwi_update.len = len;
-    fwi_update.running = true;
-
+bool Fw_UpdateInit(void)
+{
+    if (update_state.running) {
+        return false;
+    }
+    update_state.erase_addr = FW_UPGRADE_ADDR;
+    update_state.write_addr = FW_UPGRADE_ADDR;
+    update_state.written = 0;
+    update_state.running = true;
     Flashd_WriteEnable();
-    /* Erase image header */
-    Flashd_ErasePage(addr);
     return true;
 }
 
-bool Fw_Update(uint32_t addr, const uint8_t *buf, uint32_t len)
+bool Fw_Update(const uint8_t *buf, uint32_t len)
 {
-    static uint8_t add_byte;
-    uint32_t erase_end = FW_IMG_DATA_ADDR(1) + addr + len;
-    uint32_t write_addr = FW_IMG_DATA_ADDR(1) + addr;
-
-    if (!fwi_update.running) {
+    if (!update_state.running) {
         return false;
     }
-    if (addr != fwi_update.last_written || addr + len > fwi_update.len) {
-        Fw_UpdateAbort();
+    if ((update_state.write_addr + len) > (FW_UPGRADE_ADDR + FW_SLOT_SIZE)) {
         return false;
     }
-
-    while (fwi_update.last_erased < erase_end) {
-        Flashd_ErasePage(fwi_update.last_erased);
-        fwi_update.last_erased += Flashd_GetPageSize();
+    if ((update_state.written == 0) && (len >= sizeof(uint32_t))) {
+        // Validate image starts with a valid magic constant
+        uint32_t *magic = (uint32_t *)buf;
+        if (*magic != FW_MAGIC) {
+            return false;
+        }
     }
 
-    fwi_update.last_written += len;
-    /* Flash has to be written in 2 byte chunks on even addresses */
-    if (len && write_addr & 0x1) {
-        uint16_t val = (*buf) << 8 | add_byte;
-        Flashd_Write(write_addr - 1, (uint8_t *)&val, 2);
+    while (update_state.erase_addr < (update_state.write_addr + len)) {
+        Flashd_ErasePage(update_state.erase_addr);
+        update_state.erase_addr += Flashd_GetPageSize();
+    }
+
+    // There's a pending byte to be written from previous call, 2 byte aligned flash writes
+    if ((len != 0) && (update_state.written & 0x1UL)) {
+        uint8_t payload[2];
+        payload[0] = update_state.pending_byte;
+        payload[1] = buf[0];
+        Flashd_Write(update_state.write_addr, payload, 2);
+
         len--;
         buf++;
-        write_addr++;
+        update_state.written++;
+        update_state.write_addr++;
     }
-    if (len & 0x1 && addr + len < fwi_update.len) {
+    if (len & 0x1UL) {
+        update_state.pending_byte = buf[len - 1];
+        update_state.written++;
         len--;
-        add_byte = *(buf + len);
     }
-    Flashd_Write(write_addr, buf, len);
-    return true;
-}
+    Flashd_Write(update_state.write_addr, buf, len);
+    update_state.written += len;
 
-void Fw_UpdateAbort(void)
-{
-    if (fwi_update.running) {
-        fwi_update.running = false;
-        Flashd_WriteDisable();
-    }
+    return true;
 }
 
 bool Fw_UpdateFinish(void)
 {
-    uint16_t crc;
-    fw_hdr_t hdr;
-
-    if (!fwi_update.running) {
+    if (!update_state.running) {
         return false;
     }
-    if (fwi_update.last_written != fwi_update.len) {
-        Fw_UpdateAbort();
-        return false;
+    // 2 byte aligned writes, one pending byte remaining
+    if (update_state.written & 0x1UL) {
+        Flashd_Write(update_state.write_addr, &update_state.pending_byte, 1);
     }
 
-    crc = CRC16((uint8_t *)FW_IMG_DATA_ADDR(1), fwi_update.len);
-    if (fwi_update.crc != crc) {
-        Fw_UpdateAbort();
-        return false;
-    }
-
-    fwi_update.running = false;
-    hdr.crc = fwi_update.crc;
-    hdr.len = fwi_update.len;
-    hdr.magic = FW_MAGIC;
-
-    Flashd_Write(FW_IMG_HDR_ADDR(1), (uint8_t *)&hdr, sizeof(hdr));
+    update_state.running = false;
     Flashd_WriteDisable();
-    return true;
+    return isImgValid(FW_UPGRADE_ADDR);
 }
 
 bool Fw_UpdateIsRunning(void)
 {
-    return fwi_update.running;
+    return update_state.running;
 }
 
-uint8_t *Fw_GetCurrent(uint32_t *length, uint32_t *crc)
+bool Fw_IsUpdateNeeded(const uint8_t *buf, uint32_t len)
 {
-    fw_hdr_t hdr;
-    Fwi_GetImgHeader(0, &hdr);
+    const fw_hdr_t *update = (const fw_hdr_t *)buf;
+    const fw_hdr_t *runtime = (const fw_hdr_t *)FW_RUNTIME_ADDR;
 
-    if (length != NULL) {
-        *length = hdr.len;
+    if (len < (sizeof(fw_hdr_t) - sizeof(fw_meta_t))) {
+        // not enough data
+        return false;
     }
-    if (crc != NULL) {
-        *crc = hdr.crc;
+    if (update->magic != FW_MAGIC) {
+        return false;
     }
-    return (uint8_t *)FW_IMG_DATA_ADDR(0);
+
+    if (!isImgValid(FW_RUNTIME_ADDR)) {
+        return true;
+    }
+    return runtime->crc != update->crc;
+}
+
+const fw_meta_t *Fw_GetFwMeta(void)
+{
+    const fw_hdr_t *hdr = (const fw_hdr_t *)FW_RUNTIME_ADDR;
+    if (hdr->magic != FW_MAGIC) {
+        return NULL;
+    }
+    return &hdr->meta;
+}
+
+const uint8_t *Fw_GetImageAddr(uint32_t *len)
+{
+    const fw_hdr_t *hdr = (const fw_hdr_t *)FW_RUNTIME_ADDR;
+    if (hdr->magic != FW_MAGIC) {
+        return NULL;
+    }
+
+    if (len != NULL) {
+        *len = hdr->len + FW_HDR_SIZE;
+    }
+    return (uint8_t *)FW_RUNTIME_ADDR;
 }

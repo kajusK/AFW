@@ -6,7 +6,7 @@
  */
 
 #include <string.h>
-#include <modules/fw.h>
+#include "fw.h"
 #include "uf2.h"
 
 #define UF2_MAGIC_1     0x0A324655
@@ -34,38 +34,31 @@ typedef struct {
     uint32_t magicEnd;
 } UF2_block_t;
 
-typedef struct {
-    uint16_t crc;
-    uint32_t len;
-} __attribute__((packed)) UF2_fw_header_t;
-
 bool UF2_Write(const uint8_t *data)
 {
     UF2_block_t *block = (UF2_block_t *)data;
-    UF2_fw_header_t *header;
 
     if (block->magicStart0 != 0x0A324655 || block->magicStart1 != 0x9E5D5157 ||
         block->magicEnd != 0x0AB16F30)
     {
         return false;
     }
-    /* First block should be 'not main flash' with 2 bytes crc and 4 bytes length */
-    if (block->flags & UF2_FLAG_NOT_MAIN_FLASH && !Fw_UpdateIsRunning() && block->blockNo == 0 &&
-        block->payloadSize == 6)
-    {
-        header = (UF2_fw_header_t *)block->data;
-        Fw_UpdateInit(header->crc, header->len);
-        return true;
-    }
     if (block->flags & (UF2_FLAG_NOT_MAIN_FLASH | UF2_FLAG_FILE_CONTAINER)) {
         return true;
     }
     if (!Fw_UpdateIsRunning()) {
-        return false;
+        if (block->blockNo == 0) {
+            Fw_UpdateInit();
+        } else {
+            return false;
+        }
     }
 
-    Fw_Update(block->targetAddr, block->data, block->payloadSize);
     /* let's assume we are sending block in correct order */
+    if (!Fw_Update(block->data, block->payloadSize)) {
+        Fw_UpdateFinish();
+        return false;
+    }
     if (block->blockNo == block->numBlocks - 1) {
         Fw_UpdateFinish();
     }
@@ -74,13 +67,12 @@ bool UF2_Write(const uint8_t *data)
 
 bool UF2_Read(uint8_t *data, uint32_t offset)
 {
-    uint32_t len, crc;
+    uint32_t len = 0;
     UF2_block_t *block = (UF2_block_t *)data;
-    UF2_fw_header_t *header;
-    uint8_t *p = Fw_GetCurrent(&len, &crc);
-    uint32_t addr = (offset - 1) * UF2_CHUNK_SIZE;
+    const uint8_t *p = Fw_GetImageAddr(&len);
+    uint32_t addr = offset * UF2_CHUNK_SIZE;
 
-    if (offset != 0 && addr > len) {
+    if (addr > len || p == NULL) {
         return false;
     }
 
@@ -89,32 +81,23 @@ bool UF2_Read(uint8_t *data, uint32_t offset)
     block->magicStart1 = 0x9E5D5157;
     block->magicEnd = 0x0AB16F30;
     block->fileSize = len;
-    /* apply ceil, add 1 for non flash block with header */
-    block->numBlocks = (len + UF2_CHUNK_SIZE - 1) / UF2_CHUNK_SIZE + 1;
+    /* apply ceil */
+    block->numBlocks = (len + UF2_CHUNK_SIZE - 1) / UF2_CHUNK_SIZE;
     block->flags = 0;
     block->blockNo = offset;
 
-    if (offset == 0) {
-        block->flags = UF2_FLAG_NOT_MAIN_FLASH;
-        block->payloadSize = 6;
-        block->targetAddr = 0;
-        header = (UF2_fw_header_t *)block->data;
-        header->crc = crc;
-        header->len = len;
-    } else {
-        block->targetAddr = addr;
-        block->payloadSize = len - (offset - 1) * UF2_CHUNK_SIZE;
-        if (block->payloadSize > UF2_CHUNK_SIZE) {
-            block->payloadSize = UF2_CHUNK_SIZE;
-        }
-        memcpy(block->data, p + addr, block->payloadSize);
+    block->targetAddr = addr;
+    block->payloadSize = len - offset * UF2_CHUNK_SIZE;
+    if (block->payloadSize > UF2_CHUNK_SIZE) {
+        block->payloadSize = UF2_CHUNK_SIZE;
     }
+    memcpy(block->data, p + addr, block->payloadSize);
     return true;
 }
 
 uint32_t UF2_GetImgSize(void)
 {
-    uint32_t len;
-    (void)Fw_GetCurrent(&len, NULL);
-    return ((len + UF2_CHUNK_SIZE - 1) / UF2_CHUNK_SIZE + 1) * 512;
+    uint32_t len = 0;
+    (void)Fw_GetImageAddr(&len);
+    return ((len + UF2_CHUNK_SIZE - 1) / UF2_CHUNK_SIZE) * 512;
 }
