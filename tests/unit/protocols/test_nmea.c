@@ -1,5 +1,5 @@
 #include <unity.h>
-#include "modules/nmea.c"
+#include "protocols/nmea.c"
 
 void test_Hex2Dec(void)
 {

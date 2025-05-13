@@ -9,19 +9,7 @@
 #include <types.h>
 #include <time.h>
 #include "utils/ringbuf.h"
-#include "modules/nmea.h"
-
-typedef enum {
-    GPS_FIX_NOT_VALID = 0, /**< GPS fix is not valid */
-    GPS_FIX_GPS = 1,       /**< Standard GPS */
-    GPS_FIX_DGPS = 2,      /**< Differential GPS */
-    GPS_FIX_PPS = 3,       /**< Precision position system */
-    GPS_FIX_RTK = 4,       /**< Real time kinematics, fixed */
-    GPS_FIX_RTKF = 5,      /**< Real time kinematics, float */
-    GPS_FIX_RECKONING = 6, /**< Dead time reckoning */
-    GPS_FIX_MANUAL = 7,    /**< Manual position input */
-    GPS_FIX_SIMULATED = 8, /**< Simulated position input */
-} gps_fix_quality_t;
+#include "protocols/nmea.h"
 
 typedef struct {
     uint32_t timestamp;     /**< Millis timestamp when the gps fix was obtained */
@@ -34,8 +22,8 @@ typedef struct {
     int32_t speed_dms;      /**< Ground speed in dm/s */
     int32_t hdop_d;         /**< Horizontal dilution of precision in 0.1 units, 1.0 to infinity */
     uint8_t satellites;     /**< Amount of used satellites */
-    gps_fix_quality_t fix_quality; /**< Quality of the current GPS fix */
-    bool is_3d_fix;                /**< Enough satellites for valid 3D fix obtained */
+    nmea_fix_quality_t fix_quality; /**< Quality of the current GPS fix */
+    bool is_3d_fix;                 /**< Enough satellites for valid 3D fix obtained */
 } gps_info_t;
 
 typedef struct {

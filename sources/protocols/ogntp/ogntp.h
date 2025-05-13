@@ -15,7 +15,7 @@
 #define _PROTOCOL_OGNTP_H_
 
 #include <types.h>
-#include "drivers/gps.h"
+#include "protocols/nmea.h"
 #include "utils/nav.h"
 
 /** Length of the OGN frame in bytes */

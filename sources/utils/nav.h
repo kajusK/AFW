@@ -7,7 +7,7 @@
 #define __UTILS_NAV_H
 
 #include <types.h>
-#include "modules/nmea.h"
+#include "protocols/nmea.h"
 
 /** World regions */
 typedef enum {

@@ -32,7 +32,7 @@ void test_EncodePosition(void)
         .heading_ddeg = 3422, // 342.2 degrees
         .dop_d = 128,        // 12.8
         .is_3d_fix = true,
-        .fix_quality = GPS_FIX_DGPS,
+        .fix_quality = NMEA_FIX_DGPS,
     };
 
     OGNTP_EncodePosition(buffer, &position);
@@ -64,7 +64,7 @@ void test_DecodePosition(void)
     TEST_ASSERT_EQUAL(3420, position.heading_ddeg);
     TEST_ASSERT_EQUAL(126, position.dop_d);
     TEST_ASSERT_EQUAL(true, position.is_3d_fix);
-    TEST_ASSERT_EQUAL(GPS_FIX_DGPS, position.fix_quality);
+    TEST_ASSERT_EQUAL(NMEA_FIX_DGPS, position.fix_quality);
 }
 
 void test_DecodeInvalidManchester(void)

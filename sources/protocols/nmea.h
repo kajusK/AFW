@@ -1,5 +1,5 @@
 /**
- * @file    modules/nmea.h
+ * @file    protocols/nmea.h
  * @brief   NMEA 0183 messages parser
  */
 
@@ -32,6 +32,18 @@ typedef struct {
     int32_t scale;
 } nmea_float_t;
 
+typedef enum {
+    NMEA_FIX_NOT_VALID = 0, /**< GPS fix is not valid */
+    NMEA_FIX_GPS = 1,       /**< Standard GPS */
+    NMEA_FIX_DGPS = 2,      /**< Differential GPS */
+    NMEA_FIX_PPS = 3,       /**< Precision position system */
+    NMEA_FIX_RTK = 4,       /**< Real time kinematics, fixed */
+    NMEA_FIX_RTKF = 5,      /**< Real time kinematics, float */
+    NMEA_FIX_RECKONING = 6, /**< Dead time reckoning */
+    NMEA_FIX_MANUAL = 7,    /**< Manual position input */
+    NMEA_FIX_SIMULATED = 8, /**< Simulated position input */
+} nmea_fix_quality_t;
+
 /** Satellite in view info */
 typedef struct {
     uint8_t prn;       /**< Satellite PRN number, 1-32 for gps */
@@ -55,7 +67,7 @@ typedef struct {
     nmea_time_t fix_time;           /**< UTC time of GPS fix */
     nmea_float_t lat;               /**< Latitude in decimal degrees */
     nmea_float_t lon;               /**< Longitude in decimal degrees */
-    uint8_t quality;                /**< Fix quality 0 Fix not valid, 1 GPS, 2 Differential GPS */
+    nmea_fix_quality_t quality;     /**< Fix quality */
     uint8_t satellites;             /**< Number of satellites in use */
     nmea_float_t hdop;              /**< Horizontal dilution of precision, 1.0 to infinity */
     nmea_float_t altitude_m;        /**< Height above MSL in meters */

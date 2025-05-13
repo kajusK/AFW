@@ -1,5 +1,5 @@
 /**
- * @file    modules/nmea.c
+ * @file    protocols/nmea.c
  * @brief   NMEA 0183 messages parser
  *
  * NMEA message format taken from http://aprs.gids.nl/nmea/
@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 
-#include "modules/nmea.h"
+#include "nmea.h"
 
 #define NMEA_MAX_MSG_LEN 82
 #define Nmeai_IsEnd(c)   ((c) == ',' || (c) == '*' || (c) == '\0')
