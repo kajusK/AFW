@@ -101,7 +101,7 @@ static bool select(const sdspi_desc_t *desc)
  *
  * @param desc  Card descriptor
  * @param buf	Data buffer
- * @param bytes	Amount of bytes to receive
+ * @param bytes	Amount of bytes to receive (multiples of 4)
  *
  * @return Successfulness of the operation
  */
@@ -130,7 +130,7 @@ static bool readData(const sdspi_desc_t *desc, uint8_t *buf, uint32_t bytes)
  * Write a data block to the card
  *
  * @param desc  Card descriptor
- * @param buf	Data buffer (for 0xfd token), 512 bytes
+ * @param buff  Data buffer (for 0xfd token), 512 bytes
  * @param token Command token
  *
  * @return Successfulness of the operation
@@ -172,7 +172,7 @@ static bool writeData(const sdspi_desc_t *desc, const uint8_t *buff, uint8_t tok
  */
 static uint8_t writeCmd(const sdspi_desc_t *desc, uint8_t cmd, uint32_t arg)
 {
-    uint8_t n, resp, attempts;
+    uint8_t resp, attempts;
     uint8_t buf[6];
 
     if (cmd & 0x80) { // ACMD<n> is the command sequence of CMD55-CMD<n>
@@ -197,13 +197,12 @@ static uint8_t writeCmd(const sdspi_desc_t *desc, uint8_t cmd, uint32_t arg)
     buf[3] = (uint8_t)(arg >> 8);
     buf[4] = (uint8_t)arg;
 
-    n = 0x01; // Dummy CRC + Stop
+    buf[5] = 0x01; // Dummy CRC + Stop
     if (cmd == CMD0) {
-        n = 0x95; // valid CRC for CMD0(0)
+        buf[5] = 0x95; // valid CRC for CMD0(0)
     } else if (cmd == CMD8) {
-        n = 0x87; // valid CRC for CMD8(0x1AA)
+        buf[5] = 0x87; // valid CRC for CMD8(0x1AA)
     }
-    buf[5] = n;
     SPId_Send(desc->device, buf, 6);
 
     // Get command response
@@ -225,7 +224,7 @@ bool SDSPI_InitCard(sdspi_desc_t *desc)
 {
     spid_prescaler_t prescaler;
     uint32_t start_ts;
-    uint8_t type;
+    uint8_t type = 0;
     uint8_t cmd, buf[4];
 
     // SPI clock must be lower than 400 kHz in init mode
@@ -233,13 +232,11 @@ bool SDSPI_InitCard(sdspi_desc_t *desc)
     SPId_SetPrescaler(desc->device, SPID_PRESC_256);
 
     IOd_SetLine(desc->cs_port, desc->cs_pad, true);
-
     // Apply 80 dummy clocks to the card gets ready to receive commands
     for (uint8_t i = 0; i < 10; i++) {
         SPId_Transceive(desc->device, 0xff);
     }
 
-    type = 0;
     if (writeCmd(desc, CMD0, 0) == 1) { // Enter Idle state
         start_ts = millis();
         if (writeCmd(desc, CMD8, 0x1AA) == 1) {     // SDv2?
