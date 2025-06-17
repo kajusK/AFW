@@ -29,7 +29,6 @@
 #define REG_FRFLSB        0x09
 #define REG_OSC1          0x0A
 #define REG_AFCCTRL       0x0B
-#define REG_LOWBAT        0x0C
 #define REG_LISTEN1       0x0D
 #define REG_LISTEN2       0x0E
 #define REG_LISTEN3       0x0F
@@ -270,7 +269,7 @@ static void setHighPower(const rfm69_desc_t *desc, bool state)
  */
 static void setMode(const rfm69_desc_t *desc, rfm69_mode_t mode, bool wait)
 {
-    writeReg(desc, REG_OPMODE, mode);
+    writeReg(desc, REG_OPMODE, mode << 2);
     if (desc->high_power) {
         setHighPower(desc, mode == MODE_TX);
     }
@@ -336,7 +335,7 @@ void RFM69_SetFrameFormat(rfm69_desc_t *desc, const rfm69_frame_t *format)
 
     // (maximum) payload length
     writeReg(desc, REG_PAYLOADLENGTH, format->payload_len);
-    desc->payload_len = format->payload_len ? 0 : format->payload_len;
+    desc->payload_len = format->variable_len ? 0 : format->payload_len;
 
     // Preamble length
     writeReg16(desc, REG_PREAMBLEMSB, format->preamble_len);
@@ -364,7 +363,7 @@ void RFM69_SetFrameFormat(rfm69_desc_t *desc, const rfm69_frame_t *format)
 
 void RFM69_SetFrequencyHz(const rfm69_desc_t *desc, uint32_t freq_hz)
 {
-    uint32_t value = ((uint64_t)freq_hz * (1 << 19)) / FXOSC;
+    uint32_t value = ((uint64_t)freq_hz << 19) / FXOSC;
     uint8_t data[3];
 
     data[0] = value >> 16;
@@ -381,7 +380,8 @@ void RFM69_SetRadioConfig(const rfm69_desc_t *desc, const rfm69_config_t *config
     writeReg(desc, REG_DATAMODUL, config->modulation); // packet mode
     writeReg16(desc, REG_BITRATEMSB, FXOSC / config->bitrate_bps);
     writeReg16(desc, REG_FDEVMSB, ((uint64_t)config->freq_deviation_hz * (1 << 19)) / FXOSC);
-    writeReg(desc, REG_RXBW, config->rx_bw | 0x40); // RX filter bandwidth, cutoff at 4%
+    writeReg(desc, REG_RXBW, config->rx_bw | 0x40);  // RX filter bandwidth, cutoff at 4%
+    writeReg(desc, REG_AFCBW, config->rx_bw | 0x80); // AFC filter bandwidth, cutoff at TODO %
 }
 
 bool RFM69_IsChannelEmpty(const rfm69_desc_t *desc, int8_t threshold)
@@ -456,9 +456,9 @@ bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port, uint8_
 
     /* Reset the device */
     if (desc->reset_port != 0xff) {
-        IOd_SetLine(desc->reset_port, desc->reset_pad, false);
-        delay_ms(1);
         IOd_SetLine(desc->reset_port, desc->reset_pad, true);
+        delay_ms(1);
+        IOd_SetLine(desc->reset_port, desc->reset_pad, false);
         delay_ms(5);
     }
 
@@ -467,20 +467,25 @@ bool RFM69_Init(rfm69_desc_t *desc, uint8_t spi_device, uint32_t cs_port, uint8_
         return false;
     }
 
-    writeReg(desc, REG_OPMODE, MODE_STANDBY); // sequencer on, listen off, standby
-    writeReg(desc, REG_AUTOMODES, 0x0);       // auto modes off
+    writeReg(desc, REG_OPMODE, MODE_STANDBY << 2); // sequencer on, listen off, standby
+    writeReg(desc, REG_AUTOMODES, 0x0);            // auto modes off
     // FifoNotEmpty as tx start condition, FIFO threshold to default
     writeReg(desc, REG_FIFOTHRESH, (1 << 7) | 0x0f);
-    writeReg(desc, REG_LNA, 1 << 7);      // 50 ohm input impedance, auto LNA
+    writeReg(desc, REG_LNA, 0x08);        // 50 ohm input impedance, auto LNA
     writeReg(desc, REG_RSSITHRESH, 0xE4); // RSSI threshold = -114dBm
-    writeReg(desc, REG_TESTLNA, 0x2D);    // higher LNA sensitivity
-    writeReg(desc, REG_AFCFEI, 0x00);     // AfcAuto off
+    writeReg(desc, REG_TESTLNA, 0x1B);    // default LNA sensitivity
+
+    writeReg(desc, REG_AFCCTRL, 0x00);  // Standard AFC routine
+    writeReg(desc, REG_AFCFEI, 0x00);   // AfcAuto off
+    writeReg(desc, REG_TESTDAGC, 0x30); // Improved AFC margin
+
     /*
      * DIO0=01, DIO4=01, ClkOut=off
      * Rx: DIO0 = PayloadReady, DIO4 = Rssi
      * Tx: DIO0 = TxReady, DIO4 = TxReady
      */
     writeReg16(desc, REG_DIOMAPPING1, (0x01 << 14) | (0x01 << 6) | 0x07);
+    waitForIRQ(desc, IRQ_MODE_READY);
 
     return true;
 }

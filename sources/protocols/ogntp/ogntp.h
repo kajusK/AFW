@@ -5,9 +5,9 @@
  * Radio settings:
  *   100kbps bit rate
  *   +-50 kHz deviation
- *   243.3 kHz rxBandwidth
+ *   +- 125 kHz rxBandwidth
  *   NRZ encoding
- *   8 bits preamble length (0xAA)
+ *   8 bits/1 byte preamble length (0xAA)
  *   FSK modulation shaping BT=0.5
  */
 
