@@ -119,6 +119,16 @@ void test_Scan(void)
     TEST_ASSERT_FALSE(Nmeai_Scan("N,S", "D", &dir1));
 }
 
+void test_ScanLongFloat(void)
+{
+    nmea_float_t f1;
+
+    // number longer than uint32
+    TEST_ASSERT_TRUE(Nmeai_Scan("-01234.99999999999,", "f", &f1));
+    TEST_ASSERT_EQUAL(-1234999999, f1.num);
+    TEST_ASSERT_EQUAL(1000000, f1.scale);
+}
+
 void test_ParseRmc(void)
 {
     nmea_rmc_t rmc;

@@ -5,6 +5,7 @@
  * NMEA message format taken from http://aprs.gids.nl/nmea/
  */
 
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -160,10 +161,17 @@ static const char *Nmeai_ScanHelper(const char *msg, char format, va_list *ap)
                     i = 0;
                     scale = 1;
                     while (isdigit((unsigned char)*(msg + i))) {
+                        if (value * scale >= INT32_MAX / 10) {
+                            break;
+                        }
                         i++;
                         scale *= 10;
                     }
                     value = value * scale + Nmeai_Str2Dec(&msg, i);
+                }
+                // skip places that won't fit uint32
+                while (isdigit((unsigned char)*msg)) {
+                    msg++;
                 }
             }
             nmea_float_t *f = va_arg(*ap, nmea_float_t *);
