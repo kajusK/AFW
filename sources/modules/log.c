@@ -127,7 +127,7 @@ void Log_SetLevel(log_level_t level)
     logi_level = level;
 }
 
-void Log_Raw(log_level_t level, const char *source, const char *format, ...)
+void Log_AddLine(log_level_t level, const char *source, const char *format, ...)
 {
     va_list ap;
 
@@ -167,6 +167,16 @@ void Log_Raw(log_level_t level, const char *source, const char *format, ...)
     Logi_Printf(format, ap);
     va_end(ap);
     UARTd_Puts(logi_uart, "\r\n");
+}
+
+void Log_Raw(const char *str)
+{
+    UARTd_Puts(logi_uart, str);
+}
+
+void Log_RawChar(char c)
+{
+    UARTd_Putc(logi_uart, c);
 }
 
 void Log_Init(uint8_t uart_device)
