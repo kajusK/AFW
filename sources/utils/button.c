@@ -3,7 +3,7 @@
  * @brief   Button handling
  */
 
-#include <types.h>
+#include <string.h>
 #include "hal/io.h"
 #include "utils/time.h"
 #include "button.h"
@@ -36,7 +36,7 @@ static bool Buttoni_Debounce(button_t *button)
     return false;
 }
 
-button_event_t Button(button_t *button)
+button_event_t Button_Get(button_t *button)
 {
     bool current;
     ASSERT_NOT(button == NULL);
@@ -72,6 +72,7 @@ button_event_t Button(button_t *button)
 void Button_Init(button_t *button, uint32_t port, uint8_t pad, bool inverted)
 {
     ASSERT_NOT(button == NULL);
+    memset(button, 0x0, sizeof(button_t));
     button->port = port;
     button->pad = pad;
     button->inverted = inverted;

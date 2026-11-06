@@ -38,7 +38,7 @@ typedef enum {
  * @param button        Button description
  * @return Button events
  */
-button_event_t Button(button_t *button);
+button_event_t Button_Get(button_t *button);
 
 /**
  * Initialize button structure
